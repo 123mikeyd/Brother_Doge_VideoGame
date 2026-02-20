@@ -1,0 +1,2482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HODL OR DIE - Doge Survival Shooter</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #1a1a2e;
+            font-family: 'Comic Neue', cursive;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #gameCanvas {
+            background: #0f0f1e;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+        }
+        
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .hud {
+            position: absolute;
+            color: #ffd700;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        #healthBar {
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #c2c90efa;
+        }
+        
+        #coinDisplay {
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+            font-size: 24px;
+        }
+        
+        #waveDisplay {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            padding: 10px 30px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+            font-size: 24px;
+        }
+        
+        #weaponSlots {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+        }
+        
+        .weapon-slot {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #555;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            text-align: center;
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .weapon-slot.active {
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.2);
+        }
+        
+        .weapon-slot.filled {
+            background: rgba(100,200,100,0.3);
+        }
+        
+        #shopOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 30, 0.88);
+            display: none;
+            pointer-events: all;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffd700;
+        }
+        
+        #shopOverlay.visible {
+            display: flex;
+        }
+        
+        #shopTitle {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 0 #ff6b6b;
+        }
+        
+        #shopTitle.lucky {
+            color: #9dff7a;
+            text-shadow: 3px 3px 0 #2d6a2d;
+        }
+        
+        #shopContent {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .shopSection {
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #ffd700;
+            min-width: 250px;
+        }
+        
+        .shopSection h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        .shopStatsLine {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+            color: #f2f2f2;
+        }
+        
+        .shopStatsLine span:first-child {
+            color: #bbb;
+        }
+        
+        .shopItem {
+            background: rgba(255,255,255,0.1);
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .shopItem:hover {
+            background: rgba(255,215,0,0.2);
+            border-color: #ffd700;
+            transform: scale(1.05);
+        }
+        
+        .shopItem.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .shopItem .name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .shopItem .desc {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        .shopItem .price {
+            color: #ffd700;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+        
+        .shopItemHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .lock-btn {
+            border: 1px solid #666;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .shopItem.locked {
+            border-color: #4ecdc4;
+            box-shadow: 0 0 8px rgba(78,205,196,0.4);
+        }
+        
+        #refreshShop {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 10px;
+        }
+        
+        #refreshShop:hover {
+            background: #ff5252;
+        }
+        
+        #continueBtn {
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 20px;
+        }
+        
+        #continueBtn:hover {
+            background: #45b7aa;
+        }
+        
+        #breedSelect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 30, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffd700;
+            pointer-events: all;
+        }
+        
+        #breedSelect h1 {
+            font-size: 64px;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 0 #ff6b6b;
+        }
+        
+        .breedOptions {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .breedCard {
+            background: rgba(0,0,0,0.8);
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #ffd700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            width: 250px;
+        }
+        
+        .breedCard:hover {
+            transform: scale(1.1);
+            border-color: #4ecdc4;
+        }
+        
+        .breedCard h3 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        
+        .breedCard .stats {
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .breedCard .perk {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255,215,0,0.2);
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ff6b6b;
+            pointer-events: all;
+        }
+        
+        #gameOver.visible {
+            display: flex;
+        }
+        
+        #gameOver h1 {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+        
+        #gameOver button {
+            background: #ffd700;
+            color: #000;
+            border: none;
+            padding: 20px 40px;
+            font-size: 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 20px;
+        }
+        
+        #victory {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #4ecdc4;
+            pointer-events: all;
+        }
+        
+        #victory.visible {
+            display: flex;
+        }
+        
+        #victory h1 {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+        
+        .unlocks {
+            color: #ffd700;
+            font-size: 20px;
+            margin: 10px 0;
+        }
+        
+        #difficultyDisplay {
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            position: absolute;
+            color: #ff6b6b;
+            font-size: 16px;
+            text-shadow: 2px 2px 0 #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui">
+            <div id="healthBar" class="hud">❤️ <span id="healthText">100/100</span></div>
+            <div id="coinDisplay" class="hud">🪙 <span id="coinText">0</span></div>
+            <div id="waveDisplay" class="hud">WAVE <span id="waveText">1</span></div>
+            <div id="difficultyDisplay" class="hud">Difficulty: <span id="diffText">1</span></div>
+            <div id="weaponSlots" class="hud">
+                <div class="weapon-slot" id="slot0">1</div>
+                <div class="weapon-slot" id="slot1">2</div>
+                <div class="weapon-slot" id="slot2">3</div>
+                <div class="weapon-slot" id="slot3">4</div>
+            </div>
+        </div>
+        
+        <div id="breedSelect">
+            <h1>🐕 CHOOSE YOUR DOGE 🐕</h1>
+            <div class="breedOptions">
+                <div class="breedCard" onclick="selectBreed('yellow')">
+                    <h3>🟡 Yellow Doge</h3>
+                    <div class="stats">
+                        Speed: 115%<br>
+                        Luck: 130%<br>
+                        Damage: 85%<br>
+                        Health: 200%<br>
+                        Magnet: 90%<br>
+                        Regen: 1.0 HP/s
+                    </div>
+                    <div class="perk">
+                        <strong>Much Find:</strong><br>
+                        15% chance for bonus coins on kill
+                    </div>
+                </div>
+                <div class="breedCard" onclick="selectBreed('black')">
+                    <h3>⚫ Black Doge</h3>
+                    <div class="stats">
+                        Speed: 90%<br>
+                        Luck: 75%<br>
+                        Damage: 125%<br>
+                        Health: 180%<br>
+                        Magnet: 110%<br>
+                        Regen: 1.0 HP/s
+                    </div>
+                    <div class="perk">
+                        <strong>HODL Strike:</strong><br>
+                        +20% damage, -10% fire rate
+                    </div>
+                </div>
+                <div class="breedCard" onclick="selectBreed('grey')">
+                    <h3>⚪ Grey Doge</h3>
+                    <div class="stats">
+                        Luck: 100%<br>
+                        Damage: 100%<br>
+                        Speed: 105%<br>
+                        Dodge: 120%<br>
+                        Regen: 1.5 HP/s<br>
+                        Health: 200%<br>
+                        Magnet: 80%
+                    </div>
+                    <div class="perk">
+                        <strong>Doge Reflex:</strong><br>
+                        20% chance to dodge attacks
+                    </div>
+                </div>
+                <div class="breedCard" onclick="selectBreed('red')">
+                    <h3>🔴 Red Doge</h3>
+                    <div class="stats">
+                        Speed: 100%<br>
+                        Luck: 350%<br>
+                        Damage: 200%<br>
+                        Health: 500%<br>
+                        Magnet: 500%<br>
+                        Dodge: 300%<br>
+                        Regen: 5.0 HP/s
+                    </div>
+                    <div class="perk">
+                        <strong>Test Tank:</strong><br>
+                        Max health for testing
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="shopOverlay">
+            <div id="shopTitle">🛒 DOGE SHOP 🛒</div>
+            <div id="shopContent">
+                <div class="shopSection">
+                    <h3>🔫 Weapons</h3>
+                    <div id="weaponShop"></div>
+                </div>
+                <div class="shopSection">
+                    <h3>⭐ Perks</h3>
+                    <div id="perkShop"></div>
+                </div>
+                <div class="shopSection">
+                    <h3>📊 Your Stats</h3>
+                    <div id="shopStats"></div>
+                </div>
+            </div>
+            <button id="refreshShop" onclick="refreshShop()">🔄 Refresh Shop (50 🪙)</button>
+            <button id="continueBtn" onclick="nextWave()">▶️ Continue to Next Wave</button>
+        </div>
+        
+        <div id="gameOver">
+            <h1>💀 PAPER HANDS 💀</h1>
+            <p style="color: #fff; font-size: 24px;">You survived <span id="finalWave">0</span> waves</p>
+            <button onclick="restartGame()">🔄 Try Again</button>
+        </div>
+        
+        <div id="victory">
+            <h1>🚀 TO THE MOON! 🚀</h1>
+            <p style="color: #fff; font-size: 24px;">You defeated The Whale!</p>
+            <div id="unlocksContainer"></div>
+            <button onclick="startNewRun()">🎮 New Run (Difficulty <span id="nextDiff">2</span>)</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game state
+        let gameState = 'breedSelect'; // breedSelect, playing, shop, gameOver, victory
+        let difficulty = 1;
+        let currentWave = 1;
+        let maxWaves = 10;
+        let coins = 0;
+        let shopRefreshCost = 20;
+        let shopIsLucky = false;
+        let shopWeaponOffers = [];
+        let shopPerkOffers = [];
+        let lockedWeaponSlots = new Set();
+        let lockedPerkSlots = new Set();
+        let ownedPerkKeys = new Set();
+        let highRankPityCounter = 0;
+        let gameLoopId;
+        let lastTime = 0;
+        
+        // Arena dimensions
+        const ARENA_WIDTH = 800;
+        const ARENA_HEIGHT = 600;
+        
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = Math.min(window.innerWidth, ARENA_WIDTH);
+            canvas.height = Math.min(window.innerHeight, ARENA_HEIGHT);
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Input handling
+        const keys = {};
+        const mouse = { x: 0, y: 0, down: false };
+        
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+        });
+        
+        window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+        
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('mousedown', () => mouse.down = true);
+        canvas.addEventListener('mouseup', () => mouse.down = false);
+        
+        // Breeds
+        const breeds = {
+            yellow: {
+                name: 'Yellow Doge',
+                color: '#ffd700',
+                stats: { speed: 1.15, luck: 4.2, damage: 1.25, health: 2.0, magnet: 1.5, dodge: 1.3, regen: 3 },
+                perk: 'muchFind'
+            },
+            black: {
+                name: 'Black Doge',
+                color: '#2c2c2c',
+                stats: { speed: 0.9, luck: 2.1, damage: 1.5, health: 2.8, magnet: 3.2, dodge: 1.8, regen: 2 },
+                perk: 'hodlStrike'
+            },
+            grey: {
+                name: 'Grey Doge',
+                color: '#808080',
+                stats: { speed: 1.05, luck: 2.5, damage: 1.8, health: 3, magnet: 2.0, dodge: 1.2, regen: 1.5 },
+                perk: 'dogeReflex'
+            },
+            red: {
+                name: 'Red Doge',
+                color: '#d83a3a',
+                stats: { speed: 1.0, luck: 3.5, damage: 2.0, health: 5.0, magnet: 5.0, dodge: 3.0, regen: 5 },
+                perk: 'testTank'
+            }
+        };
+        
+        // Weapons
+        const weaponTypes = {
+            pistol: { name: 'Much Pistol', damage: 15, fireRate: 4, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, color: '#ffd700' },
+            rifle: { name: 'Very Rifle', damage: 38, fireRate: 3.5, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#4ecdc4' },
+            shotgun: { name: 'Wow Shotgun', damage: 18, fireRate: 1.5, range: 200, knockback: 3, explosive: 0, expSize: 0, pierce: 0, slow: 0, pellets: 4, spread: 0.2, color: '#ff6b6b' },
+            minigun: { name: 'So Minigun', damage: 20, fireRate: 10, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, movePenalty: 0.5, color: '#95e1d3' },
+            launcher: { name: 'Moon Launcher', damage: 60, fireRate: 1, range: 400, knockback: 5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181' },
+            piercer: { name: 'Diamond Piercer', damage: 65, fireRate: 3, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#aa96da' },
+            shredder: { name: 'Such Shuriken', damage: 12, fireRate: 11, range: 170, knockback: 0.2, explosive: 0, expSize: 0, pierce: 1, slow: 0.15, movePenalty: 0.05, color: '#d6dde8' },
+            cannon: { name: 'HODL Cannon', damage: 80, fireRate: 0.8, range: 500, knockback: 10, explosive: 20, expSize: 60, pierce: 0, slow: 0, color: '#ffffd2' },
+            cointoss: { name: 'Doge Coin Toss', damage: 120, fireRate: 5, range: 350, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0.3, bounce: 2, color: '#ffd700' },
+            moon: { name: 'To The Moon', damage: 250, fireRate: 0.3, range: 800, knockback: 0, explosive: 50, expSize: 120, pierce: 0, slow: 0, guided: true, color: '#ff6b6b' }
+        };
+        
+        // Perks
+        const perkTypes = {
+            health1: { name: 'Paper Health', rank: 1, stat: 'maxHealth', value: 18, price: 30 },
+            speed1: { name: 'Paper Speed', rank: 1, stat: 'speed', value: 0.08, price: 30 },
+            regen1: { name: 'Paper Regen', rank: 1, stat: 'regen', value: 0.9, price: 30 },
+            dodge1: { name: 'Paper Dodge', rank: 1, stat: 'dodge', value: 0.05, price: 30 },
+            
+            health2: { name: 'HODL Health', rank: 2, stat: 'maxHealth', value: 40, price: 60 },
+            speed2: { name: 'HODL Speed', rank: 2, stat: 'speed', value: 0.14, price: 60 },
+            regen2: { name: 'HODL Regen', rank: 2, stat: 'regen', value: 2.4, price: 60 },
+            dodge2: { name: 'HODL Dodge', rank: 2, stat: 'dodge', value: 0.12, price: 60 },
+            
+            health3: { name: 'Crypto Health', rank: 3, stat: 'maxHealth', value: 75, price: 100 },
+            speed3: { name: 'Crypto Speed', rank: 3, stat: 'speed', value: 0.22, price: 100 },
+            regen3: { name: 'Crypto Regen', rank: 3, stat: 'regen', value: 4.5, price: 100 },
+            dodge3: { name: 'Crypto Dodge', rank: 3, stat: 'dodge', value: 0.2, price: 100 },
+            bounce3: { name: 'Crypto Bounce', rank: 3, stat: 'projectileBounce', value: 2, price: 120 },
+            
+            health4: { name: 'Whale Health', rank: 4, stat: 'maxHealth', value: 150, price: 180 },
+            speed4: { name: 'Whale Speed', rank: 4, stat: 'speed', value: 0.35, price: 180 },
+            regen4: { name: 'Whale Regen', rank: 4, stat: 'regen', value: 7.5, price: 180 },
+            dodge4: { name: 'Whale Dodge', rank: 4, stat: 'dodge', value: 0.32, price: 180 },
+            turret4: { name: 'Whale Turret', rank: 4, stat: 'turret', value: 1, price: 250, desc: 'Spawn auto-turret' },
+            
+            diamond: { name: '💎 DIAMOND HANDS 💎', rank: 5, stat: 'diamond', value: 1, price: 500, desc: '+50% Magnet Radius, +30% Damage, Knockback Immunity' },
+            moon5: { name: '🌙 MOON SHOT', rank: 5, stat: 'moon', value: 1, price: 500, desc: 'Pierce +2, +50% Crit Damage' },
+            hodl5: { name: '👑 HODL KING', rank: 5, stat: 'hodl', value: 1, price: 500, desc: '+100 HP, +10 HP/s regen below 25% health' },
+            turret5: { name: '🤖 TURRET MASTER', rank: 5, stat: 'turretMaster', value: 1, price: 500, desc: '3 auto-turrets, 15s duration' },
+            apex5: { name: '🔥 APEX HODLER 🔥', rank: 5, stat: 'apex', value: 1, price: 650, desc: '+220 HP, +40% damage, +20% speed, +2.5 regen, +35% magnet' }
+        };
+        
+        // Unlocks
+        let unlockedWeapons = ['pistol', 'rifle', 'shotgun'];
+        let unlockedBreeds = ['yellow', 'black', 'grey', 'red'];
+        let highestDifficulty = 1;
+        
+        // Player
+        let player = {
+            x: ARENA_WIDTH / 2,
+            y: ARENA_HEIGHT / 2,
+            radius: 20,
+            health: 100,
+            maxHealth: 100,
+            speed: 200,
+            magnet: 1,
+            dodge: 0,
+            luck: 1,
+            regen: 0,
+            damage: 1,
+            xpGain: 1,
+            projectileBounce: 0,
+            turret: 0,
+            diamond: false,
+            moon: false,
+            hodl: false,
+            turretMaster: false,
+            apex: false,
+            breed: null,
+            weapons: [],
+            perks: [],
+            visualAdditions: []
+        };
+        
+        // Game objects
+        let projectiles = [];
+        let enemies = [];
+        let particles = [];
+        let coinsOnGround = [];
+        let enemyProjectiles = [];
+        let turrets = [];
+        let waveActive = false;
+        let waveTimer = 0;
+        let waveDuration = 0;
+        let enemiesToSpawn = 0;
+        let spawnTimer = 0;
+        let boss = null;
+        
+        // Select breed
+        function selectBreed(breed) {
+            player.breed = breed;
+            const breedData = breeds[breed];
+            
+            player.speed = 200 * breedData.stats.speed;
+            player.luck = breedData.stats.luck;
+            player.damage = breedData.stats.damage;
+            player.maxHealth = 100 * breedData.stats.health;
+            player.health = player.maxHealth;
+            player.magnet = breedData.stats.magnet;
+            player.dodge = breedData.stats.dodge - 1;
+            player.regen = breedData.stats.regen;
+            
+            // Give starter weapon
+            player.weapons = [{ ...weaponTypes.pistol, type: 'pistol', lastShot: 0 }];
+            updateWeaponUI();
+            
+            document.getElementById('breedSelect').style.display = 'none';
+            startWave();
+        }
+        
+        // Start wave
+        function startWave() {
+            gameState = 'playing';
+            currentWave = currentWave;
+            waveActive = true;
+            
+            // Reset player to center and heal
+            player.x = ARENA_WIDTH / 2;
+            player.y = ARENA_HEIGHT / 2;
+            player.health = player.maxHealth;
+            
+            // Wave configuration
+            if (currentWave === 10) {
+                // Boss wave
+                waveTimer = 0;
+                enemiesToSpawn = 0;
+                spawnTimer = 0;
+                spawnBoss();
+            } else {
+                // Normal wave
+                waveDuration = 30 + (currentWave * 10);
+                waveTimer = waveDuration;
+                enemiesToSpawn = 10 + (currentWave * 8);
+                spawnTimer = 0;
+            }
+            
+            updateUI();
+        }
+        
+        // Spawn boss
+        function spawnBoss() {
+            boss = {
+                x: ARENA_WIDTH / 2,
+                y: 100,
+                radius: 72,
+                health: 9000 * difficulty,
+                maxHealth: 9000 * difficulty,
+                speed: 75,
+                damage: 36,
+                attackTimer: 0,
+                spawnAdds1: false,
+                spawnAdds2: false,
+                detachTimer: 1.8
+            };
+        }
+        
+        // Spawn enemy
+        function spawnEnemy() {
+            const edge = Math.floor(Math.random() * 4);
+            let x, y;
+            switch(edge) {
+                case 0: x = Math.random() * ARENA_WIDTH; y = -30; break;
+                case 1: x = ARENA_WIDTH + 30; y = Math.random() * ARENA_HEIGHT; break;
+                case 2: x = Math.random() * ARENA_WIDTH; y = ARENA_HEIGHT + 30; break;
+                case 3: x = -30; y = Math.random() * ARENA_HEIGHT; break;
+            }
+            
+            const types = ['paper', 'paper', 'paper'];
+            if (currentWave >= 3) types.push('shredder');
+            if (currentWave >= 4) types.push('splitter');
+            if (currentWave >= 4) types.push('explosive');
+            if (currentWave >= 6) types.push('fomo');
+            if (currentWave >= 7) types.push('tank');
+            if (currentWave >= 8) types.push('elite');
+            
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            const enemy = {
+                x, y,
+                radius: type === 'elite' ? 25 : (type === 'explosive' ? 24 : (type === 'tank' ? 30 : (type === 'splitter' ? 22 : 20))),
+                speed: (100 + currentWave * 10) * (type === 'fomo' ? 1.5 : (type === 'explosive' ? 0.72 : (type === 'tank' ? 0.52 : (type === 'splitter' ? 0.92 : 1)))),
+                health: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 4.2 : (type === 'splitter' ? 1.8 : 1))),
+                maxHealth: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 4.2 : (type === 'splitter' ? 1.8 : 1))),
+                damage: 10 + currentWave * 2,
+                type: type,
+                slowTimer: 0,
+                attackTimer: Math.random() * 0.5,
+                ramState: 'approach', // explosive only: approach, windup, dash
+                ramWindup: 0,
+                ramDash: 0,
+                ramCooldown: 0,
+                ramDirX: 0,
+                ramDirY: 0
+            };
+            
+            enemies.push(enemy);
+        }
+        
+        // Spawn detached crawling hands from the boss body.
+        function spawnBossHands(count, heavyWave = false) {
+            if (!boss) return;
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = boss.radius + 20 + Math.random() * 26;
+                const x = boss.x + Math.cos(angle) * dist;
+                const y = boss.y + Math.sin(angle) * dist;
+                
+                const typePool = heavyWave ? ['paper', 'paper', 'shredder', 'explosive', 'splitter', 'tank'] : ['paper', 'paper', 'shredder', 'splitter'];
+                const type = typePool[Math.floor(Math.random() * typePool.length)];
+                const isShredder = type === 'shredder';
+                const isExplosive = type === 'explosive';
+                const isTank = type === 'tank';
+                const isSplitter = type === 'splitter';
+                
+                enemies.push({
+                    x, y,
+                    radius: isTank ? 28 : (isExplosive ? 22 : (isSplitter ? 20 : (isShredder ? 18 : 16))),
+                    speed: (95 + currentWave * 9) * (isShredder ? 1.15 : (isTank ? 0.55 : (isSplitter ? 0.95 : 1))),
+                    health: (18 + currentWave * 11) * difficulty * (isExplosive ? 1.35 : (isTank ? 4.0 : (isSplitter ? 1.7 : 1))),
+                    maxHealth: (18 + currentWave * 11) * difficulty * (isExplosive ? 1.35 : (isTank ? 4.0 : (isSplitter ? 1.7 : 1))),
+                    damage: 9 + currentWave * 1.8,
+                    type: type,
+                    slowTimer: 0,
+                    attackTimer: Math.random() * 0.5,
+                    ramState: 'approach',
+                    ramWindup: 0,
+                    ramDash: 0,
+                    ramCooldown: 0,
+                    ramDirX: 0,
+                    ramDirY: 0
+                });
+            }
+        }
+        
+        // Update game
+        function update(dt) {
+            if (gameState !== 'playing') return;
+            
+            // Player movement
+            let dx = 0, dy = 0;
+            if (keys['w'] || keys['arrowup']) dy = -1;
+            if (keys['s'] || keys['arrowdown']) dy = 1;
+            if (keys['a'] || keys['arrowleft']) dx = -1;
+            if (keys['d'] || keys['arrowright']) dx = 1;
+            
+            if (dx !== 0 || dy !== 0) {
+                const len = Math.sqrt(dx * dx + dy * dy);
+                dx /= len;
+                dy /= len;
+                
+                let moveSpeed = player.speed;
+                const maxMovePenalty = player.weapons.reduce((maxPenalty, w) => Math.max(maxPenalty, w.movePenalty || 0), 0);
+                if (maxMovePenalty > 0) moveSpeed *= (1 - maxMovePenalty);
+                
+                player.x += dx * moveSpeed * dt;
+                player.y += dy * moveSpeed * dt;
+            }
+            
+            // Clamp to arena
+            player.x = Math.max(player.radius, Math.min(ARENA_WIDTH - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(ARENA_HEIGHT - player.radius, player.y));
+            
+            // Health regen
+            if (player.regen > 0 && player.health < player.maxHealth) {
+                let regen = player.regen;
+                if (player.hodl && player.health < player.maxHealth * 0.25) {
+                    regen += 10;
+                }
+                player.health = Math.min(player.maxHealth, player.health + regen * dt);
+            }
+            
+            // Shooting
+            if (mouse.down) {
+                const now = Date.now();
+                player.weapons.forEach(weapon => {
+                    let fireRate = weapon.fireRate;
+                    if (player.breed === 'black' && breeds.black.perk === 'hodlStrike') {
+                        fireRate *= 0.9;
+                    }
+                    const fireInterval = 1000 / fireRate;
+                    if (now - weapon.lastShot > fireInterval) {
+                        shoot(weapon);
+                        weapon.lastShot = now;
+                    }
+                });
+            }
+            
+            // Update projectiles
+            projectiles = projectiles.filter(p => {
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.distance += Math.sqrt(p.vx * p.vx + p.vy * p.vy) * dt;
+                
+                if (p.bounce > 0) {
+                    if (p.x < 0 || p.x > ARENA_WIDTH) {
+                        p.vx *= -1;
+                        p.bounce--;
+                    }
+                    if (p.y < 0 || p.y > ARENA_HEIGHT) {
+                        p.vy *= -1;
+                        p.bounce--;
+                    }
+                }
+                
+                return p.distance < p.range && p.pierce >= 0;
+            });
+            
+            // Update enemies
+            enemies = enemies.filter(enemy => {
+                // Movement
+                let ex = player.x - enemy.x;
+                let ey = player.y - enemy.y;
+                const dist = Math.sqrt(ex * ex + ey * ey);
+                const safeDist = Math.max(dist, 0.001);
+                ex /= safeDist;
+                ey /= safeDist;
+                
+                let speed = enemy.speed;
+                if (enemy.slowTimer > 0) {
+                    speed *= 0.5;
+                    enemy.slowTimer -= dt;
+                }
+                
+                const isRanged = enemy.type === 'fomo';
+                const isExplosive = enemy.type === 'explosive';
+                const meleeRange = player.radius + enemy.radius + 6;
+                const rangedPreferred = 220;
+                
+                if (isExplosive) {
+                    // Explosive "paper hand": telegraphed wind-up then dodgeable ram.
+                    if (enemy.ramCooldown > 0) enemy.ramCooldown -= dt;
+                    
+                    if (enemy.ramState === 'dash') {
+                        const dashSpeed = Math.max(320, speed * 3.8);
+                        enemy.x += enemy.ramDirX * dashSpeed * dt;
+                        enemy.y += enemy.ramDirY * dashSpeed * dt;
+                        enemy.ramDash -= dt;
+                        
+                        const hitDx = player.x - enemy.x;
+                        const hitDy = player.y - enemy.y;
+                        const hitDist = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
+                        
+                        if (hitDist < player.radius + enemy.radius + 4) {
+                            if (!(player.breed === 'grey' && Math.random() < 0.2)) {
+                                player.health -= enemy.damage * 1.8;
+                                if (player.health <= 0) gameOver();
+                            }
+                            enemy.ramState = 'approach';
+                            enemy.ramCooldown = 1.2;
+                        } else if (enemy.ramDash <= 0) {
+                            enemy.ramState = 'approach';
+                            enemy.ramCooldown = 1.0;
+                        }
+                    } else if (enemy.ramState === 'windup') {
+                        enemy.ramWindup -= dt;
+                        if (enemy.ramWindup <= 0) {
+                            enemy.ramState = 'dash';
+                            enemy.ramDash = 0.33;
+                            enemy.ramCooldown = 0.9;
+                            // Lock dash direction at release to make it dodgeable.
+                            enemy.ramDirX = ex;
+                            enemy.ramDirY = ey;
+                        }
+                    } else {
+                        // Slow approach before starting charge.
+                        const prepRange = 170;
+                        if (dist > prepRange) {
+                            enemy.x += ex * speed * dt;
+                            enemy.y += ey * speed * dt;
+                        } else if (enemy.ramCooldown <= 0) {
+                            enemy.ramState = 'windup';
+                            enemy.ramWindup = 0.45;
+                        }
+                    }
+                } else if (isRanged) {
+                    // Ranged: approach until in range, only back off when player is really close.
+                    const approachUntil = 240;
+                    const backOffWhen = 130;
+                    if (dist > approachUntil) {
+                        enemy.x += ex * speed * dt;
+                        enemy.y += ey * speed * dt;
+                    } else if (dist < backOffWhen) {
+                        enemy.x -= ex * speed * dt;
+                        enemy.y -= ey * speed * dt;
+                    }
+                    // Between backOffWhen and approachUntil: stand still and shoot (no tracking)
+                } else {
+                    // Melee enemies stop just outside player body and strike from there.
+                    if (dist > meleeRange) {
+                        enemy.x += ex * speed * dt;
+                        enemy.y += ey * speed * dt;
+                    }
+                }
+                
+                // Enemy attacks (melee or ranged)
+                enemy.attackTimer -= dt;
+                if (isRanged) {
+                    if (enemy.attackTimer <= 0 && dist <= rangedPreferred + 40) {
+                        enemyProjectiles.push({
+                            x: enemy.x,
+                            y: enemy.y,
+                            vx: ex * 340,
+                            vy: ey * 340,
+                            damage: Math.max(8, enemy.damage * 0.8),
+                            radius: 5,
+                            life: 2.2
+                        });
+                        enemy.attackTimer = Math.max(0.6, 1.4 - currentWave * 0.04);
+                    }
+                } else if (!isExplosive && dist <= meleeRange && enemy.attackTimer <= 0) {
+                    // Doge Reflex dodge check still applies for Grey Doge.
+                    if (!(player.breed === 'grey' && Math.random() < 0.2)) {
+                        const meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1);
+                        player.health -= meleeDamage;
+                        if (player.health <= 0) gameOver();
+                    }
+                    enemy.attackTimer = enemy.type === 'shredder' ? 0.45 : 0.75;
+                }
+                
+                // Collision with projectiles
+                projectiles.forEach(p => {
+                    const pdx = p.x - enemy.x;
+                    const pdy = p.y - enemy.y;
+                    const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+                    
+                    if (pdist < enemy.radius + p.radius) {
+                        // Hit
+                        let damage = p.damage * player.damage;
+                        
+                        // Explosive
+                        if (p.explosive > 0) {
+                            enemies.forEach(e => {
+                                const edx = e.x - p.x;
+                                const edy = e.y - p.y;
+                                const edist = Math.sqrt(edx * edx + edy * edy);
+                                if (edist < p.expSize) {
+                                    e.health -= p.explosive * player.damage;
+                                }
+                            });
+                            
+                            // Visual explosion
+                            for (let i = 0; i < 10; i++) {
+                                particles.push({
+                                    x: p.x, y: p.y,
+                                    vx: (Math.random() - 0.5) * 200,
+                                    vy: (Math.random() - 0.5) * 200,
+                                    life: 0.5,
+                                    color: p.color
+                                });
+                            }
+                        }
+                        
+                        // Knockback
+                        if (p.knockback > 0 && !player.diamond) {
+                            enemy.x += p.vx * p.knockback * 0.1;
+                            enemy.y += p.vy * p.knockback * 0.1;
+                        }
+                        
+                        // Slow
+                        if (p.slow > 0) {
+                            enemy.slowTimer = p.slow;
+                        }
+                        
+                        enemy.health -= damage;
+                        p.pierce--;
+                        
+                        if (p.pierce < 0) {
+                            p.distance = p.range + 1; // Remove
+                        }
+                    }
+                });
+                
+                // Death
+                if (enemy.health <= 0) {
+                    // Splitter breaks into mini paper hands.
+                    if (enemy.type === 'splitter') {
+                        for (let i = 0; i < 2; i++) {
+                            enemies.push({
+                                x: enemy.x + (Math.random() - 0.5) * 20,
+                                y: enemy.y + (Math.random() - 0.5) * 20,
+                                radius: 12,
+                                speed: 170 + currentWave * 8,
+                                health: (12 + currentWave * 8) * difficulty,
+                                maxHealth: (12 + currentWave * 8) * difficulty,
+                                damage: Math.max(5, enemy.damage * 0.75),
+                                type: 'paper',
+                                slowTimer: 0,
+                                attackTimer: Math.random() * 0.4,
+                                ramState: 'approach',
+                                ramWindup: 0,
+                                ramDash: 0,
+                                ramCooldown: 0,
+                                ramDirX: 0,
+                                ramDirY: 0
+                            });
+                        }
+                    }
+                    
+                    // Drop coins
+                    let coinValue = Math.floor(Math.random() * 3) + 1;
+                    const luckBonusChance = Math.min(0.45, Math.max(0, (player.luck - 1) * 0.25));
+                    if (Math.random() < luckBonusChance) coinValue += 1;
+                    const jackpotChance = Math.min(0.2, 0.03 * player.luck);
+                    if (Math.random() < jackpotChance) coinValue += Math.max(1, Math.floor(player.luck));
+                    
+                    coinsOnGround.push({
+                        x: enemy.x,
+                        y: enemy.y,
+                        value: coinValue,
+                        life: 10,
+                        magnetized: false
+                    });
+                    
+                    // Much Find perk
+                    const muchFindChance = Math.min(0.55, 0.15 * player.luck);
+                    if (player.breed === 'yellow' && Math.random() < muchFindChance) {
+                        coinsOnGround.push({
+                            x: enemy.x + (Math.random() - 0.5) * 40,
+                            y: enemy.y + (Math.random() - 0.5) * 40,
+                            value: coinValue * (2 + Math.floor(player.luck * 0.2)),
+                            life: 10,
+                            magnetized: false
+                        });
+                    }
+                    
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            // Update ranged enemy projectiles
+            enemyProjectiles = enemyProjectiles.filter(p => {
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt;
+                
+                const dx = p.x - player.x;
+                const dy = p.y - player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < player.radius + p.radius) {
+                    // Doge Reflex can dodge projectile hits too.
+                    if (!(player.breed === 'grey' && Math.random() < 0.2)) {
+                        player.health -= p.damage;
+                        if (player.health <= 0) gameOver();
+                    }
+                    return false;
+                }
+                
+                if (p.life <= 0) return false;
+                if (p.x < -20 || p.x > ARENA_WIDTH + 20 || p.y < -20 || p.y > ARENA_HEIGHT + 20) return false;
+                return true;
+            });
+            
+            // Update boss
+            if (boss) {
+                updateBoss(dt);
+            }
+            
+            // Update turrets
+            turrets = turrets.filter(t => {
+                t.timer -= dt;
+                if (t.timer <= 0) {
+                    // Find nearest enemy
+                    let nearest = null;
+                    let nearestDist = Infinity;
+                    enemies.forEach(e => {
+                        const dx = e.x - t.x;
+                        const dy = e.y - t.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < nearestDist && dist < 300) {
+                            nearestDist = dist;
+                            nearest = e;
+                        }
+                    });
+                    
+                    if (nearest) {
+                        const angle = Math.atan2(nearest.y - t.y, nearest.x - t.x);
+                        projectiles.push({
+                            x: t.x,
+                            y: t.y,
+                            vx: Math.cos(angle) * 400,
+                            vy: Math.sin(angle) * 400,
+                            damage: 20,
+                            range: 300,
+                            distance: 0,
+                            radius: 5,
+                            color: '#00ff00',
+                            pierce: 0,
+                            explosive: 0,
+                            expSize: 0,
+                            knockback: 0,
+                            slow: 0,
+                            bounce: 0
+                        });
+                    }
+                }
+                return t.life > 0;
+            });
+            
+            // Magnet + collect coins
+            coinsOnGround = coinsOnGround.filter(c => {
+                const dx = c.x - player.x;
+                const dy = c.y - player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const pickupRange = player.radius + 35 + (55 * player.magnet);
+                
+                if (!c.magnetized && dist < pickupRange) {
+                    c.magnetized = true;
+                }
+                
+                if (c.magnetized) {
+                    const pullSpeed = 280 + (220 * player.magnet);
+                    const safeDist = Math.max(dist, 0.001);
+                    c.x -= (dx / safeDist) * pullSpeed * dt;
+                    c.y -= (dy / safeDist) * pullSpeed * dt;
+                    
+                    const ndx = c.x - player.x;
+                    const ndy = c.y - player.y;
+                    const newDist = Math.sqrt(ndx * ndx + ndy * ndy);
+                    if (newDist < player.radius + 8) {
+                        coins += c.value;
+                        return false;
+                    }
+                }
+                
+                if (!c.magnetized && dist < player.radius + 8) {
+                    coins += c.value;
+                    return false;
+                }
+                
+                c.life -= dt;
+                return c.life > 0;
+            });
+            
+            // Update particles
+            particles = particles.filter(p => {
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt;
+                return p.life > 0;
+            });
+            
+            // Wave logic
+            if (waveActive && !boss) {
+                waveTimer -= dt;
+                spawnTimer -= dt;
+                
+                if (spawnTimer <= 0 && enemiesToSpawn > 0) {
+                    const spawnCount = Math.min(3, enemiesToSpawn);
+                    for (let i = 0; i < spawnCount; i++) {
+                        spawnEnemy();
+                    }
+                    enemiesToSpawn -= spawnCount;
+                    spawnTimer = 2;
+                }
+                
+                if (enemies.length === 0 && enemiesToSpawn === 0 && coinsOnGround.length === 0) {
+                    openShop();
+                }
+            } else if (boss && boss.health <= 0) {
+                victory();
+            }
+            
+            updateUI();
+        }
+        
+        // Update boss
+        function updateBoss(dt) {
+            // Movement - slowly toward player
+            const dx = player.x - boss.x;
+            const dy = player.y - boss.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist > 100) {
+                boss.x += (dx / dist) * boss.speed * dt;
+                boss.y += (dy / dist) * boss.speed * dt;
+            }
+            
+            // Attacks
+            boss.attackTimer -= dt;
+            if (boss.attackTimer <= 0) {
+                // Market Crash (AOE)
+                const attackType = Math.random();
+                if (attackType < 0.33) {
+                    // AOE slam
+                    enemies.forEach(e => {
+                        const edx = e.x - boss.x;
+                        const edy = e.y - boss.y;
+                        const edist = Math.sqrt(edx * edx + edy * edy);
+                        if (edist < 150) {
+                            e.x += (edx / edist) * 100;
+                            e.y += (edy / edist) * 100;
+                        }
+                    });
+                    
+                    const pdx = player.x - boss.x;
+                    const pdy = player.y - boss.y;
+                    const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+                    if (pdist < 150 && !player.diamond) {
+                        player.x += (pdx / pdist) * 100;
+                        player.y += (pdy / pdist) * 100;
+                        player.health -= 20;
+                    }
+                } else if (attackType < 0.66) {
+                    // Pump & Dump (charge)
+                    boss.speed = 300;
+                    setTimeout(() => boss.speed = 80, 1000);
+                } else {
+                    // Liquidation (summon circles)
+                    for (let i = 0; i < 3; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const dist = 100 + Math.random() * 200;
+                        const cx = boss.x + Math.cos(angle) * dist;
+                        const cy = boss.y + Math.sin(angle) * dist;
+                        
+                        // Damage if player in circle after delay
+                        setTimeout(() => {
+                            const pdx = player.x - cx;
+                            const pdy = player.y - cy;
+                            if (Math.sqrt(pdx * pdx + pdy * pdy) < 50) {
+                                player.health -= 30;
+                            }
+                        }, 1000);
+                    }
+                }
+                boss.attackTimer = 3;
+            }
+            
+            // Outer hands periodically detach and crawl toward player.
+            boss.detachTimer -= dt;
+            if (boss.detachTimer <= 0) {
+                spawnBossHands(2, false);
+                boss.detachTimer = 2.1;
+            }
+            
+            // Spawn adds at health thresholds
+            const healthPercent = boss.health / boss.maxHealth;
+            if (!boss.spawnAdds1 && healthPercent <= 0.70) {
+                boss.spawnAdds1 = true;
+                spawnBossHands(16, false);
+            }
+            if (!boss.spawnAdds2 && healthPercent <= 0.30) {
+                boss.spawnAdds2 = true;
+                spawnBossHands(24, true);
+            }
+            
+            // Collision with player
+            const pdx = player.x - boss.x;
+            const pdy = player.y - boss.y;
+            const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+            if (pdist < player.radius + boss.radius) {
+                player.health -= boss.damage * dt;
+                if (player.health <= 0) gameOver();
+            }
+            
+            // Boss takes damage from projectiles
+            projectiles.forEach(p => {
+                const bdx = p.x - boss.x;
+                const bdy = p.y - boss.y;
+                const bdist = Math.sqrt(bdx * bdx + bdy * bdy);
+                
+                if (bdist < boss.radius + p.radius) {
+                    let damage = p.damage * player.damage;
+                    if (p.explosive > 0) {
+                        damage += p.explosive * player.damage;
+                    }
+                    boss.health -= damage;
+                    p.pierce--;
+                    if (p.pierce < 0) p.distance = p.range + 1;
+                }
+            });
+        }
+        
+        // Shoot
+        function shoot(weapon) {
+            const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+            
+            const createProjectile = (spreadAngle = 0) => {
+                const finalAngle = angle + spreadAngle;
+                const isMoonLauncher = weapon.type === 'launcher';
+                const speed = isMoonLauncher ? 380 : 600;
+                
+                let pierce = weapon.pierce;
+                if (player.moon) pierce += 2;
+                
+                return {
+                    x: player.x + Math.cos(finalAngle) * 30,
+                    y: player.y + Math.sin(finalAngle) * 30,
+                    vx: Math.cos(finalAngle) * speed,
+                    vy: Math.sin(finalAngle) * speed,
+                    damage: weapon.damage,
+                    range: weapon.range,
+                    distance: 0,
+                    radius: isMoonLauncher ? 10 : 5,
+                    color: weapon.color,
+                    weaponType: weapon.type,
+                    pierce: pierce,
+                    explosive: isMoonLauncher ? Math.round((weapon.explosive || 0) * 1.35) : (weapon.explosive || 0),
+                    expSize: isMoonLauncher ? Math.round((weapon.expSize || 0) * 1.3) : (weapon.expSize || 0),
+                    knockback: weapon.knockback || 0,
+                    slow: weapon.slow || 0,
+                    bounce: weapon.bounce || player.projectileBounce
+                };
+            };
+            
+            if (weapon.pellets) {
+                for (let i = 0; i < weapon.pellets; i++) {
+                    const spread = (i - (weapon.pellets - 1) / 2) * weapon.spread;
+                    projectiles.push(createProjectile(spread));
+                }
+            } else {
+                projectiles.push(createProjectile());
+            }
+        }
+        
+        // Open shop
+        function openShop() {
+            gameState = 'shop';
+            waveActive = false;
+            shopIsLucky = Math.random() < Math.min(0.35, 0.1 + Math.max(0, player.luck - 1) * 0.1);
+            shopWeaponOffers = [];
+            shopPerkOffers = [];
+            lockedWeaponSlots.clear();
+            lockedPerkSlots.clear();
+            rollShopOffers();
+            document.getElementById('shopOverlay').classList.add('visible');
+        }
+        
+        function chooseWeighted(items, getWeight) {
+            const weighted = items.map(item => ({ item, weight: Math.max(0, getWeight(item)) })).filter(w => w.weight > 0);
+            const total = weighted.reduce((sum, w) => sum + w.weight, 0);
+            if (total <= 0) return null;
+            let roll = Math.random() * total;
+            for (const entry of weighted) {
+                roll -= entry.weight;
+                if (roll <= 0) return entry.item;
+            }
+            return weighted[weighted.length - 1].item;
+        }
+        
+        function getWeaponTier(weaponType) {
+            const tiers = {
+                pistol: 1, rifle: 1, shotgun: 1,
+                minigun: 2, launcher: 2, shredder: 2,
+                piercer: 3, cannon: 3, cointoss: 3,
+                moon: 4
+            };
+            return tiers[weaponType] || 1;
+        }
+        
+        function normalizeWeaponPrice(weaponType) {
+            const tier = getWeaponTier(weaponType);
+            const normalized = 70 + currentWave * 12 + tier * 22;
+            const luckyDiscount = shopIsLucky ? 0.88 : 1;
+            return Math.max(40, Math.round(normalized * luckyDiscount));
+        }
+        
+        function normalizePerkPrice(perk) {
+            const waveNorm = Math.min(1.2, 0.9 + currentWave * 0.03);
+            const luckyDiscount = shopIsLucky ? 0.9 : 1;
+            return Math.max(20, Math.round(perk.price * waveNorm * luckyDiscount));
+        }
+        
+        function updateShopTitleAndRefreshButton() {
+            const title = document.getElementById('shopTitle');
+            const refreshBtn = document.getElementById('refreshShop');
+            title.textContent = shopIsLucky ? '✨ LUCKY DOGE SHOP ✨' : '🛒 DOGE SHOP 🛒';
+            title.classList.toggle('lucky', shopIsLucky);
+            refreshBtn.textContent = `🔄 Refresh Shop (${shopRefreshCost} 🪙)`;
+        }
+        
+        function rollShopOffers() {
+            const weaponSlots = shopIsLucky ? 4 : 3;
+            const perkSlots = shopIsLucky ? 4 : 3;
+            
+            const nextWeaponOffers = Array(weaponSlots).fill(null);
+            const nextPerkOffers = Array(perkSlots).fill(null);
+            
+            // Keep locked offers where possible.
+            for (let i = 0; i < weaponSlots; i++) {
+                if (lockedWeaponSlots.has(i) && shopWeaponOffers[i] && !shopWeaponOffers[i].sold) {
+                    nextWeaponOffers[i] = shopWeaponOffers[i];
+                }
+            }
+            for (let i = 0; i < perkSlots; i++) {
+                if (lockedPerkSlots.has(i) && shopPerkOffers[i] && !shopPerkOffers[i].sold) {
+                    nextPerkOffers[i] = shopPerkOffers[i];
+                }
+            }
+            
+            const selectedWeaponTypes = new Set(nextWeaponOffers.filter(Boolean).map(o => o.weaponType));
+            const selectedPerkKeys = new Set(nextPerkOffers.filter(Boolean).map(o => o.key));
+            const selectedPerkStats = new Set(nextPerkOffers.filter(Boolean).map(o => o.perk.stat));
+            
+            // Fill weapon slots with luck-tier weighting.
+            for (let i = 0; i < weaponSlots; i++) {
+                if (nextWeaponOffers[i]) continue;
+                const candidates = unlockedWeapons.filter(w =>
+                    !player.weapons.some(pw => pw.type === w) &&
+                    !selectedWeaponTypes.has(w)
+                );
+                if (candidates.length === 0) break;
+                
+                const weaponType = chooseWeighted(candidates, (w) => {
+                    const tier = getWeaponTier(w);
+                    let weight = 1 + tier * 0.2;
+                    const luckFactor = Math.max(0, player.luck - 1);
+                    if (tier >= 3) weight *= (1 + luckFactor * 0.8);
+                    else if (tier === 2) weight *= (1 + luckFactor * 0.45);
+                    else weight *= Math.max(0.5, 1 - luckFactor * 0.2);
+                    if (shopIsLucky) weight *= 1.25;
+                    return weight;
+                });
+                
+                if (!weaponType) continue;
+                selectedWeaponTypes.add(weaponType);
+                nextWeaponOffers[i] = {
+                    weaponType,
+                    price: normalizeWeaponPrice(weaponType),
+                    sold: false
+                };
+            }
+            
+            // Perk candidates gated by wave and duplicate protection.
+            const perkCandidates = Object.entries(perkTypes).filter(([key, perk]) => {
+                if (ownedPerkKeys.has(key)) return false;
+                if (perk.rank === 1) return currentWave >= 1;
+                if (perk.rank === 2) return currentWave >= 3;
+                if (perk.rank === 3) return currentWave >= 4;
+                if (perk.rank === 4) return currentWave >= 6;
+                if (perk.rank === 5) return currentWave >= 9;
+                return false;
+            });
+            
+            for (let i = 0; i < perkSlots; i++) {
+                if (nextPerkOffers[i]) continue;
+                
+                const candidates = perkCandidates.filter(([key, perk]) =>
+                    !selectedPerkKeys.has(key) &&
+                    !selectedPerkStats.has(perk.stat)
+                );
+                if (candidates.length === 0) break;
+                
+                const picked = chooseWeighted(candidates, ([, perk]) => {
+                    let weight = 1;
+                    if (perk.rank === 1) weight = Math.max(0.2, 1 - (currentWave - 1) * 0.15);
+                    if (perk.rank === 2) weight = currentWave < 3 ? 0 : (currentWave <= 7 ? 0.5 + (currentWave - 3) * 0.1 : Math.max(0.2, 1 - (currentWave - 7) * 0.2));
+                    if (perk.rank >= 3) weight = 0.35 + (currentWave * 0.05);
+                    
+                    const luckFactor = Math.max(0, player.luck - 1);
+                    if (perk.rank >= 4) weight *= (1 + luckFactor * 1.0);
+                    else if (perk.rank === 3) weight *= (1 + luckFactor * 0.7);
+                    else if (perk.rank === 2) weight *= (1 + luckFactor * 0.35);
+                    else weight *= Math.max(0.5, 1 - luckFactor * 0.2);
+                    
+                    if (shopIsLucky) weight *= 1.2;
+                    return weight;
+                });
+                
+                if (!picked) continue;
+                const [key, perk] = picked;
+                selectedPerkKeys.add(key);
+                selectedPerkStats.add(perk.stat);
+                nextPerkOffers[i] = {
+                    key,
+                    perk,
+                    price: normalizePerkPrice(perk),
+                    sold: false
+                };
+            }
+            
+            // Pity: guarantee one high-rank perk after two low shops.
+            const hasHighRank = nextPerkOffers.some(o => o && o.perk.rank >= 3);
+            if (!hasHighRank && currentWave >= 4) {
+                highRankPityCounter++;
+            } else {
+                highRankPityCounter = 0;
+            }
+            if (highRankPityCounter >= 2) {
+                const highCandidates = perkCandidates.filter(([key, perk]) => perk.rank >= 3 && !selectedPerkKeys.has(key));
+                if (highCandidates.length > 0) {
+                    const forced = highCandidates[Math.floor(Math.random() * highCandidates.length)];
+                    const [forcedKey, forcedPerk] = forced;
+                    let replaceIdx = -1;
+                    for (let i = 0; i < perkSlots; i++) {
+                        if (!lockedPerkSlots.has(i)) {
+                            replaceIdx = i;
+                            break;
+                        }
+                    }
+                    if (replaceIdx >= 0) {
+                        nextPerkOffers[replaceIdx] = {
+                            key: forcedKey,
+                            perk: forcedPerk,
+                            price: normalizePerkPrice(forcedPerk),
+                            sold: false
+                        };
+                        highRankPityCounter = 0;
+                    }
+                }
+            }
+            
+            shopWeaponOffers = nextWeaponOffers;
+            shopPerkOffers = nextPerkOffers;
+            renderShop();
+        }
+        
+        function renderShop() {
+            const weaponShop = document.getElementById('weaponShop');
+            const perkShop = document.getElementById('perkShop');
+            weaponShop.innerHTML = '';
+            perkShop.innerHTML = '';
+            updateShopTitleAndRefreshButton();
+            
+            shopWeaponOffers.forEach((offer, i) => {
+                if (!offer) return;
+                const weapon = weaponTypes[offer.weaponType];
+                const isLocked = lockedWeaponSlots.has(i);
+                const isSold = offer.sold;
+                const cannotAfford = coins < offer.price || player.weapons.length >= 4;
+                const div = document.createElement('div');
+                div.className = `shopItem ${isLocked ? 'locked' : ''} ${isSold || cannotAfford ? 'disabled' : ''}`;
+                div.innerHTML = `
+                    <div class="shopItemHeader">
+                        <div class="name">${weapon.name}</div>
+                        <button class="lock-btn">${isLocked ? '🔒' : '🔓'}</button>
+                    </div>
+                    <div class="desc">DMG: ${weapon.damage} | Rate: ${weapon.fireRate}/s</div>
+                    <div class="price">${offer.price} 🪙</div>
+                `;
+                div.onclick = () => buyWeapon(i);
+                div.querySelector('.lock-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    if (!isSold) toggleLock('weapon', i);
+                };
+                weaponShop.appendChild(div);
+            });
+            
+            shopPerkOffers.forEach((offer, i) => {
+                if (!offer) return;
+                const { key, perk, price } = offer;
+                const isLocked = lockedPerkSlots.has(i);
+                const isSold = offer.sold;
+                const cannotAfford = coins < price;
+                const div = document.createElement('div');
+                div.className = `shopItem ${isLocked ? 'locked' : ''} ${isSold || cannotAfford ? 'disabled' : ''}`;
+                div.innerHTML = `
+                    <div class="shopItemHeader">
+                        <div class="name">${perk.name} (Rank ${perk.rank})</div>
+                        <button class="lock-btn">${isLocked ? '🔒' : '🔓'}</button>
+                    </div>
+                    <div class="desc">${perk.desc || `${perk.stat}: +${perk.value}`}</div>
+                    <div class="price">${price} 🪙</div>
+                `;
+                div.onclick = () => buyPerk(i);
+                div.querySelector('.lock-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    if (!isSold) toggleLock('perk', i);
+                };
+                perkShop.appendChild(div);
+            });
+            
+            renderShopStats();
+        }
+        
+        function renderShopStats() {
+            const stats = document.getElementById('shopStats');
+            const dodgePercent = Math.max(0, Math.round(player.dodge * 100));
+            const movePenalty = Math.round(player.weapons.reduce((maxPenalty, w) => Math.max(maxPenalty, w.movePenalty || 0), 0) * 100);
+            stats.innerHTML = `
+                <div class="shopStatsLine"><span>Damage Mult</span><span>${Math.round(player.damage * 100)}%</span></div>
+                <div class="shopStatsLine"><span>Move Speed</span><span>${Math.round(player.speed)}</span></div>
+                <div class="shopStatsLine"><span>Regen</span><span>${player.regen.toFixed(1)} /s</span></div>
+                <div class="shopStatsLine"><span>Dodge</span><span>${dodgePercent}%</span></div>
+                <div class="shopStatsLine"><span>Magnet</span><span>${player.magnet.toFixed(2)}x</span></div>
+                <div class="shopStatsLine"><span>Weight Penalty</span><span>${movePenalty}%</span></div>
+            `;
+        }
+        
+        function toggleLock(type, index) {
+            if (type === 'weapon') {
+                const offer = shopWeaponOffers[index];
+                if (!offer || offer.sold) return;
+                if (lockedWeaponSlots.has(index)) lockedWeaponSlots.delete(index);
+                else lockedWeaponSlots.add(index);
+            } else {
+                const offer = shopPerkOffers[index];
+                if (!offer || offer.sold) return;
+                if (lockedPerkSlots.has(index)) lockedPerkSlots.delete(index);
+                else lockedPerkSlots.add(index);
+            }
+            renderShop();
+        }
+        
+        // Buy weapon
+        function buyWeapon(slotIndex) {
+            const offer = shopWeaponOffers[slotIndex];
+            if (!offer || offer.sold) return;
+            if (coins < offer.price || player.weapons.length >= 4) return;
+            
+            coins -= offer.price;
+            player.weapons.push({ ...weaponTypes[offer.weaponType], type: offer.weaponType, lastShot: 0 });
+            offer.sold = true;
+            lockedWeaponSlots.delete(slotIndex);
+            updateUI();
+            updateWeaponUI();
+            renderShop();
+        }
+        
+        // Buy perk
+        function buyPerk(slotIndex) {
+            const offer = shopPerkOffers[slotIndex];
+            if (!offer || offer.sold) return;
+            const { key, perk, price } = offer;
+            if (coins < price) return;
+            
+            coins -= price;
+            
+            // Apply perk
+            if (perk.stat === 'maxHealth') {
+                player.maxHealth += perk.value;
+                player.health += perk.value;
+            } else if (perk.stat === 'speed') {
+                player.speed *= (1 + perk.value);
+            } else if (perk.stat === 'regen') {
+                player.regen += perk.value;
+            } else if (perk.stat === 'dodge') {
+                player.dodge += perk.value;
+            } else if (perk.stat === 'magnet') {
+                player.magnet += perk.value;
+            } else if (perk.stat === 'luck') {
+                player.luck += perk.value;
+            } else if (perk.stat === 'xpGain') {
+                player.xpGain += perk.value;
+            } else if (perk.stat === 'projectileBounce') {
+                player.projectileBounce += perk.value;
+            } else if (perk.stat === 'turret') {
+                turrets.push({ x: player.x + 50, y: player.y, timer: 0, life: 10 });
+            } else if (perk.stat === 'diamond') {
+                player.diamond = true;
+                player.magnet += 0.5;
+                player.damage += 0.3;
+            } else if (perk.stat === 'moon') {
+                player.moon = true;
+            } else if (perk.stat === 'hodl') {
+                player.hodl = true;
+                player.maxHealth += 100;
+                player.health += 100;
+            } else if (perk.stat === 'turretMaster') {
+                player.turretMaster = true;
+                turrets.push({ x: player.x + 50, y: player.y, timer: 0, life: 15 });
+                turrets.push({ x: player.x - 50, y: player.y, timer: 0, life: 15 });
+                turrets.push({ x: player.x, y: player.y + 50, timer: 0, life: 15 });
+            } else if (perk.stat === 'apex') {
+                player.apex = true;
+                player.maxHealth += 220;
+                player.health += 220;
+                player.damage += 0.4;
+                player.speed *= 1.2;
+                player.regen += 2.5;
+                player.magnet += 0.35;
+            }
+            
+            ownedPerkKeys.add(key);
+            player.perks.push(perk);
+            addVisualAddition(perk);
+            offer.sold = true;
+            lockedPerkSlots.delete(slotIndex);
+            updateUI();
+            renderShop();
+        }
+        
+        // Add visual addition to player
+        function addVisualAddition(perk) {
+            const additions = {
+                1: ['bandana', 'collar', 'small hat'],
+                2: ['sunglasses', 'baseball cap', 'wristbands'],
+                3: ['gold chain', 'trading jacket', 'earpiece'],
+                4: ['tactical vest', 'LED mask', 'shoulder pads'],
+                5: ['diamond magnet', 'rocket boosters', 'glowing aura']
+            };
+            
+            const possible = additions[perk.rank];
+            const addition = possible[Math.floor(Math.random() * possible.length)];
+            if (!player.visualAdditions.includes(addition)) {
+                player.visualAdditions.push(addition);
+            }
+        }
+        
+        // Refresh shop
+        function refreshShop() {
+            if (coins >= shopRefreshCost) {
+                coins -= shopRefreshCost;
+                shopRefreshCost += shopIsLucky ? 8 : 10;
+                rollShopOffers();
+                updateUI();
+            }
+        }
+        
+        // Next wave
+        function nextWave() {
+            document.getElementById('shopOverlay').classList.remove('visible');
+            currentWave++;
+            shopRefreshCost = 50;
+            
+            if (currentWave > maxWaves) {
+                victory();
+            } else {
+                startWave();
+            }
+        }
+        
+        // Game over
+        function gameOver() {
+            gameState = 'gameOver';
+            document.getElementById('finalWave').textContent = currentWave;
+            document.getElementById('gameOver').classList.add('visible');
+        }
+        
+        // Victory
+        function victory() {
+            gameState = 'victory';
+            
+            // Determine unlocks: each clear grants one random locked weapon.
+            const unlocks = [];
+            const unlockableWeapons = Object.keys(weaponTypes).filter(w => !unlockedWeapons.includes(w));
+            if (unlockableWeapons.length > 0) {
+                const weaponType = unlockableWeapons[Math.floor(Math.random() * unlockableWeapons.length)];
+                unlockedWeapons.push(weaponType);
+                unlocks.push(`🔓 ${weaponTypes[weaponType].name} unlocked in shop!`);
+            } else {
+                unlocks.push('✅ All weapons already unlocked!');
+            }
+            
+            const container = document.getElementById('unlocksContainer');
+            container.innerHTML = unlocks.map(u => `<div class="unlocks">${u}</div>`).join('');
+            
+            document.getElementById('nextDiff').textContent = difficulty + 1;
+            document.getElementById('victory').classList.add('visible');
+        }
+        
+        // Restart game
+        function restartGame() {
+            document.getElementById('gameOver').classList.remove('visible');
+            resetGame();
+            document.getElementById('breedSelect').style.display = 'flex';
+        }
+        
+        // Start new run (after victory)
+        function startNewRun() {
+            document.getElementById('victory').classList.remove('visible');
+            difficulty++;
+            if (difficulty > highestDifficulty) highestDifficulty = difficulty;
+            resetGame();
+            document.getElementById('breedSelect').style.display = 'flex';
+        }
+        
+        // Reset game
+        function resetGame() {
+            currentWave = 1;
+            coins = 0;
+            projectiles = [];
+            enemyProjectiles = [];
+            enemies = [];
+            particles = [];
+            coinsOnGround = [];
+            turrets = [];
+            boss = null;
+            shopRefreshCost = 50;
+            shopIsLucky = false;
+            shopWeaponOffers = [];
+            shopPerkOffers = [];
+            lockedWeaponSlots.clear();
+            lockedPerkSlots.clear();
+            ownedPerkKeys = new Set();
+            highRankPityCounter = 0;
+            
+            player = {
+                x: ARENA_WIDTH / 2,
+                y: ARENA_HEIGHT / 2,
+                radius: 20,
+                health: 100,
+                maxHealth: 100,
+                speed: 200,
+                magnet: 1,
+                dodge: 0,
+                luck: 1,
+                regen: 0,
+                damage: 1,
+                xpGain: 1,
+                projectileBounce: 0,
+                turret: 0,
+                diamond: false,
+                moon: false,
+                hodl: false,
+                turretMaster: false,
+                apex: false,
+                breed: null,
+                weapons: [],
+                perks: [],
+                visualAdditions: []
+            };
+            
+            updateWeaponUI();
+        }
+        
+        // Update UI
+        function updateUI() {
+            document.getElementById('healthText').textContent = `${Math.floor(player.health)}/${player.maxHealth}`;
+            document.getElementById('coinText').textContent = coins;
+            document.getElementById('waveText').textContent = currentWave;
+            document.getElementById('diffText').textContent = difficulty;
+        }
+
+
+        // Update weapon UI
+        function updateWeaponUI() {
+            for (let i = 0; i < 4; i++) {
+                const slot = document.getElementById(`slot${i}`);
+                if (i < player.weapons.length) {
+                    slot.textContent = player.weapons[i].name.split(' ')[0];
+                    slot.classList.add('filled');
+                    slot.classList.remove('active');
+                } else {
+                    slot.textContent = i + 1;
+                    slot.classList.remove('filled', 'active');
+                }
+            }
+        }
+        
+        // Render
+        function render() {
+            // Clear
+            ctx.fillStyle = '#0f0f1e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw arena grid
+            ctx.strokeStyle = '#1a1a3e';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < ARENA_WIDTH; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, ARENA_HEIGHT);
+                ctx.stroke();
+            }
+            for (let y = 0; y < ARENA_HEIGHT; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(ARENA_WIDTH, y);
+                ctx.stroke();
+            }
+            
+            // Draw turrets
+            turrets.forEach(t => {
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(t.x - 10, t.y - 10, 20, 20);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(t.x - 5, t.y - 5, 10, 10);
+            });
+            
+            // Draw coins on ground
+            coinsOnGround.forEach(c => {
+                if (c.magnetized) {
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(c.x, c.y);
+                    ctx.lineTo(player.x, player.y);
+                    ctx.stroke();
+                }
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.font = '10px Comic Neue';
+                ctx.textAlign = 'center';
+                ctx.fillText('D', c.x, c.y + 3);
+            });
+            
+            // Draw particles
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life / 0.5;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x - 3, p.y - 3, 6, 6);
+                ctx.globalAlpha = 1;
+            });
+            
+            // Draw projectiles
+            projectiles.forEach(p => {
+                const isMoonLauncher = p.weaponType === 'launcher';
+                
+                if (isMoonLauncher) {
+                    // Grey/yellow heavy rocket visual.
+                    ctx.fillStyle = '#555a60';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius + 1, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#f2d34f';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, Math.max(4, p.radius * 0.55), 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = 'rgba(242, 211, 79, 0.55)';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - p.vx * 0.09, p.y - p.vy * 0.09);
+                    ctx.stroke();
+                } else {
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Trail effect
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - p.vx * 0.05, p.y - p.vy * 0.05);
+                    ctx.stroke();
+                }
+            });
+            
+            // Draw enemy ranged projectiles
+            enemyProjectiles.forEach(p => {
+                ctx.fillStyle = '#ff4d4d';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.strokeStyle = 'rgba(255, 77, 77, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - p.vx * 0.03, p.y - p.vy * 0.03);
+                ctx.stroke();
+            });
+            
+            // Draw enemies
+            enemies.forEach(e => {
+                const explosiveWindup = e.type === 'explosive' && e.ramState === 'windup';
+                const shakeOffset = explosiveWindup ? Math.sin(Date.now() * 0.06) * 3 : 0;
+                const drawX = e.x + shakeOffset;
+                const drawY = e.y;
+                
+                // Paper hand appearance
+                ctx.fillStyle =
+                    e.type === 'elite' ? '#c0c0c0' :
+                    (e.type === 'explosive' ? '#ff9f68' :
+                    (e.type === 'tank' ? '#7b8ea8' :
+                    (e.type === 'splitter' ? '#e0ff8f' : '#ffffff')));
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Fingers
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i / 4) * Math.PI - Math.PI / 2;
+                    const fx = drawX + Math.cos(angle) * (e.radius + 5);
+                    const fy = drawY + Math.sin(angle) * (e.radius + 5);
+                    ctx.fillStyle =
+                        e.type === 'elite' ? '#a0a0a0' :
+                        (e.type === 'explosive' ? '#ff7f50' :
+                        (e.type === 'tank' ? '#5c6f89' :
+                        (e.type === 'splitter' ? '#b8d968' : '#e0e0e0')));
+                    ctx.beginPath();
+                    ctx.arc(fx, fy, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Red arrow (paper hand symbol)
+                ctx.fillStyle =
+                    e.type === 'explosive' ? '#ffea00' :
+                    (e.type === 'tank' ? '#00c8ff' :
+                    (e.type === 'splitter' ? '#6c8f00' : '#ff0000'));
+                ctx.beginPath();
+                ctx.moveTo(drawX, drawY - 5);
+                ctx.lineTo(drawX - 8, drawY + 5);
+                ctx.lineTo(drawX + 8, drawY + 5);
+                ctx.fill();
+                
+                if (e.type === 'explosive') {
+                    // Distinct explosive marker and telegraph ring.
+                    ctx.fillStyle = '#7a0000';
+                    ctx.font = 'bold 14px Comic Neue';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('!', drawX, drawY + 5);
+                    
+                    const ringRadius = e.radius + 10 + Math.sin(Date.now() * 0.02) * 2;
+                    ctx.strokeStyle = explosiveWindup ? '#ff2d2d' : '#ff8c42';
+                    ctx.lineWidth = explosiveWindup ? 4 : 2;
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY, ringRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                if (e.type === 'tank') {
+                    // Armor plate look to read as "tank".
+                    ctx.strokeStyle = '#b7d8ff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY, e.radius - 4, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                if (e.type === 'splitter') {
+                    // Splitter seam to hint at split-on-death.
+                    ctx.strokeStyle = '#6a8a1a';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(drawX - e.radius * 0.6, drawY - e.radius * 0.6);
+                    ctx.lineTo(drawX + e.radius * 0.6, drawY + e.radius * 0.6);
+                    ctx.stroke();
+                }
+                
+                // Health bar
+                const barWidth = 30;
+                const barHeight = 4;
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth, barHeight);
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth * (e.health / e.maxHealth), barHeight);
+                
+                // Slow effect
+                if (e.slowTimer > 0) {
+                    ctx.strokeStyle = '#00ffff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY, e.radius + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+            
+            // Draw boss
+            if (boss) {
+                const t = Date.now() * 0.002;
+                
+                // Main grotesque writhing mass
+                ctx.fillStyle = '#efe8d9';
+                ctx.beginPath();
+                ctx.arc(boss.x, boss.y, boss.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#d8d0bf';
+                ctx.beginPath();
+                ctx.arc(boss.x + 10, boss.y + 8, boss.radius * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Fused hand lumps around body
+                for (let i = 0; i < 14; i++) {
+                    const a = (i / 14) * Math.PI * 2;
+                    const wriggle = Math.sin(t * 2.5 + i) * 5;
+                    const hx = boss.x + Math.cos(a) * (boss.radius + wriggle);
+                    const hy = boss.y + Math.sin(a) * (boss.radius + wriggle);
+                    ctx.fillStyle = i % 2 === 0 ? '#f7f2e8' : '#e4dccb';
+                    ctx.beginPath();
+                    ctx.arc(hx, hy, 9, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Finger nubs
+                    for (let f = 0; f < 4; f++) {
+                        const fa = a + (f - 1.5) * 0.25;
+                        ctx.beginPath();
+                        ctx.arc(hx + Math.cos(fa) * 8, hy + Math.sin(fa) * 8, 3.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                
+                // Dark fissures between fused hands
+                ctx.strokeStyle = 'rgba(70, 55, 45, 0.45)';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 7; i++) {
+                    const a = (i / 7) * Math.PI * 2 + Math.sin(t + i) * 0.2;
+                    ctx.beginPath();
+                    ctx.moveTo(boss.x + Math.cos(a) * 15, boss.y + Math.sin(a) * 15);
+                    ctx.lineTo(boss.x + Math.cos(a + 0.5) * (boss.radius - 5), boss.y + Math.sin(a + 0.5) * (boss.radius - 5));
+                    ctx.stroke();
+                }
+                
+                // Detached-hand telegraph ring (outer hands tearing off)
+                if (boss.detachTimer < 0.7) {
+                    const pulse = 1 + (0.7 - boss.detachTimer) * 0.9;
+                    ctx.strokeStyle = 'rgba(255, 80, 80, 0.75)';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(boss.x, boss.y, boss.radius + 12 * pulse, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                // Eyes and maw
+                ctx.fillStyle = '#8b0000';
+                ctx.beginPath();
+                ctx.ellipse(boss.x - 18, boss.y - 8, 9, 11, -0.2, 0, Math.PI * 2);
+                ctx.ellipse(boss.x + 20, boss.y - 4, 10, 12, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#250000';
+                ctx.beginPath();
+                ctx.ellipse(boss.x + 2, boss.y + 20, 24, 12, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Health bar
+                const barWidth = 140;
+                const barHeight = 12;
+                ctx.fillStyle = '#5b0000';
+                ctx.fillRect(boss.x - barWidth/2, boss.y - boss.radius - 24, barWidth, barHeight);
+                ctx.fillStyle = '#ff4d4d';
+                ctx.fillRect(boss.x - barWidth/2, boss.y - boss.radius - 24, barWidth * (boss.health / boss.maxHealth), barHeight);
+                
+                // Boss name
+                ctx.fillStyle = '#ffb3b3';
+                ctx.font = 'bold 20px Comic Neue';
+                ctx.textAlign = 'center';
+                ctx.fillText('THE PAPER ABOMINATION', boss.x, boss.y - boss.radius - 34);
+            }
+            
+            // Draw player
+            if (gameState === 'playing' || gameState === 'shop') {
+                // Visual additions (perks)
+                player.visualAdditions.forEach((addition, i) => {
+                    const angle = (i / player.visualAdditions.length) * Math.PI * 2;
+                    const dist = 25;
+                    const ax = player.x + Math.cos(angle) * dist;
+                    const ay = player.y + Math.sin(angle) * dist;
+                    
+                    if (addition.includes('diamond')) {
+                        ctx.fillStyle = '#00ffff';
+                        ctx.fillRect(ax - 8, ay - 8, 16, 16);
+                    } else if (addition.includes('rocket')) {
+                        ctx.fillStyle = '#ff6b6b';
+                        ctx.fillRect(ax - 5, ay - 10, 10, 20);
+                    } else if (addition.includes('aura')) {
+                        ctx.strokeStyle = '#ffd700';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(player.x, player.y, 35, 0, Math.PI * 2);
+                        ctx.stroke();
+                    } else {
+                        ctx.fillStyle = '#ffd700';
+                        ctx.fillRect(ax - 5, ay - 5, 10, 10);
+                    }
+                });
+                const x = player.x;
+                const y = player.y;
+                const r = player.radius;
+                const v = {
+                    baseColor: '#d8a24a',
+                    tilt: -0.06,
+                    headW: 1.13,
+                    headH: 1.18,
+                    lightX: -0.05,
+                    lightY: 0.46,
+                    earSize: 0.96,
+                    earSpread: 0.82,
+                    earLift: 0.78,
+                    earTilt: -0.74,
+                    fur1X: 0.01,
+                    fur1Y: -0.09,
+                    fur1W: 0.86,
+                    fur1H: 0.7,
+                    fur1Rot: -0.23,
+                    fur1A: 0.49,
+                    fur2X: -0.04,
+                    fur2Y: 0.05,
+                    fur2W: 0.87,
+                    fur2H: 1.06,
+                    fur2Rot: 2.81,
+                    fur2A: 0.41,
+                    creamW: 0.74,
+                    creamH: 0.84,
+                    creamY: -0.06,
+                    eyeSpread: 0.38,
+                    eyeY: -0.39,
+                    eyeW: 0.12,
+                    eyeH: 0.24,
+                    eyeTilt: -0.54,
+                    eyeAlmond: 0.05,
+                    noseX: -0.35,
+                    noseY: 0.18,
+                    noseW: 0.27,
+                    noseH: 0.17,
+                    mouthX: -0.1,
+                    mouthY: 0.36,
+                    mouthW: 0.49,
+                    mouthCurve: 0.59,
+                    mouthTilt: 0.3
+                };
+                const baseColor = breeds[player.breed]?.color || v.baseColor;
+                
+                const drawFurPatch = (px, py, pw, ph, rot, alpha) => {
+                    ctx.save();
+                    ctx.translate(r * px, r * py);
+                    ctx.rotate(rot);
+                    ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, r * pw, r * ph, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                };
+                
+                const drawEye = (cx, cy, rx, ry, rot, almond) => {
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(rot);
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    if (almond > 0.02) {
+                        const point = rx * (0.35 + almond * 0.75);
+                        const topDepth = ry * (1 - almond * 0.55);
+                        const bottomDepth = ry * (1 - almond * 0.45);
+                        ctx.moveTo(-rx - point * 0.35, 0);
+                        ctx.quadraticCurveTo(0, -topDepth, rx + point, 0);
+                        ctx.quadraticCurveTo(0, bottomDepth, -rx - point * 0.35, 0);
+                    } else {
+                        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                };
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(v.tilt);
+                
+                const headGradient = ctx.createRadialGradient(
+                    r * v.lightX,
+                    r * v.lightY,
+                    r * 0.1,
+                    0,
+                    0,
+                    r * 1.7
+                );
+                headGradient.addColorStop(0, '#f6d58c');
+                headGradient.addColorStop(0.5, baseColor);
+                headGradient.addColorStop(1, '#7a4d1f');
+                
+                // Ears
+                ctx.save();
+                ctx.translate(-r * v.earSpread, -r * v.earLift);
+                ctx.rotate(-v.earTilt);
+                ctx.fillStyle = baseColor;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-r * 0.35 * v.earSize, -r * 0.65 * v.earSize);
+                ctx.lineTo(r * 0.22 * v.earSize, -r * 0.55 * v.earSize);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = 'rgba(255, 185, 185, 0.7)';
+                ctx.beginPath();
+                ctx.moveTo(-r * 0.02 * v.earSize, -r * 0.06 * v.earSize);
+                ctx.lineTo(-r * 0.23 * v.earSize, -r * 0.47 * v.earSize);
+                ctx.lineTo(r * 0.12 * v.earSize, -r * 0.38 * v.earSize);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+                
+                ctx.save();
+                ctx.translate(r * v.earSpread, -r * (v.earLift + 0.03));
+                ctx.rotate(v.earTilt + 0.08);
+                ctx.fillStyle = baseColor;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(r * 0.35 * v.earSize, -r * 0.65 * v.earSize);
+                ctx.lineTo(-r * 0.22 * v.earSize, -r * 0.55 * v.earSize);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = 'rgba(255, 185, 185, 0.7)';
+                ctx.beginPath();
+                ctx.moveTo(r * 0.02 * v.earSize, -r * 0.06 * v.earSize);
+                ctx.lineTo(r * 0.23 * v.earSize, -r * 0.47 * v.earSize);
+                ctx.lineTo(-r * 0.12 * v.earSize, -r * 0.38 * v.earSize);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+                
+                // Head
+                ctx.fillStyle = headGradient;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, r * v.headW, r * v.headH, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Fur layers
+                ctx.fillStyle = 'rgba(0,0,0,0.12)';
+                ctx.beginPath();
+                ctx.ellipse(r * 0.4, r * 0.5, r * 0.9, r * 0.5, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                drawFurPatch(v.fur2X, v.fur2Y, v.fur2W, v.fur2H, v.fur2Rot, v.fur2A);
+                
+                // Cream mask
+                const creamGrad = ctx.createRadialGradient(0, -r * 0.1, r * 0.1, 0, 0, r);
+                creamGrad.addColorStop(0, '#fff6dc');
+                creamGrad.addColorStop(1, '#e2c89b');
+                ctx.fillStyle = creamGrad;
+                ctx.beginPath();
+                ctx.ellipse(0, r * v.creamY, r * v.creamW, r * v.creamH, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Mouth
+                const totalUpgrades = player.perks.length + Math.max(0, player.weapons.length - 1);
+                const excitementProgress = Math.min(1, totalUpgrades / 20);
+                // Start positive, then trend toward negative as upgrades stack.
+                const dynamicMouthTilt = Math.max(-0.33, Math.min(0.33, 0.30 - (0.63 * excitementProgress)));
+                ctx.save();
+                ctx.translate(r * v.mouthX, 0);
+                ctx.rotate(dynamicMouthTilt);
+                ctx.lineWidth = r * 0.07;
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(-r * (v.mouthW - 0.1), r * v.mouthY);
+                ctx.quadraticCurveTo(r * 0.1, r * v.mouthCurve, r * (v.mouthW + 0.1), r * (v.mouthY - 0.05));
+                ctx.stroke();
+                ctx.restore();
+                
+                // Nose (drawn above mouth)
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.ellipse(r * v.noseX, r * v.noseY, r * v.noseW, r * v.noseH, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(r * v.noseX, r * (v.noseY + 0.12), r * (v.noseW + 0.03), r * (v.noseH * 0.6), 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Fur1 sits above all face layers except eyes
+                drawFurPatch(v.fur1X, v.fur1Y, v.fur1W, v.fur1H, v.fur1Rot, v.fur1A);
+                
+                // Eyes (drawn last, above fur1)
+                const leftEyeX = -r * v.eyeSpread;
+                const rightEyeX = r * (v.eyeSpread - 0.03);
+                const eyeBaseY = r * v.eyeY;
+                drawEye(leftEyeX, eyeBaseY, r * v.eyeW, r * v.eyeH, -v.eyeTilt, v.eyeAlmond);
+                drawEye(rightEyeX, eyeBaseY + r * 0.05, r * (v.eyeW * 1.08), r * (v.eyeH * 1.06), v.eyeTilt, v.eyeAlmond);
+                
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(leftEyeX - r * 0.03, eyeBaseY - r * 0.05, r * 0.05, 0, Math.PI * 2);
+                ctx.arc(rightEyeX - r * 0.04, eyeBaseY - r * 0.01, r * 0.05, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+
+
+            }
+        }
+        
+        // Game loop
+        function gameLoop(timestamp) {
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+            
+            update(Math.min(dt, 0.1));
+            render();
+            
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+        
+        // Start
+        gameLoopId = requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
