@@ -73,6 +73,16 @@
             font-size: 24px;
         }
         
+        #killDisplay {
+            top: 70px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #ff6b6b;
+            font-size: 20px;
+        }
+        
         #waveDisplay {
             top: 20px;
             left: 50%;
@@ -420,6 +430,7 @@
         <div id="ui">
             <div id="healthBar" class="hud">❤️ <span id="healthText">100/100</span></div>
             <div id="coinDisplay" class="hud">🪙 <span id="coinText">0</span></div>
+            <div id="killDisplay" class="hud">💀 <span id="killText">0</span></div>
             <div id="waveDisplay" class="hud">WAVE <span id="waveText">1</span></div>
             <div id="difficultyDisplay" class="hud">Difficulty: <span id="diffText">1</span></div>
             <div id="weaponSlots" class="hud">
@@ -437,11 +448,12 @@
                     <h3>🟡 Yellow Doge</h3>
                     <div class="stats">
                         Speed: 115%<br>
-                        Luck: 130%<br>
-                        Damage: 85%<br>
+                        Luck: 420%<br>
+                        Damage: 125%<br>
                         Health: 200%<br>
-                        Magnet: 90%<br>
-                        Regen: 1.0 HP/s
+                        Magnet: 150%<br>
+                        Dodge: 130%<br>
+                        Regen: 3.0 HP/s
                     </div>
                     <div class="perk">
                         <strong>Much Find:</strong><br>
@@ -452,11 +464,12 @@
                     <h3>⚫ Black Doge</h3>
                     <div class="stats">
                         Speed: 90%<br>
-                        Luck: 75%<br>
-                        Damage: 125%<br>
-                        Health: 180%<br>
-                        Magnet: 110%<br>
-                        Regen: 1.0 HP/s
+                        Luck: 210%<br>
+                        Damage: 150%<br>
+                        Health: 280%<br>
+                        Magnet: 320%<br>
+                        Dodge: 180%<br>
+                        Regen: 2.0 HP/s
                     </div>
                     <div class="perk">
                         <strong>HODL Strike:</strong><br>
@@ -466,13 +479,13 @@
                 <div class="breedCard" onclick="selectBreed('grey')">
                     <h3>⚪ Grey Doge</h3>
                     <div class="stats">
-                        Luck: 100%<br>
-                        Damage: 100%<br>
                         Speed: 105%<br>
+                        Luck: 250%<br>
+                        Damage: 180%<br>
+                        Health: 300%<br>
+                        Magnet: 200%<br>
                         Dodge: 120%<br>
-                        Regen: 1.5 HP/s<br>
-                        Health: 200%<br>
-                        Magnet: 80%
+                        Regen: 1.5 HP/s
                     </div>
                     <div class="perk">
                         <strong>Doge Reflex:</strong><br>
@@ -521,6 +534,7 @@
         <div id="gameOver">
             <h1>💀 PAPER HANDS 💀</h1>
             <p style="color: #fff; font-size: 24px;">You survived <span id="finalWave">0</span> waves</p>
+            <p style="color: #ffd700; font-size: 20px;">💀 <span id="finalKills">0</span> paper hands destroyed</p>
             <button onclick="restartGame()">🔄 Try Again</button>
         </div>
         
@@ -696,6 +710,8 @@
         let coinsOnGround = [];
         let enemyProjectiles = [];
         let turrets = [];
+        let damageTexts = [];
+        let kills = 0;
         let waveActive = false;
         let waveTimer = 0;
         let waveDuration = 0;
@@ -1067,8 +1083,8 @@
                             }
                         }
                         
-                        // Knockback
-                        if (p.knockback > 0 && !player.diamond) {
+                        // Knockback (always pushes enemies back from YOUR weapons)
+                        if (p.knockback > 0) {
                             enemy.x += p.vx * p.knockback * 0.1;
                             enemy.y += p.vy * p.knockback * 0.1;
                         }
@@ -1079,6 +1095,7 @@
                         }
                         
                         enemy.health -= damage;
+                        spawnDamageText(enemy.x, enemy.y, damage, p.color);
                         p.pierce--;
                         
                         if (p.pierce < 0) {
@@ -1089,6 +1106,7 @@
                 
                 // Death
                 if (enemy.health <= 0) {
+                    kills++;
                     // Splitter breaks into mini paper hands.
                     if (enemy.type === 'splitter') {
                         for (let i = 0; i < 2; i++) {
@@ -1176,8 +1194,10 @@
             
             // Update turrets
             turrets = turrets.filter(t => {
+                t.life -= dt; // Bug fix: turret life now actually counts down
                 t.timer -= dt;
                 if (t.timer <= 0) {
+                    t.timer = 0.4; // Bug fix: reset fire timer (2.5 shots/sec)
                     // Find nearest enemy
                     let nearest = null;
                     let nearestDist = Infinity;
@@ -1196,12 +1216,12 @@
                         projectiles.push({
                             x: t.x,
                             y: t.y,
-                            vx: Math.cos(angle) * 400,
-                            vy: Math.sin(angle) * 400,
+                            vx: Math.cos(angle) * 550,
+                            vy: Math.sin(angle) * 550,
                             damage: 20,
                             range: 300,
                             distance: 0,
-                            radius: 5,
+                            radius: 3,
                             color: '#00ff00',
                             pierce: 0,
                             explosive: 0,
@@ -1258,6 +1278,13 @@
                 return p.life > 0;
             });
             
+            // Update floating damage numbers
+            damageTexts = damageTexts.filter(d => {
+                d.y += d.vy * dt;
+                d.life -= dt;
+                return d.life > 0;
+            });
+            
             // Wave logic
             if (waveActive && !boss) {
                 waveTimer -= dt;
@@ -1272,8 +1299,13 @@
                     spawnTimer = 2;
                 }
                 
-                if (enemies.length === 0 && enemiesToSpawn === 0 && coinsOnGround.length === 0) {
-                    openShop();
+                if (enemies.length === 0 && enemiesToSpawn === 0) {
+                    if (coinsOnGround.length > 0) {
+                        // Auto-magnetize all remaining coins when enemies are cleared
+                        coinsOnGround.forEach(c => c.magnetized = true);
+                    } else {
+                        openShop();
+                    }
                 }
             } else if (boss && boss.health <= 0) {
                 victory();
@@ -1383,9 +1415,23 @@
                         damage += p.explosive * player.damage;
                     }
                     boss.health -= damage;
+                    spawnDamageText(boss.x + (Math.random()-0.5)*40, boss.y, damage, p.color);
                     p.pierce--;
                     if (p.pierce < 0) p.distance = p.range + 1;
                 }
+            });
+        }
+        
+        // Spawn floating damage number
+        function spawnDamageText(x, y, amount, color) {
+            damageTexts.push({
+                x: x + (Math.random() - 0.5) * 20,
+                y: y - 10,
+                amount: Math.round(amount),
+                color: color || '#fff',
+                life: 0.8,
+                maxLife: 0.8,
+                vy: -60
             });
         }
         
@@ -1832,6 +1878,7 @@
         function gameOver() {
             gameState = 'gameOver';
             document.getElementById('finalWave').textContent = currentWave;
+            document.getElementById('finalKills').textContent = kills;
             document.getElementById('gameOver').classList.add('visible');
         }
         
@@ -1877,11 +1924,13 @@
         function resetGame() {
             currentWave = 1;
             coins = 0;
+            kills = 0;
             projectiles = [];
             enemyProjectiles = [];
             enemies = [];
             particles = [];
             coinsOnGround = [];
+            damageTexts = [];
             turrets = [];
             boss = null;
             shopRefreshCost = 50;
@@ -1926,6 +1975,7 @@
         function updateUI() {
             document.getElementById('healthText').textContent = `${Math.floor(player.health)}/${player.maxHealth}`;
             document.getElementById('coinText').textContent = coins;
+            document.getElementById('killText').textContent = kills;
             document.getElementById('waveText').textContent = currentWave;
             document.getElementById('diffText').textContent = difficulty;
         }
@@ -2001,6 +2051,20 @@
                 ctx.globalAlpha = p.life / 0.5;
                 ctx.fillStyle = p.color;
                 ctx.fillRect(p.x - 3, p.y - 3, 6, 6);
+                ctx.globalAlpha = 1;
+            });
+            
+            // Draw floating damage numbers
+            damageTexts.forEach(d => {
+                const alpha = d.life / d.maxLife;
+                const size = 14 + (1 - alpha) * 6;
+                ctx.globalAlpha = alpha;
+                ctx.font = `bold ${Math.round(size)}px Comic Neue`;
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText(d.amount, d.x + 1, d.y + 1);
+                ctx.fillStyle = d.color;
+                ctx.fillText(d.amount, d.x, d.y);
                 ctx.globalAlpha = 1;
             });
             
