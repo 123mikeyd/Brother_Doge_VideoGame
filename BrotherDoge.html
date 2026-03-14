@@ -73,6 +73,16 @@
             font-size: 24px;
         }
         
+        #killDisplay {
+            top: 70px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #ff6b6b;
+            font-size: 20px;
+        }
+        
         #waveDisplay {
             top: 20px;
             left: 50%;
@@ -402,6 +412,49 @@
             margin: 10px 0;
         }
         
+        #pauseOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffd700;
+            pointer-events: all;
+            z-index: 100;
+        }
+        
+        #pauseOverlay.visible {
+            display: flex;
+        }
+        
+        #pauseOverlay h1 {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        #pauseOverlay p {
+            color: #aaa;
+            font-size: 20px;
+        }
+        
+        #soundToggle {
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 20px;
+            pointer-events: all;
+        }
+        
         #difficultyDisplay {
             top: 60px;
             left: 50%;
@@ -420,6 +473,7 @@
         <div id="ui">
             <div id="healthBar" class="hud">❤️ <span id="healthText">100/100</span></div>
             <div id="coinDisplay" class="hud">🪙 <span id="coinText">0</span></div>
+            <div id="killDisplay" class="hud">💀 <span id="killText">0</span></div>
             <div id="waveDisplay" class="hud">WAVE <span id="waveText">1</span></div>
             <div id="difficultyDisplay" class="hud">Difficulty: <span id="diffText">1</span></div>
             <div id="weaponSlots" class="hud">
@@ -437,11 +491,12 @@
                     <h3>🟡 Yellow Doge</h3>
                     <div class="stats">
                         Speed: 115%<br>
-                        Luck: 130%<br>
-                        Damage: 85%<br>
+                        Luck: 420%<br>
+                        Damage: 125%<br>
                         Health: 200%<br>
-                        Magnet: 90%<br>
-                        Regen: 1.0 HP/s
+                        Magnet: 150%<br>
+                        Dodge: 130%<br>
+                        Regen: 3.0 HP/s
                     </div>
                     <div class="perk">
                         <strong>Much Find:</strong><br>
@@ -452,11 +507,12 @@
                     <h3>⚫ Black Doge</h3>
                     <div class="stats">
                         Speed: 90%<br>
-                        Luck: 75%<br>
-                        Damage: 125%<br>
-                        Health: 180%<br>
-                        Magnet: 110%<br>
-                        Regen: 1.0 HP/s
+                        Luck: 210%<br>
+                        Damage: 150%<br>
+                        Health: 280%<br>
+                        Magnet: 320%<br>
+                        Dodge: 180%<br>
+                        Regen: 2.0 HP/s
                     </div>
                     <div class="perk">
                         <strong>HODL Strike:</strong><br>
@@ -466,13 +522,13 @@
                 <div class="breedCard" onclick="selectBreed('grey')">
                     <h3>⚪ Grey Doge</h3>
                     <div class="stats">
-                        Luck: 100%<br>
-                        Damage: 100%<br>
                         Speed: 105%<br>
+                        Luck: 250%<br>
+                        Damage: 180%<br>
+                        Health: 300%<br>
+                        Magnet: 200%<br>
                         Dodge: 120%<br>
-                        Regen: 1.5 HP/s<br>
-                        Health: 200%<br>
-                        Magnet: 80%
+                        Regen: 1.5 HP/s
                     </div>
                     <div class="perk">
                         <strong>Doge Reflex:</strong><br>
@@ -498,6 +554,12 @@
             </div>
         </div>
         
+        <div id="pauseOverlay">
+            <h1>⏸️ PAUSED</h1>
+            <p>Press ESC to resume</p>
+            <button id="soundToggle" onclick="toggleSound()">🔊 Sound: ON</button>
+        </div>
+        
         <div id="shopOverlay">
             <div id="shopTitle">🛒 DOGE SHOP 🛒</div>
             <div id="shopContent">
@@ -508,6 +570,10 @@
                 <div class="shopSection">
                     <h3>⭐ Perks</h3>
                     <div id="perkShop"></div>
+                </div>
+                <div class="shopSection">
+                    <h3>⬆️ Upgrades</h3>
+                    <div id="upgradeShop"></div>
                 </div>
                 <div class="shopSection">
                     <h3>📊 Your Stats</h3>
@@ -521,6 +587,7 @@
         <div id="gameOver">
             <h1>💀 PAPER HANDS 💀</h1>
             <p style="color: #fff; font-size: 24px;">You survived <span id="finalWave">0</span> waves</p>
+            <p style="color: #ffd700; font-size: 20px;">💀 <span id="finalKills">0</span> paper hands destroyed</p>
             <button onclick="restartGame()">🔄 Try Again</button>
         </div>
         
@@ -557,6 +624,146 @@
         const ARENA_WIDTH = 800;
         const ARENA_HEIGHT = 600;
         
+        // === SOUND SYSTEM (Web Audio API) ===
+        let audioCtx = null;
+        let soundEnabled = true;
+        const soundThrottles = {};
+        
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        
+        function playSound(type) {
+            if (!soundEnabled || !audioCtx) return;
+            // Throttle rapid sounds
+            const now = Date.now();
+            const minGap = { shoot: 70, hit: 40, coin: 60, crit: 100 }[type] || 0;
+            if (minGap > 0) {
+                if (soundThrottles[type] && now - soundThrottles[type] < minGap) return;
+                soundThrottles[type] = now;
+            }
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const t = audioCtx.currentTime;
+            
+            switch(type) {
+                case 'shoot':
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(700, t);
+                    osc.frequency.exponentialRampToValueAtTime(200, t + 0.06);
+                    gain.gain.setValueAtTime(0.06, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+                    osc.start(t); osc.stop(t + 0.06);
+                    break;
+                case 'shotgun':
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(400, t);
+                    osc.frequency.exponentialRampToValueAtTime(80, t + 0.1);
+                    gain.gain.setValueAtTime(0.08, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+                    osc.start(t); osc.stop(t + 0.1);
+                    break;
+                case 'minigun':
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(900, t);
+                    osc.frequency.exponentialRampToValueAtTime(400, t + 0.03);
+                    gain.gain.setValueAtTime(0.04, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+                    osc.start(t); osc.stop(t + 0.03);
+                    break;
+                case 'launcher':
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, t);
+                    osc.frequency.exponentialRampToValueAtTime(40, t + 0.25);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+                    osc.start(t); osc.stop(t + 0.25);
+                    break;
+                case 'hit':
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(250, t);
+                    osc.frequency.exponentialRampToValueAtTime(80, t + 0.04);
+                    gain.gain.setValueAtTime(0.04, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+                    osc.start(t); osc.stop(t + 0.04);
+                    break;
+                case 'crit':
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(600, t);
+                    osc.frequency.setValueAtTime(900, t + 0.04);
+                    osc.frequency.setValueAtTime(1200, t + 0.08);
+                    gain.gain.setValueAtTime(0.08, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                    osc.start(t); osc.stop(t + 0.12);
+                    break;
+                case 'kill':
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, t);
+                    osc.frequency.exponentialRampToValueAtTime(700, t + 0.1);
+                    gain.gain.setValueAtTime(0.07, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                    osc.start(t); osc.stop(t + 0.12);
+                    break;
+                case 'coin':
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1200, t);
+                    osc.frequency.setValueAtTime(1500, t + 0.04);
+                    gain.gain.setValueAtTime(0.05, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+                    osc.start(t); osc.stop(t + 0.08);
+                    break;
+                case 'explosion':
+                    // Use noise-like effect with rapid frequency sweep
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, t);
+                    osc.frequency.exponentialRampToValueAtTime(20, t + 0.3);
+                    gain.gain.setValueAtTime(0.12, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+                    osc.start(t); osc.stop(t + 0.3);
+                    break;
+                case 'hurt':
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, t);
+                    osc.frequency.exponentialRampToValueAtTime(100, t + 0.15);
+                    gain.gain.setValueAtTime(0.08, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                    osc.start(t); osc.stop(t + 0.15);
+                    break;
+                case 'waveComplete':
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(500, t);
+                    osc.frequency.setValueAtTime(700, t + 0.1);
+                    osc.frequency.setValueAtTime(900, t + 0.2);
+                    gain.gain.setValueAtTime(0.08, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+                    osc.start(t); osc.stop(t + 0.35);
+                    break;
+                case 'gameOver':
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, t);
+                    osc.frequency.exponentialRampToValueAtTime(100, t + 0.5);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+                    osc.start(t); osc.stop(t + 0.5);
+                    break;
+                case 'buy':
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, t);
+                    osc.frequency.setValueAtTime(1000, t + 0.05);
+                    osc.frequency.setValueAtTime(1200, t + 0.1);
+                    gain.gain.setValueAtTime(0.06, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                    osc.start(t); osc.stop(t + 0.15);
+                    break;
+            }
+        }
+        
         // Resize canvas
         function resizeCanvas() {
             canvas.width = Math.min(window.innerWidth, ARENA_WIDTH);
@@ -569,7 +776,21 @@
         const keys = {};
         const mouse = { x: 0, y: 0, down: false };
         
+        let paused = false;
+        
+        function togglePause() {
+            if (gameState !== 'playing') return;
+            paused = !paused;
+            document.getElementById('pauseOverlay').classList.toggle('visible', paused);
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+        }
+        
         window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { togglePause(); return; }
             keys[e.key.toLowerCase()] = true;
         });
         
@@ -677,6 +898,8 @@
             damage: 1,
             xpGain: 1,
             projectileBounce: 0,
+            critChance: 0.05,
+            critDamage: 1.5,
             turret: 0,
             diamond: false,
             moon: false,
@@ -696,6 +919,8 @@
         let coinsOnGround = [];
         let enemyProjectiles = [];
         let turrets = [];
+        let damageTexts = [];
+        let kills = 0;
         let waveActive = false;
         let waveTimer = 0;
         let waveDuration = 0;
@@ -705,6 +930,7 @@
         
         // Select breed
         function selectBreed(breed) {
+            initAudio();
             player.breed = breed;
             const breedData = breeds[breed];
             
@@ -718,7 +944,7 @@
             player.regen = breedData.stats.regen;
             
             // Give starter weapon
-            player.weapons = [{ ...weaponTypes.pistol, type: 'pistol', lastShot: 0 }];
+            player.weapons = [{ ...weaponTypes.pistol, type: 'pistol', lastShot: 0, level: 1 }];
             updateWeaponUI();
             
             document.getElementById('breedSelect').style.display = 'none';
@@ -794,11 +1020,12 @@
             
             const enemy = {
                 x, y,
-                radius: type === 'elite' ? 25 : (type === 'explosive' ? 24 : (type === 'tank' ? 30 : (type === 'splitter' ? 22 : 20))),
-                speed: (100 + currentWave * 10) * (type === 'fomo' ? 1.5 : (type === 'explosive' ? 0.72 : (type === 'tank' ? 0.52 : (type === 'splitter' ? 0.92 : 1)))),
-                health: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 4.2 : (type === 'splitter' ? 1.8 : 1))),
-                maxHealth: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 4.2 : (type === 'splitter' ? 1.8 : 1))),
-                damage: 10 + currentWave * 2,
+                radius: type === 'elite' ? 25 : (type === 'explosive' ? 24 : (type === 'tank' ? 34 : (type === 'splitter' ? 22 : 20))),
+                speed: (100 + currentWave * 10) * (type === 'fomo' ? 1.5 : (type === 'explosive' ? 0.72 : (type === 'tank' ? 0.4 : (type === 'splitter' ? 0.92 : 1)))),
+                health: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 7.0 : (type === 'splitter' ? 1.8 : 1))),
+                maxHealth: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 7.0 : (type === 'splitter' ? 1.8 : 1))),
+                damage: (10 + currentWave * 2) * (type === 'tank' ? 1.6 : 1),
+                knockbackResist: type === 'tank' ? 0.8 : 0,
                 type: type,
                 slowTimer: 0,
                 attackTimer: Math.random() * 0.5,
@@ -851,7 +1078,7 @@
         
         // Update game
         function update(dt) {
-            if (gameState !== 'playing') return;
+            if (gameState !== 'playing' || paused) return;
             
             // Player movement
             let dx = 0, dy = 0;
@@ -1029,6 +1256,7 @@
                     if (!(player.breed === 'grey' && Math.random() < 0.2)) {
                         const meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1);
                         player.health -= meleeDamage;
+                        playSound('hurt');
                         if (player.health <= 0) gameOver();
                     }
                     enemy.attackTimer = enemy.type === 'shredder' ? 0.45 : 0.75;
@@ -1044,6 +1272,11 @@
                         // Hit
                         let damage = p.damage * player.damage;
                         
+                        // Crit check (luck boosts crit chance)
+                        const effectiveCritChance = Math.min(0.6, player.critChance + Math.max(0, player.luck - 1) * 0.02);
+                        const isCrit = Math.random() < effectiveCritChance;
+                        if (isCrit) damage *= player.critDamage;
+                        
                         // Explosive
                         if (p.explosive > 0) {
                             enemies.forEach(e => {
@@ -1055,6 +1288,7 @@
                                 }
                             });
                             
+                            playSound('explosion');
                             // Visual explosion
                             for (let i = 0; i < 10; i++) {
                                 particles.push({
@@ -1067,10 +1301,11 @@
                             }
                         }
                         
-                        // Knockback
-                        if (p.knockback > 0 && !player.diamond) {
-                            enemy.x += p.vx * p.knockback * 0.1;
-                            enemy.y += p.vy * p.knockback * 0.1;
+                        // Knockback (always pushes enemies back from YOUR weapons)
+                        if (p.knockback > 0) {
+                            const kbMult = 1 - (enemy.knockbackResist || 0);
+                            enemy.x += p.vx * p.knockback * 0.1 * kbMult;
+                            enemy.y += p.vy * p.knockback * 0.1 * kbMult;
                         }
                         
                         // Slow
@@ -1079,6 +1314,8 @@
                         }
                         
                         enemy.health -= damage;
+                        spawnDamageText(enemy.x, enemy.y, damage, isCrit ? '#ffff00' : p.color, isCrit);
+                        playSound(isCrit ? 'crit' : 'hit');
                         p.pierce--;
                         
                         if (p.pierce < 0) {
@@ -1089,6 +1326,8 @@
                 
                 // Death
                 if (enemy.health <= 0) {
+                    kills++;
+                    playSound('kill');
                     // Splitter breaks into mini paper hands.
                     if (enemy.type === 'splitter') {
                         for (let i = 0; i < 2; i++) {
@@ -1113,10 +1352,15 @@
                         }
                     }
                     
-                    // Drop coins
-                    let coinValue = Math.floor(Math.random() * 3) + 1;
+                    // Drop coins (harder enemies = more reward)
+                    const coinRanges = {
+                        paper: [1, 2], shredder: [2, 4], splitter: [2, 4],
+                        explosive: [3, 6], fomo: [3, 6], tank: [6, 10], elite: [8, 14]
+                    };
+                    const [minC, maxC] = coinRanges[enemy.type] || [1, 3];
+                    let coinValue = minC + Math.floor(Math.random() * (maxC - minC + 1));
                     const luckBonusChance = Math.min(0.45, Math.max(0, (player.luck - 1) * 0.25));
-                    if (Math.random() < luckBonusChance) coinValue += 1;
+                    if (Math.random() < luckBonusChance) coinValue += Math.ceil((maxC - minC) * 0.5);
                     const jackpotChance = Math.min(0.2, 0.03 * player.luck);
                     if (Math.random() < jackpotChance) coinValue += Math.max(1, Math.floor(player.luck));
                     
@@ -1176,8 +1420,10 @@
             
             // Update turrets
             turrets = turrets.filter(t => {
+                t.life -= dt; // Bug fix: turret life now actually counts down
                 t.timer -= dt;
                 if (t.timer <= 0) {
+                    t.timer = 0.4; // Bug fix: reset fire timer (2.5 shots/sec)
                     // Find nearest enemy
                     let nearest = null;
                     let nearestDist = Infinity;
@@ -1196,12 +1442,12 @@
                         projectiles.push({
                             x: t.x,
                             y: t.y,
-                            vx: Math.cos(angle) * 400,
-                            vy: Math.sin(angle) * 400,
+                            vx: Math.cos(angle) * 550,
+                            vy: Math.sin(angle) * 550,
                             damage: 20,
                             range: 300,
                             distance: 0,
-                            radius: 5,
+                            radius: 3,
                             color: '#00ff00',
                             pierce: 0,
                             explosive: 0,
@@ -1237,6 +1483,7 @@
                     const newDist = Math.sqrt(ndx * ndx + ndy * ndy);
                     if (newDist < player.radius + 8) {
                         coins += c.value;
+                        playSound('coin');
                         return false;
                     }
                 }
@@ -1258,6 +1505,13 @@
                 return p.life > 0;
             });
             
+            // Update floating damage numbers
+            damageTexts = damageTexts.filter(d => {
+                d.y += d.vy * dt;
+                d.life -= dt;
+                return d.life > 0;
+            });
+            
             // Wave logic
             if (waveActive && !boss) {
                 waveTimer -= dt;
@@ -1272,8 +1526,13 @@
                     spawnTimer = 2;
                 }
                 
-                if (enemies.length === 0 && enemiesToSpawn === 0 && coinsOnGround.length === 0) {
-                    openShop();
+                if (enemies.length === 0 && enemiesToSpawn === 0) {
+                    if (coinsOnGround.length > 0) {
+                        // Auto-magnetize all remaining coins when enemies are cleared
+                        coinsOnGround.forEach(c => c.magnetized = true);
+                    } else {
+                        openShop();
+                    }
                 }
             } else if (boss && boss.health <= 0) {
                 victory();
@@ -1383,15 +1642,33 @@
                         damage += p.explosive * player.damage;
                     }
                     boss.health -= damage;
+                    spawnDamageText(boss.x + (Math.random()-0.5)*40, boss.y, damage, p.color);
                     p.pierce--;
                     if (p.pierce < 0) p.distance = p.range + 1;
                 }
             });
         }
         
+        // Spawn floating damage number
+        function spawnDamageText(x, y, amount, color, isCrit) {
+            damageTexts.push({
+                x: x + (Math.random() - 0.5) * 20,
+                y: y - 10,
+                amount: Math.round(amount),
+                color: color || '#fff',
+                isCrit: isCrit || false,
+                life: isCrit ? 1.0 : 0.8,
+                maxLife: isCrit ? 1.0 : 0.8,
+                vy: isCrit ? -80 : -60
+            });
+        }
+        
         // Shoot
         function shoot(weapon) {
             const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+            // Weapon-specific shoot sounds
+            const weaponSounds = { shotgun: 'shotgun', minigun: 'minigun', launcher: 'launcher', cannon: 'launcher', moon: 'launcher' };
+            playSound(weaponSounds[weapon.type] || 'shoot');
             
             const createProjectile = (spreadAngle = 0) => {
                 const finalAngle = angle + spreadAngle;
@@ -1435,6 +1712,7 @@
         function openShop() {
             gameState = 'shop';
             waveActive = false;
+            playSound('waveComplete');
             shopIsLucky = Math.random() < Math.min(0.35, 0.1 + Math.max(0, player.luck - 1) * 0.1);
             shopWeaponOffers = [];
             shopPerkOffers = [];
@@ -1638,12 +1916,16 @@
                 const cannotAfford = coins < offer.price || player.weapons.length >= 4;
                 const div = document.createElement('div');
                 div.className = `shopItem ${isLocked ? 'locked' : ''} ${isSold || cannotAfford ? 'disabled' : ''}`;
+                const dps = Math.round(weapon.damage * weapon.fireRate * (weapon.pellets || 1));
+                const bestOwnedDps = player.weapons.length > 0 ? Math.max(...player.weapons.map(w => Math.round(w.damage * w.fireRate * (w.pellets || 1)))) : 0;
+                const comparison = bestOwnedDps > 0 ? (dps > bestOwnedDps ? `<span style="color:#4ecdc4">▲ ${Math.round((dps/bestOwnedDps - 1) * 100)}% vs best</span>` : `<span style="color:#ff6b6b">▼ ${Math.round((1 - dps/bestOwnedDps) * 100)}% vs best</span>`) : '';
                 div.innerHTML = `
                     <div class="shopItemHeader">
                         <div class="name">${weapon.name}</div>
                         <button class="lock-btn">${isLocked ? '🔒' : '🔓'}</button>
                     </div>
-                    <div class="desc">DMG: ${weapon.damage} | Rate: ${weapon.fireRate}/s</div>
+                    <div class="desc">DMG: ${weapon.damage} | Rate: ${weapon.fireRate}/s | DPS: ${dps}</div>
+                    <div class="desc">${comparison}</div>
                     <div class="price">${offer.price} 🪙</div>
                 `;
                 div.onclick = () => buyWeapon(i);
@@ -1678,6 +1960,33 @@
                 perkShop.appendChild(div);
             });
             
+            // Render weapon upgrades
+            const upgradeShop = document.getElementById('upgradeShop');
+            upgradeShop.innerHTML = '';
+            if (player.weapons.length === 0) {
+                upgradeShop.innerHTML = '<div class="desc" style="color:#666">No weapons to upgrade</div>';
+            }
+            player.weapons.forEach((weapon, i) => {
+                const cost = getUpgradeCost(weapon);
+                const maxed = weapon.level >= 4;
+                const cannotAfford = coins < cost;
+                const div = document.createElement('div');
+                div.className = `shopItem ${maxed || cannotAfford ? 'disabled' : ''}`;
+                const stars = '⭐'.repeat(weapon.level) + '☆'.repeat(4 - weapon.level);
+                const dps = Math.round(weapon.damage * weapon.fireRate * (weapon.pellets || 1));
+                const nextDmg = Math.round(weapon.damage * 1.25);
+                const nextRate = Math.round(weapon.fireRate * 1.12 * 100) / 100;
+                const nextDps = Math.round(nextDmg * nextRate * ((weapon.pellets || 0) > 0 ? weapon.pellets + 1 : 1));
+                div.innerHTML = `
+                    <div class="name">${weapon.name} ${stars}</div>
+                    <div class="desc">DMG: ${weapon.damage} | Rate: ${weapon.fireRate}/s | DPS: ${dps}</div>
+                    <div class="desc">${maxed ? '<span style="color:#ffd700">MAX LEVEL</span>' : `→ DMG: ${nextDmg} | Rate: ${nextRate}/s | DPS: ${nextDps}`}</div>
+                    <div class="price">${maxed ? '---' : `${cost} 🪙`}</div>
+                `;
+                if (!maxed) div.onclick = () => upgradeWeapon(i);
+                upgradeShop.appendChild(div);
+            });
+            
             renderShopStats();
         }
         
@@ -1691,6 +2000,8 @@
                 <div class="shopStatsLine"><span>Regen</span><span>${player.regen.toFixed(1)} /s</span></div>
                 <div class="shopStatsLine"><span>Dodge</span><span>${dodgePercent}%</span></div>
                 <div class="shopStatsLine"><span>Magnet</span><span>${player.magnet.toFixed(2)}x</span></div>
+                <div class="shopStatsLine"><span>Crit Chance</span><span>${Math.round(Math.min(60, (player.critChance + Math.max(0, player.luck - 1) * 0.02)) * 100)}%</span></div>
+                <div class="shopStatsLine"><span>Crit Damage</span><span>${Math.round(player.critDamage * 100)}%</span></div>
                 <div class="shopStatsLine"><span>Weight Penalty</span><span>${movePenalty}%</span></div>
             `;
         }
@@ -1717,7 +2028,8 @@
             if (coins < offer.price || player.weapons.length >= 4) return;
             
             coins -= offer.price;
-            player.weapons.push({ ...weaponTypes[offer.weaponType], type: offer.weaponType, lastShot: 0 });
+            playSound('buy');
+            player.weapons.push({ ...weaponTypes[offer.weaponType], type: offer.weaponType, lastShot: 0, level: 1 });
             offer.sold = true;
             lockedWeaponSlots.delete(slotIndex);
             updateUI();
@@ -1733,6 +2045,7 @@
             if (coins < price) return;
             
             coins -= price;
+            playSound('buy');
             
             // Apply perk
             if (perk.stat === 'maxHealth') {
@@ -1760,6 +2073,7 @@
                 player.damage += 0.3;
             } else if (perk.stat === 'moon') {
                 player.moon = true;
+                player.critDamage += 0.5;
             } else if (perk.stat === 'hodl') {
                 player.hodl = true;
                 player.maxHealth += 100;
@@ -1786,6 +2100,32 @@
             lockedPerkSlots.delete(slotIndex);
             updateUI();
             renderShop();
+        }
+        
+        // Upgrade a weapon
+        function upgradeWeapon(weaponIndex) {
+            const weapon = player.weapons[weaponIndex];
+            if (!weapon || weapon.level >= 4) return;
+            const upgradeCost = getUpgradeCost(weapon);
+            if (coins < upgradeCost) return;
+            
+            coins -= upgradeCost;
+            playSound('buy');
+            weapon.level++;
+            weapon.damage = Math.round(weapon.damage * 1.25);
+            weapon.fireRate = Math.round(weapon.fireRate * 1.12 * 100) / 100;
+            if (weapon.pellets) weapon.pellets += 1;
+            if (weapon.pierce > 0) weapon.pierce += 1;
+            if (weapon.explosive > 0) weapon.explosive = Math.round(weapon.explosive * 1.2);
+            
+            updateUI();
+            updateWeaponUI();
+            renderShop();
+        }
+        
+        function getUpgradeCost(weapon) {
+            const tierMult = getWeaponTier(weapon.type);
+            return Math.round((50 + weapon.level * 40) * (1 + tierMult * 0.3));
         }
         
         // Add visual addition to player
@@ -1831,7 +2171,9 @@
         // Game over
         function gameOver() {
             gameState = 'gameOver';
+            playSound('gameOver');
             document.getElementById('finalWave').textContent = currentWave;
+            document.getElementById('finalKills').textContent = kills;
             document.getElementById('gameOver').classList.add('visible');
         }
         
@@ -1877,11 +2219,13 @@
         function resetGame() {
             currentWave = 1;
             coins = 0;
+            kills = 0;
             projectiles = [];
             enemyProjectiles = [];
             enemies = [];
             particles = [];
             coinsOnGround = [];
+            damageTexts = [];
             turrets = [];
             boss = null;
             shopRefreshCost = 50;
@@ -1907,6 +2251,8 @@
                 damage: 1,
                 xpGain: 1,
                 projectileBounce: 0,
+                critChance: 0.05,
+                critDamage: 1.5,
                 turret: 0,
                 diamond: false,
                 moon: false,
@@ -1926,6 +2272,7 @@
         function updateUI() {
             document.getElementById('healthText').textContent = `${Math.floor(player.health)}/${player.maxHealth}`;
             document.getElementById('coinText').textContent = coins;
+            document.getElementById('killText').textContent = kills;
             document.getElementById('waveText').textContent = currentWave;
             document.getElementById('diffText').textContent = difficulty;
         }
@@ -1936,7 +2283,8 @@
             for (let i = 0; i < 4; i++) {
                 const slot = document.getElementById(`slot${i}`);
                 if (i < player.weapons.length) {
-                    slot.textContent = player.weapons[i].name.split(' ')[0];
+                    const w = player.weapons[i];
+                    slot.textContent = w.name.split(' ')[0] + (w.level > 1 ? ' +' + (w.level-1) : '');
                     slot.classList.add('filled');
                     slot.classList.remove('active');
                 } else {
@@ -2001,6 +2349,22 @@
                 ctx.globalAlpha = p.life / 0.5;
                 ctx.fillStyle = p.color;
                 ctx.fillRect(p.x - 3, p.y - 3, 6, 6);
+                ctx.globalAlpha = 1;
+            });
+            
+            // Draw floating damage numbers
+            damageTexts.forEach(d => {
+                const alpha = d.life / d.maxLife;
+                const baseSize = d.isCrit ? 22 : 14;
+                const size = baseSize + (1 - alpha) * 6;
+                const text = d.isCrit ? `CRIT ${d.amount}` : `${d.amount}`;
+                ctx.globalAlpha = alpha;
+                ctx.font = `bold ${Math.round(size)}px Comic Neue`;
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText(text, d.x + 1, d.y + 1);
+                ctx.fillStyle = d.color;
+                ctx.fillText(text, d.x, d.y);
                 ctx.globalAlpha = 1;
             });
             
@@ -2234,6 +2598,65 @@
             
             // Draw player
             if (gameState === 'playing' || gameState === 'shop') {
+                // Draw weapon(s) on doge (pointing toward mouse)
+                if (player.weapons.length > 0) {
+                    const gunAngle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+                    player.weapons.forEach((w, wi) => {
+                        const offsetAngle = player.weapons.length > 1 ? gunAngle + (wi - (player.weapons.length-1)/2) * 0.3 : gunAngle;
+                        const gunDist = player.radius + 4;
+                        const gx = player.x + Math.cos(offsetAngle) * gunDist;
+                        const gy = player.y + Math.sin(offsetAngle) * gunDist;
+                        
+                        ctx.save();
+                        ctx.translate(gx, gy);
+                        ctx.rotate(offsetAngle);
+                        
+                        const gc = w.color || '#aaa';
+                        ctx.fillStyle = gc;
+                        ctx.strokeStyle = '#222';
+                        ctx.lineWidth = 1;
+                        
+                        if (w.type === 'shotgun') {
+                            // Wide short double barrel
+                            ctx.fillRect(0, -5, 16, 4);
+                            ctx.fillRect(0, 1, 16, 4);
+                            ctx.strokeRect(0, -5, 16, 10);
+                        } else if (w.type === 'minigun' || w.type === 'shredder') {
+                            // Multiple barrels
+                            for (let b = -3; b <= 3; b += 3) {
+                                ctx.fillRect(0, b - 1, 18, 2);
+                            }
+                            ctx.strokeRect(-2, -5, 6, 10);
+                        } else if (w.type === 'launcher' || w.type === 'cannon' || w.type === 'moon') {
+                            // Fat tube
+                            ctx.fillRect(-2, -5, 22, 10);
+                            ctx.strokeRect(-2, -5, 22, 10);
+                            ctx.fillStyle = '#333';
+                            ctx.fillRect(18, -6, 4, 12);
+                        } else if (w.type === 'cointoss') {
+                            // Round coin launcher
+                            ctx.beginPath();
+                            ctx.arc(8, 0, 6, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.stroke();
+                            ctx.fillStyle = '#000';
+                            ctx.font = '8px Comic Neue';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('D', 8, 3);
+                        } else {
+                            // Default gun shape (pistol, rifle, piercer)
+                            const length = w.type === 'rifle' || w.type === 'piercer' ? 20 : 14;
+                            ctx.fillRect(0, -3, length, 6);
+                            ctx.strokeRect(0, -3, length, 6);
+                            // Handle
+                            ctx.fillStyle = '#333';
+                            ctx.fillRect(2, 3, 4, 5);
+                        }
+                        
+                        ctx.restore();
+                    });
+                }
+                
                 // Visual additions (perks)
                 player.visualAdditions.forEach((addition, i) => {
                     const angle = (i / player.visualAdditions.length) * Math.PI * 2;
