@@ -842,15 +842,15 @@
         // Weapons
         const weaponTypes = {
             pistol: { name: 'Much Pistol', damage: 15, fireRate: 4, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, color: '#ffd700' },
-            rifle: { name: 'Very Rifle', damage: 38, fireRate: 3.5, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#4ecdc4' },
+            rifle: { name: 'Very Rifle', damage: 38, fireRate: 3.5, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#4ecdc4', speed: 900, falloff: 0.75 },
             shotgun: { name: 'Wow Shotgun', damage: 18, fireRate: 1.5, range: 200, knockback: 3, explosive: 0, expSize: 0, pierce: 0, slow: 0, pellets: 4, spread: 0.2, color: '#ff6b6b' },
             minigun: { name: 'So Minigun', damage: 20, fireRate: 10, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, movePenalty: 0.5, color: '#95e1d3' },
-            launcher: { name: 'Moon Launcher', damage: 60, fireRate: 1, range: 400, knockback: 5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181' },
-            piercer: { name: 'Diamond Piercer', damage: 65, fireRate: 3, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#aa96da' },
+            launcher: { name: 'Moon Launcher', damage: 60, fireRate: 1, range: 400, knockback: 5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181', homing: 0.03, speed: 300, fireZone: true, fireZoneDuration: 2.5, fireZoneDPS: 20 },
+            piercer: { name: 'Diamond Piercer', damage: 45, fireRate: 2.5, range: 700, knockback: 0, explosive: 0, expSize: 0, pierce: 5, slow: 0, color: '#aa96da', speed: 300, accelerates: true, damageRamp: 15, spinRate: 12 },
             shredder: { name: 'Such Shuriken', damage: 12, fireRate: 11, range: 170, knockback: 0.2, explosive: 0, expSize: 0, pierce: 1, slow: 0.15, movePenalty: 0.05, color: '#d6dde8' },
-            cannon: { name: 'HODL Cannon', damage: 80, fireRate: 0.8, range: 500, knockback: 10, explosive: 20, expSize: 60, pierce: 0, slow: 0, color: '#ffffd2' },
-            cointoss: { name: 'Doge Coin Toss', damage: 120, fireRate: 5, range: 350, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0.3, bounce: 2, color: '#ffd700' },
-            moon: { name: 'To The Moon', damage: 250, fireRate: 0.3, range: 800, knockback: 0, explosive: 50, expSize: 120, pierce: 0, slow: 0, guided: true, color: '#ff6b6b' }
+            cannon: { name: 'HODL Cannon', damage: 100, fireRate: 0.8, range: 500, knockback: 15, explosive: 35, expSize: 50, pierce: 0, slow: 0, color: '#ffffd2', gravity: 400, speed: 400 },
+            cointoss: { name: 'Doge Coin Toss', damage: 120, fireRate: 5, range: 350, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0.3, bounce: 2, color: '#ffd700', speed: 450, spinRate: 15, arc: true },
+            moon: { name: 'To The Moon', damage: 250, fireRate: 0.3, range: 800, knockback: 0, explosive: 50, expSize: 120, pierce: 0, slow: 0, guided: true, color: '#ff6b6b', speed: 250, homingStrength: 0.06, spinRate: 0 }
         };
         
         // Perks
@@ -926,7 +926,13 @@
         let enemyProjectiles = [];
         let turrets = [];
         let damageTexts = [];
+        let fireZones = [];
+        let screenShake = 0;
         let kills = 0;
+        
+        function addScreenShake(intensity) {
+            screenShake = Math.max(screenShake, intensity);
+        }
         let waveActive = false;
         let waveTimer = 0;
         let waveDuration = 0;
@@ -962,6 +968,7 @@
             gameState = 'playing';
             currentWave = currentWave;
             waveActive = true;
+            fireZones = [];
             
             // Reset player to center and heal
             player.x = ARENA_WIDTH / 2;
@@ -1137,6 +1144,76 @@
             
             // Update projectiles
             projectiles = projectiles.filter(p => {
+                p.age += dt;
+                if (p.spinRate) p.spin += p.spinRate * dt;
+                
+                // Piercer: accelerates over time, gets faster
+                if (p.weaponType === 'piercer' && p.accelerates) {
+                    const currentSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                    const newSpeed = Math.min(currentSpeed * (1 + 1.5 * dt), 900);
+                    const angle = Math.atan2(p.vy, p.vx);
+                    p.vx = Math.cos(angle) * newSpeed;
+                    p.vy = Math.sin(angle) * newSpeed;
+                }
+                
+                // Cannon: gravity arc
+                if (p.weaponType === 'cannon' && p.gravity) {
+                    p.vy += p.gravity * dt;
+                    p.angle = Math.atan2(p.vy, p.vx);
+                }
+                
+                // Launcher: slight homing toward nearest enemy
+                if (p.weaponType === 'launcher' && p.homing) {
+                    let nearest = null;
+                    let nearestDist = 250;
+                    enemies.forEach(e => {
+                        const d = Math.sqrt((e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y));
+                        if (d < nearestDist) { nearestDist = d; nearest = e; }
+                    });
+                    if (nearest) {
+                        const targetAngle = Math.atan2(nearest.y - p.y, nearest.x - p.x);
+                        const currentAngle = Math.atan2(p.vy, p.vx);
+                        let diff = targetAngle - currentAngle;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        const newAngle = currentAngle + diff * p.homing;
+                        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                        p.vx = Math.cos(newAngle) * spd;
+                        p.vy = Math.sin(newAngle) * spd;
+                        p.angle = newAngle;
+                    }
+                }
+                
+                // Moon guided missile: strong homing
+                if (p.weaponType === 'moon' && p.guided) {
+                    let nearest = null;
+                    let nearestDist = 500;
+                    enemies.forEach(e => {
+                        const d = Math.sqrt((e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y));
+                        if (d < nearestDist) { nearestDist = d; nearest = e; }
+                    });
+                    if (!nearest && boss) {
+                        nearest = boss;
+                    }
+                    if (nearest) {
+                        const targetAngle = Math.atan2(nearest.y - p.y, nearest.x - p.x);
+                        const currentAngle = Math.atan2(p.vy, p.vx);
+                        let diff = targetAngle - currentAngle;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        const newAngle = currentAngle + diff * 0.06;
+                        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                        p.vx = Math.cos(newAngle) * spd;
+                        p.vy = Math.sin(newAngle) * spd;
+                        p.angle = newAngle;
+                    }
+                }
+                
+                // Coin toss: slight arc/gravity
+                if (p.weaponType === 'cointoss') {
+                    p.vy += 120 * dt;
+                }
+                
                 p.x += p.vx * dt;
                 p.y += p.vy * dt;
                 p.distance += Math.sqrt(p.vx * p.vx + p.vy * p.vy) * dt;
@@ -1145,10 +1222,12 @@
                     if (p.x < 0 || p.x > ARENA_WIDTH) {
                         p.vx *= -1;
                         p.bounce--;
+                        p.damage *= 1.2; // bonus damage on bounce
                     }
                     if (p.y < 0 || p.y > ARENA_HEIGHT) {
                         p.vy *= -1;
                         p.bounce--;
+                        p.damage *= 1.2;
                     }
                 }
                 
@@ -1295,14 +1374,57 @@
                             });
                             
                             playSound('explosion');
-                            // Visual explosion
-                            for (let i = 0; i < 10; i++) {
+                            
+                            // Screen shake on explosion
+                            addScreenShake(p.weaponType === 'cannon' ? 12 : (p.weaponType === 'moon' ? 15 : 6));
+
+                            // Expanding ring effect
+                            for (let ring = 0; ring < 2; ring++) {
+                                const ringRadius = p.expSize * (0.3 + ring * 0.4);
+                                for (let i = 0; i < 16; i++) {
+                                    const a = (i / 16) * Math.PI * 2;
+                                    particles.push({
+                                        x: p.x + Math.cos(a) * ringRadius * 0.3,
+                                        y: p.y + Math.sin(a) * ringRadius * 0.3,
+                                        vx: Math.cos(a) * ringRadius * 3,
+                                        vy: Math.sin(a) * ringRadius * 3,
+                                        life: 0.3,
+                                        color: ring === 0 ? '#ffffff' : p.color
+                                    });
+                                }
+                            }
+                            // Bright center flash particles
+                            for (let i = 0; i < 20; i++) {
+                                const a = Math.random() * Math.PI * 2;
+                                const spd = 80 + Math.random() * 250;
                                 particles.push({
                                     x: p.x, y: p.y,
-                                    vx: (Math.random() - 0.5) * 200,
-                                    vy: (Math.random() - 0.5) * 200,
-                                    life: 0.5,
-                                    color: p.color
+                                    vx: Math.cos(a) * spd,
+                                    vy: Math.sin(a) * spd,
+                                    life: 0.25 + Math.random() * 0.35,
+                                    color: ['#ffffff', '#ffff00', '#ff8800', p.color][Math.floor(Math.random() * 4)]
+                                });
+                            }
+                            // Smoke puffs
+                            for (let i = 0; i < 6; i++) {
+                                particles.push({
+                                    x: p.x + (Math.random() - 0.5) * 30,
+                                    y: p.y + (Math.random() - 0.5) * 30,
+                                    vx: (Math.random() - 0.5) * 30,
+                                    vy: -30 - Math.random() * 40,
+                                    life: 0.6 + Math.random() * 0.3,
+                                    color: '#444444'
+                                });
+                            }
+                            
+                            // Launcher creates fire zone
+                            if (p.weaponType === 'launcher') {
+                                fireZones.push({
+                                    x: p.x, y: p.y,
+                                    radius: 50,
+                                    duration: 2.5,
+                                    life: 2.5,
+                                    dps: 20 * player.damage
                                 });
                             }
                         }
@@ -1323,6 +1445,11 @@
                         spawnDamageText(enemy.x, enemy.y, damage, isCrit ? '#ffff00' : p.color, isCrit);
                         playSound(isCrit ? 'crit' : 'hit');
                         p.pierce--;
+                        
+                        // Piercer ramps damage on each pierce
+                        if (p.weaponType === 'piercer' && p.damageRamp) {
+                            p.damage += p.damageRamp;
+                        }
                         
                         if (p.pierce < 0) {
                             p.distance = p.range + 1; // Remove
@@ -1512,6 +1639,23 @@
                 return p.life > 0;
             });
             
+            // Update fire zones
+            fireZones = fireZones.filter(z => {
+                z.life -= dt;
+                // Damage enemies in fire zone
+                enemies.forEach(e => {
+                    const d = Math.sqrt((e.x - z.x) * (e.x - z.x) + (e.y - z.y) * (e.y - z.y));
+                    if (d < z.radius) {
+                        e.health -= z.dps * dt;
+                    }
+                });
+                return z.life > 0;
+            });
+            
+            // Screen shake decay
+            if (screenShake > 0.5) screenShake *= 0.9;
+            else screenShake = 0;
+            
             // Update floating damage numbers
             damageTexts = damageTexts.filter(d => {
                 d.y += d.vy * dt;
@@ -1679,11 +1823,13 @@
             
             const createProjectile = (spreadAngle = 0) => {
                 const finalAngle = angle + spreadAngle;
-                const isMoonLauncher = weapon.type === 'launcher';
-                const speed = isMoonLauncher ? 380 : 600;
+                const speed = weapon.speed || 600;
+                const isExplosiveWeapon = weapon.type === 'launcher' || weapon.type === 'cannon' || weapon.type === 'moon';
                 
                 let pierce = weapon.pierce;
                 if (player.moon) pierce += 2;
+                
+                const radiusMap = { launcher: 10, cannon: 10, moon: 12 };
                 
                 return {
                     x: player.x + Math.cos(finalAngle) * 30,
@@ -1693,15 +1839,26 @@
                     damage: weapon.damage,
                     range: weapon.range,
                     distance: 0,
-                    radius: isMoonLauncher ? 10 : 5,
+                    radius: radiusMap[weapon.type] || 5,
                     color: weapon.color,
                     weaponType: weapon.type,
                     pierce: pierce,
-                    explosive: isMoonLauncher ? Math.round((weapon.explosive || 0) * 1.35) : (weapon.explosive || 0),
-                    expSize: isMoonLauncher ? Math.round((weapon.expSize || 0) * 1.3) : (weapon.expSize || 0),
+                    explosive: isExplosiveWeapon ? Math.round((weapon.explosive || 0) * 1.35) : (weapon.explosive || 0),
+                    expSize: isExplosiveWeapon ? Math.round((weapon.expSize || 0) * 1.3) : (weapon.expSize || 0),
                     knockback: weapon.knockback || 0,
                     slow: weapon.slow || 0,
-                    bounce: weapon.bounce || player.projectileBounce
+                    bounce: weapon.bounce || player.projectileBounce,
+                    angle: finalAngle,
+                    spin: 0,
+                    age: 0,
+                    startX: player.x,
+                    startY: player.y,
+                    spinRate: weapon.spinRate || 0,
+                    accelerates: weapon.accelerates || false,
+                    gravity: weapon.gravity || 0,
+                    homing: weapon.homing || 0,
+                    guided: weapon.guided || false,
+                    damageRamp: weapon.damageRamp || 0
                 };
             };
             
@@ -2259,6 +2416,7 @@
             coinsOnGround = [];
             damageTexts = [];
             turrets = [];
+            fireZones = [];
             boss = null;
             shopRefreshCost = 50;
             shopIsLucky = false;
@@ -2348,6 +2506,15 @@
                 ctx.stroke();
             }
             
+            // Screen shake
+            if (screenShake > 0) {
+                ctx.save();
+                ctx.translate(
+                    (Math.random() - 0.5) * screenShake * 2,
+                    (Math.random() - 0.5) * screenShake * 2
+                );
+            }
+            
             // Draw turrets
             turrets.forEach(t => {
                 ctx.fillStyle = '#00ff00';
@@ -2376,6 +2543,29 @@
                 ctx.fillText('D', c.x, c.y + 3);
             });
             
+            // Draw fire zones
+            fireZones.forEach(z => {
+                const alpha = 0.4 * (z.life / z.duration);
+                const grad = ctx.createRadialGradient(z.x, z.y, 0, z.x, z.y, z.radius);
+                grad.addColorStop(0, `rgba(255, 120, 0, ${alpha})`);
+                grad.addColorStop(0.6, `rgba(255, 60, 0, ${alpha * 0.5})`);
+                grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(z.x, z.y, z.radius, 0, Math.PI * 2);
+                ctx.fill();
+                // Flickering flames
+                const t = Date.now() * 0.003;
+                for (let i = 0; i < 5; i++) {
+                    const a = t + i * 1.3;
+                    const d = Math.random() * z.radius * 0.6;
+                    ctx.fillStyle = `rgba(255, ${150 + Math.random() * 100|0}, 0, ${alpha * 0.8})`;
+                    ctx.beginPath();
+                    ctx.arc(z.x + Math.cos(a) * d, z.y + Math.sin(a) * d, 3 + Math.random() * 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
             // Draw particles
             particles.forEach(p => {
                 ctx.globalAlpha = p.life / 0.5;
@@ -2402,32 +2592,244 @@
             
             // Draw projectiles
             projectiles.forEach(p => {
-                const isMoonLauncher = p.weaponType === 'launcher';
+                const angle = p.angle || Math.atan2(p.vy, p.vx);
                 
-                if (isMoonLauncher) {
-                    // Grey/yellow heavy rocket visual.
-                    ctx.fillStyle = '#555a60';
+                if (p.weaponType === 'launcher') {
+                    // Rocket with flame exhaust
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(angle);
+                    // Flame
+                    const flicker = 0.6 + 0.4 * Math.sin((p.age || 0) * 30);
+                    ctx.fillStyle = `rgba(255, 100, 0, ${0.8 * flicker})`;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius + 1, 0, Math.PI * 2);
+                    ctx.moveTo(-10, -4);
+                    ctx.quadraticCurveTo(-10 - 12 * flicker, 0, -10, 4);
                     ctx.fill();
-                    ctx.fillStyle = '#f2d34f';
+                    ctx.fillStyle = `rgba(255, 255, 0, ${0.7 * flicker})`;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, Math.max(4, p.radius * 0.55), 0, Math.PI * 2);
+                    ctx.moveTo(-10, -2);
+                    ctx.quadraticCurveTo(-10 - 8 * flicker, 0, -10, 2);
                     ctx.fill();
+                    // Body
+                    ctx.fillStyle = '#e8e8e8';
+                    ctx.beginPath();
+                    ctx.moveTo(-10, -4);
+                    ctx.lineTo(6, -4);
+                    ctx.lineTo(11, 0);
+                    ctx.lineTo(6, 4);
+                    ctx.lineTo(-10, 4);
+                    ctx.closePath();
+                    ctx.fill();
+                    // Red nose
+                    ctx.fillStyle = '#cc0000';
+                    ctx.beginPath();
+                    ctx.moveTo(11, 0);
+                    ctx.lineTo(6, -4);
+                    ctx.lineTo(6, 4);
+                    ctx.fill();
+                    // Fins
+                    ctx.fillStyle = '#cc0000';
+                    ctx.beginPath();
+                    ctx.moveTo(-7, -4); ctx.lineTo(-11, -8); ctx.lineTo(-4, -4);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(-7, 4); ctx.lineTo(-11, 8); ctx.lineTo(-4, 4);
+                    ctx.fill();
+                    ctx.restore();
                     
-                    ctx.strokeStyle = 'rgba(242, 211, 79, 0.55)';
-                    ctx.lineWidth = 4;
+                } else if (p.weaponType === 'moon') {
+                    // Epic guided missile with contrail
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(angle);
+                    // Multi-layer flame exhaust
+                    for (let i = 0; i < 3; i++) {
+                        const len = 18 + Math.sin((p.age || 0) * 35 + i) * 6;
+                        const w = 6 - i * 1.5;
+                        ctx.fillStyle = ['rgba(255,68,0,0.8)', 'rgba(255,136,0,0.7)', 'rgba(255,255,0,0.6)'][i];
+                        ctx.beginPath();
+                        ctx.moveTo(-14, -w);
+                        ctx.quadraticCurveTo(-14 - len, 0, -14, w);
+                        ctx.fill();
+                    }
+                    // Missile body
+                    ctx.fillStyle = '#dfe7ff';
+                    ctx.fillRect(-14, -6, 28, 12);
+                    // Gold stripes
+                    ctx.fillStyle = '#ffd700';
+                    ctx.fillRect(-8, -6, 2, 12);
+                    ctx.fillRect(4, -6, 2, 12);
+                    // Gold nose cone
+                    ctx.fillStyle = '#ffd700';
                     ctx.beginPath();
-                    ctx.moveTo(p.x, p.y);
-                    ctx.lineTo(p.x - p.vx * 0.09, p.y - p.vy * 0.09);
+                    ctx.moveTo(20, 0); ctx.lineTo(14, -6); ctx.lineTo(14, 6);
+                    ctx.fill();
+                    // Fins
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.moveTo(-10, -6); ctx.lineTo(-16, -12); ctx.lineTo(-5, -6);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 6); ctx.lineTo(-16, 12); ctx.lineTo(-5, 6);
+                    ctx.fill();
+                    // Blinking light
+                    ctx.fillStyle = Math.sin((p.age || 0) * 18) > 0 ? 'rgba(255,80,80,0.9)' : 'rgba(255,80,80,0.2)';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'piercer') {
+                    // Spinning diamond crystal with afterimages
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    // Afterimage trail
+                    const trailAlphas = [0.1, 0.15, 0.2];
+                    for (let i = 0; i < 3; i++) {
+                        const trailDist = (i + 1) * 12;
+                        const tx = -Math.cos(angle) * trailDist;
+                        const ty = -Math.sin(angle) * trailDist;
+                        ctx.globalAlpha = trailAlphas[i];
+                        ctx.save();
+                        ctx.translate(tx, ty);
+                        ctx.rotate((p.spin || 0) - (i + 1) * 0.5);
+                        ctx.fillStyle = '#6a5acd';
+                        ctx.beginPath();
+                        ctx.moveTo(0, -10); ctx.lineTo(6, 0); ctx.lineTo(0, 10); ctx.lineTo(-6, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    ctx.globalAlpha = 1;
+                    // Main diamond
+                    ctx.rotate(p.spin || 0);
+                    ctx.fillStyle = '#aa96da';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -12); ctx.lineTo(7, 0); ctx.lineTo(0, 12); ctx.lineTo(-7, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    // Inner shine
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -6); ctx.lineTo(3, 0); ctx.lineTo(0, 6); ctx.lineTo(-3, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'cannon') {
+                    // Heavy cannonball with metallic shading
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    // Shadow underneath
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 4, 10, 5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Metal ball gradient
+                    const grad = ctx.createRadialGradient(-3, -3, 1, 0, 0, 10);
+                    grad.addColorStop(0, '#888');
+                    grad.addColorStop(0.4, '#444');
+                    grad.addColorStop(1, '#111');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Specular highlight
+                    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                    ctx.beginPath();
+                    ctx.ellipse(-3, -3, 4, 2.5, -0.8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'cointoss') {
+                    // Flipping gold coin
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    const flipPhase = Math.cos(p.spin || 0);
+                    const coinWidth = Math.max(Math.abs(flipPhase) * 10, 1.5);
+                    // Sparkle trail
+                    if (Math.random() < 0.3) {
+                        ctx.fillStyle = 'rgba(255,215,0,0.5)';
+                        ctx.beginPath();
+                        ctx.arc((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    // Coin rim
+                    ctx.fillStyle = '#b8860b';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, coinWidth + 1.5, 10, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Coin face
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, coinWidth, 9, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // D symbol when wide enough
+                    if (coinWidth > 4) {
+                        ctx.fillStyle = '#8b6914';
+                        ctx.font = `bold ${Math.floor(coinWidth)}px Arial`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('\u00D0', 0, 1);
+                    }
+                    // Shine
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.beginPath();
+                    ctx.ellipse(-coinWidth * 0.3, -3, coinWidth * 0.2 + 1, 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'rifle') {
+                    // Cyan energy bolt - elongated
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(angle);
+                    // Glow trail
+                    ctx.strokeStyle = 'rgba(78, 205, 196, 0.3)';
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(-20, 0);
+                    ctx.lineTo(0, 0);
                     ctx.stroke();
+                    // Core bolt
+                    ctx.fillStyle = '#4ecdc4';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 8, 2.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Bright center
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.ellipse(2, 0, 4, 1.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'pistol') {
+                    // Small brass bullet
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(angle);
+                    // Trail flash
+                    ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+                    ctx.fillRect(-12, -1.5, 8, 3);
+                    // Bullet
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 6, 2.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Bright tip
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(4, 0, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
                 } else {
+                    // Default (shuriken, shotgun pellets, etc) - keep original look
                     ctx.fillStyle = p.color;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                     ctx.fill();
-                    
-                    // Trail effect
                     ctx.strokeStyle = p.color;
                     ctx.lineWidth = 2;
                     ctx.beginPath();
@@ -2992,6 +3394,8 @@
 
 
             }
+            
+            if (screenShake > 0) ctx.restore();
         }
         
         // Game loop
