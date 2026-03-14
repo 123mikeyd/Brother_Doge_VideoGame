@@ -253,6 +253,12 @@
             box-shadow: 0 0 8px rgba(78,205,196,0.4);
         }
         
+        .shopItem.rank-1 { border-left: 3px solid #888; }
+        .shopItem.rank-2 { border-left: 3px solid #4ecdc4; }
+        .shopItem.rank-3 { border-left: 3px solid #5b7cff; }
+        .shopItem.rank-4 { border-left: 3px solid #a855f7; }
+        .shopItem.rank-5 { border-left: 3px solid #ffd700; background: rgba(255,215,0,0.08); }
+        
         #refreshShop {
             background: #ff6b6b;
             color: white;
@@ -849,32 +855,32 @@
         
         // Perks
         const perkTypes = {
-            health1: { name: 'Paper Health', rank: 1, stat: 'maxHealth', value: 18, price: 30 },
-            speed1: { name: 'Paper Speed', rank: 1, stat: 'speed', value: 0.08, price: 30 },
-            regen1: { name: 'Paper Regen', rank: 1, stat: 'regen', value: 0.9, price: 30 },
-            dodge1: { name: 'Paper Dodge', rank: 1, stat: 'dodge', value: 0.05, price: 30 },
+            health1: { name: 'Paper Health', rank: 1, stat: 'maxHealth', value: 18, price: 25 },
+            speed1: { name: 'Paper Speed', rank: 1, stat: 'speed', value: 0.08, price: 25 },
+            regen1: { name: 'Paper Regen', rank: 1, stat: 'regen', value: 1.2, price: 25 },
+            dodge1: { name: 'Paper Dodge', rank: 1, stat: 'dodge', value: 0.05, price: 25 },
             
             health2: { name: 'HODL Health', rank: 2, stat: 'maxHealth', value: 40, price: 60 },
             speed2: { name: 'HODL Speed', rank: 2, stat: 'speed', value: 0.14, price: 60 },
-            regen2: { name: 'HODL Regen', rank: 2, stat: 'regen', value: 2.4, price: 60 },
+            regen2: { name: 'HODL Regen', rank: 2, stat: 'regen', value: 3.0, price: 60 },
             dodge2: { name: 'HODL Dodge', rank: 2, stat: 'dodge', value: 0.12, price: 60 },
             
             health3: { name: 'Crypto Health', rank: 3, stat: 'maxHealth', value: 75, price: 100 },
             speed3: { name: 'Crypto Speed', rank: 3, stat: 'speed', value: 0.22, price: 100 },
-            regen3: { name: 'Crypto Regen', rank: 3, stat: 'regen', value: 4.5, price: 100 },
+            regen3: { name: 'Crypto Regen', rank: 3, stat: 'regen', value: 5.5, price: 100 },
             dodge3: { name: 'Crypto Dodge', rank: 3, stat: 'dodge', value: 0.2, price: 100 },
-            bounce3: { name: 'Crypto Bounce', rank: 3, stat: 'projectileBounce', value: 2, price: 120 },
+            bounce3: { name: 'Crypto Bounce', rank: 3, stat: 'projectileBounce', value: 2, price: 100 },
             
             health4: { name: 'Whale Health', rank: 4, stat: 'maxHealth', value: 150, price: 180 },
             speed4: { name: 'Whale Speed', rank: 4, stat: 'speed', value: 0.35, price: 180 },
-            regen4: { name: 'Whale Regen', rank: 4, stat: 'regen', value: 7.5, price: 180 },
+            regen4: { name: 'Whale Regen', rank: 4, stat: 'regen', value: 9.0, price: 180 },
             dodge4: { name: 'Whale Dodge', rank: 4, stat: 'dodge', value: 0.32, price: 180 },
             turret4: { name: 'Whale Turret', rank: 4, stat: 'turret', value: 1, price: 250, desc: 'Spawn auto-turret' },
             
-            diamond: { name: '💎 DIAMOND HANDS 💎', rank: 5, stat: 'diamond', value: 1, price: 500, desc: '+50% Magnet Radius, +30% Damage, Knockback Immunity' },
-            moon5: { name: '🌙 MOON SHOT', rank: 5, stat: 'moon', value: 1, price: 500, desc: 'Pierce +2, +50% Crit Damage' },
-            hodl5: { name: '👑 HODL KING', rank: 5, stat: 'hodl', value: 1, price: 500, desc: '+100 HP, +10 HP/s regen below 25% health' },
-            turret5: { name: '🤖 TURRET MASTER', rank: 5, stat: 'turretMaster', value: 1, price: 500, desc: '3 auto-turrets, 15s duration' },
+            diamond: { name: '💎 DIAMOND HANDS 💎', rank: 5, stat: 'diamond', value: 1, price: 600, desc: '+50% Magnet Radius, +30% Damage, Knockback Immunity' },
+            moon5: { name: '🌙 MOON SHOT', rank: 5, stat: 'moon', value: 1, price: 600, desc: 'Pierce +2, +50% Crit Damage' },
+            hodl5: { name: '👑 HODL KING', rank: 5, stat: 'hodl', value: 1, price: 600, desc: '+100 HP, +10 HP/s regen below 25% health' },
+            turret5: { name: '🤖 TURRET MASTER', rank: 5, stat: 'turretMaster', value: 1, price: 600, desc: '3 auto-turrets, 15s duration' },
             apex5: { name: '🔥 APEX HODLER 🔥', rank: 5, stat: 'apex', value: 1, price: 650, desc: '+220 HP, +40% damage, +20% speed, +2.5 regen, +35% magnet' }
         };
         
@@ -1021,7 +1027,7 @@
             const enemy = {
                 x, y,
                 radius: type === 'elite' ? 25 : (type === 'explosive' ? 24 : (type === 'tank' ? 34 : (type === 'splitter' ? 22 : 20))),
-                speed: (100 + currentWave * 10) * (type === 'fomo' ? 1.5 : (type === 'explosive' ? 0.72 : (type === 'tank' ? 0.4 : (type === 'splitter' ? 0.92 : 1)))),
+                speed: (100 + currentWave * 10) * (type === 'fomo' ? 0.7 : (type === 'explosive' ? 0.72 : (type === 'tank' ? 0.4 : (type === 'splitter' ? 0.92 : 1)))),
                 health: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 7.0 : (type === 'splitter' ? 1.8 : 1))),
                 maxHealth: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 7.0 : (type === 'splitter' ? 1.8 : 1))),
                 damage: (10 + currentWave * 2) * (type === 'tank' ? 1.6 : 1),
@@ -1328,18 +1334,19 @@
                 if (enemy.health <= 0) {
                     kills++;
                     playSound('kill');
-                    // Splitter breaks into mini paper hands.
+                    // Splitter breaks into mini green hands.
                     if (enemy.type === 'splitter') {
-                        for (let i = 0; i < 2; i++) {
+                        for (let i = 0; i < 3; i++) {
+                            const splitAngle = (i / 3) * Math.PI * 2 + Math.random() * 0.5;
                             enemies.push({
-                                x: enemy.x + (Math.random() - 0.5) * 20,
-                                y: enemy.y + (Math.random() - 0.5) * 20,
-                                radius: 12,
-                                speed: 170 + currentWave * 8,
-                                health: (12 + currentWave * 8) * difficulty,
-                                maxHealth: (12 + currentWave * 8) * difficulty,
-                                damage: Math.max(5, enemy.damage * 0.75),
-                                type: 'paper',
+                                x: enemy.x + Math.cos(splitAngle) * 18,
+                                y: enemy.y + Math.sin(splitAngle) * 18,
+                                radius: 10,
+                                speed: 185 + currentWave * 9,
+                                health: (10 + currentWave * 6) * difficulty,
+                                maxHealth: (10 + currentWave * 6) * difficulty,
+                                damage: Math.max(4, enemy.damage * 0.6),
+                                type: 'splitterling',
                                 slowTimer: 0,
                                 attackTimer: Math.random() * 0.4,
                                 ramState: 'approach',
@@ -1354,7 +1361,7 @@
                     
                     // Drop coins (harder enemies = more reward)
                     const coinRanges = {
-                        paper: [1, 2], shredder: [2, 4], splitter: [2, 4],
+                        paper: [1, 2], shredder: [2, 4], splitter: [2, 4], splitterling: [1, 1],
                         explosive: [3, 6], fomo: [3, 6], tank: [6, 10], elite: [8, 14]
                     };
                     const [minC, maxC] = coinRanges[enemy.type] || [1, 3];
@@ -1901,6 +1908,31 @@
             renderShop();
         }
         
+        function getRankStars(rank) {
+            const stars = ['⚪', '🟢', '🔵', '🟣', '🟡', '🔶'];
+            return (stars[rank] || '⚪').repeat(Math.min(rank, 5));
+        }
+
+        function getPerkIcon(stat) {
+            const icons = {
+                maxHealth: '❤️', speed: '💨', regen: '💚', dodge: '🌀',
+                projectileBounce: '↩️', turret: '🔫', diamond: '💎',
+                moon: '🌙', hodl: '👑', turretMaster: '🤖', apex: '🔥',
+                luck: '🍀', magnet: '🧲', xpGain: '📈'
+            };
+            return icons[stat] || '⭐';
+        }
+
+        function getPerkStatLabel(stat) {
+            const labels = {
+                maxHealth: 'Health', speed: 'Speed', regen: 'Regen', dodge: 'Dodge',
+                projectileBounce: 'Bounce', turret: 'Turret', diamond: 'Diamond Hands',
+                moon: 'Moon Shot', hodl: 'HODL King', turretMaster: 'Turret Master',
+                apex: 'Apex', luck: 'Luck', magnet: 'Magnet', xpGain: 'XP Gain'
+            };
+            return labels[stat] || stat;
+        }
+
         function renderShop() {
             const weaponShop = document.getElementById('weaponShop');
             const perkShop = document.getElementById('perkShop');
@@ -1943,13 +1975,13 @@
                 const isSold = offer.sold;
                 const cannotAfford = coins < price;
                 const div = document.createElement('div');
-                div.className = `shopItem ${isLocked ? 'locked' : ''} ${isSold || cannotAfford ? 'disabled' : ''}`;
+                div.className = `shopItem rank-${perk.rank} ${isLocked ? 'locked' : ''} ${isSold || cannotAfford ? 'disabled' : ''}`;
                 div.innerHTML = `
                     <div class="shopItemHeader">
-                        <div class="name">${perk.name} (Rank ${perk.rank})</div>
+                        <div class="name">${getRankStars(perk.rank)} ${getPerkIcon(perk.stat)} ${getPerkStatLabel(perk.stat)}</div>
                         <button class="lock-btn">${isLocked ? '🔒' : '🔓'}</button>
                     </div>
-                    <div class="desc">${perk.desc || `${perk.stat}: +${perk.value}`}</div>
+                    <div class="desc">${perk.desc || `+${perk.value} ${getPerkStatLabel(perk.stat)}`}</div>
                     <div class="price">${price} 🪙</div>
                 `;
                 div.onclick = () => buyPerk(i);
@@ -2427,91 +2459,166 @@
                 const drawX = e.x + shakeOffset;
                 const drawY = e.y;
                 
-                // Paper hand appearance
-                ctx.fillStyle =
-                    e.type === 'elite' ? '#c0c0c0' :
-                    (e.type === 'explosive' ? '#ff9f68' :
-                    (e.type === 'tank' ? '#7b8ea8' :
-                    (e.type === 'splitter' ? '#e0ff8f' : '#ffffff')));
-                ctx.beginPath();
-                ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Fingers
-                for (let i = 0; i < 5; i++) {
-                    const angle = (i / 4) * Math.PI - Math.PI / 2;
-                    const fx = drawX + Math.cos(angle) * (e.radius + 5);
-                    const fy = drawY + Math.sin(angle) * (e.radius + 5);
-                    ctx.fillStyle =
-                        e.type === 'elite' ? '#a0a0a0' :
-                        (e.type === 'explosive' ? '#ff7f50' :
-                        (e.type === 'tank' ? '#5c6f89' :
-                        (e.type === 'splitter' ? '#b8d968' : '#e0e0e0')));
+                if (e.type === 'fomo') {
+                    // Custom fomo ranged enemy drawing
+                    // Purple body
+                    ctx.fillStyle = '#9b59b6';
                     ctx.beginPath();
-                    ctx.arc(fx, fy, 6, 0, Math.PI * 2);
+                    ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
                     ctx.fill();
-                }
-                
-                // Red arrow (paper hand symbol)
-                ctx.fillStyle =
-                    e.type === 'explosive' ? '#ffea00' :
-                    (e.type === 'tank' ? '#00c8ff' :
-                    (e.type === 'splitter' ? '#6c8f00' : '#ff0000'));
-                ctx.beginPath();
-                ctx.moveTo(drawX, drawY - 5);
-                ctx.lineTo(drawX - 8, drawY + 5);
-                ctx.lineTo(drawX + 8, drawY + 5);
-                ctx.fill();
-                
-                if (e.type === 'explosive') {
-                    // Distinct explosive marker and telegraph ring.
-                    ctx.fillStyle = '#7a0000';
-                    ctx.font = 'bold 14px Comic Neue';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('!', drawX, drawY + 5);
                     
-                    const ringRadius = e.radius + 10 + Math.sin(Date.now() * 0.02) * 2;
-                    ctx.strokeStyle = explosiveWindup ? '#ff2d2d' : '#ff8c42';
-                    ctx.lineWidth = explosiveWindup ? 4 : 2;
+                    // 3 long claw fingers spread wide
+                    for (let i = 0; i < 3; i++) {
+                        const angle = (i / 2) * Math.PI - Math.PI / 2;
+                        const clawLen = e.radius + 12;
+                        const fx = drawX + Math.cos(angle) * clawLen;
+                        const fy = drawY + Math.sin(angle) * clawLen;
+                        // Draw elongated claw shape
+                        ctx.fillStyle = '#8e44ad';
+                        ctx.save();
+                        ctx.translate(fx, fy);
+                        ctx.rotate(angle);
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, 4, 9, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Claw tip
+                        ctx.fillStyle = '#6c3483';
+                        ctx.beginPath();
+                        ctx.moveTo(0, -10);
+                        ctx.lineTo(-3, -4);
+                        ctx.lineTo(3, -4);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    
+                    // Targeting reticle in center
+                    ctx.strokeStyle = '#e8daef';
+                    ctx.lineWidth = 1.5;
                     ctx.beginPath();
-                    ctx.arc(drawX, drawY, ringRadius, 0, Math.PI * 2);
+                    ctx.arc(drawX, drawY, 6, 0, Math.PI * 2);
                     ctx.stroke();
-                }
-                
-                if (e.type === 'tank') {
-                    // Armor plate look to read as "tank".
-                    ctx.strokeStyle = '#b7d8ff';
-                    ctx.lineWidth = 3;
                     ctx.beginPath();
-                    ctx.arc(drawX, drawY, e.radius - 4, 0, Math.PI * 2);
+                    ctx.moveTo(drawX - 9, drawY);
+                    ctx.lineTo(drawX + 9, drawY);
+                    ctx.moveTo(drawX, drawY - 9);
+                    ctx.lineTo(drawX, drawY + 9);
                     ctx.stroke();
-                }
-                
-                if (e.type === 'splitter') {
-                    // Splitter seam to hint at split-on-death.
-                    ctx.strokeStyle = '#6a8a1a';
+                    
+                    // Pulsing purple aura
+                    const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.15;
+                    ctx.strokeStyle = 'rgba(155, 89, 182, 0.4)';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
-                    ctx.moveTo(drawX - e.radius * 0.6, drawY - e.radius * 0.6);
-                    ctx.lineTo(drawX + e.radius * 0.6, drawY + e.radius * 0.6);
+                    ctx.arc(drawX, drawY, (e.radius + 8) * pulse, 0, Math.PI * 2);
                     ctx.stroke();
-                }
-                
-                // Health bar
-                const barWidth = 30;
-                const barHeight = 4;
-                ctx.fillStyle = '#ff0000';
-                ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth, barHeight);
-                ctx.fillStyle = '#00ff00';
-                ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth * (e.health / e.maxHealth), barHeight);
-                
-                // Slow effect
-                if (e.slowTimer > 0) {
-                    ctx.strokeStyle = '#00ffff';
-                    ctx.lineWidth = 2;
+                    
+                    // Health bar
+                    const barWidth = 30;
+                    const barHeight = 4;
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth, barHeight);
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth * (e.health / e.maxHealth), barHeight);
+                    
+                    // Slow effect
+                    if (e.slowTimer > 0) {
+                        ctx.strokeStyle = '#00ffff';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, e.radius + 5, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                } else {
+                    // Paper hand appearance
+                    ctx.fillStyle =
+                        e.type === 'elite' ? '#c0c0c0' :
+                        (e.type === 'explosive' ? '#ff9f68' :
+                        (e.type === 'tank' ? '#7b8ea8' :
+                        (e.type === 'splitter' ? '#e0ff8f' :
+                        (e.type === 'splitterling' ? '#b8e986' : '#ffffff'))));
                     ctx.beginPath();
-                    ctx.arc(drawX, drawY, e.radius + 5, 0, Math.PI * 2);
-                    ctx.stroke();
+                    ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Fingers
+                    const fingerRadius = e.type === 'splitterling' ? 4 : 6;
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i / 4) * Math.PI - Math.PI / 2;
+                        const fx = drawX + Math.cos(angle) * (e.radius + 5);
+                        const fy = drawY + Math.sin(angle) * (e.radius + 5);
+                        ctx.fillStyle =
+                            e.type === 'elite' ? '#a0a0a0' :
+                            (e.type === 'explosive' ? '#ff7f50' :
+                            (e.type === 'tank' ? '#5c6f89' :
+                            (e.type === 'splitter' ? '#b8d968' :
+                            (e.type === 'splitterling' ? '#8cbf5c' : '#e0e0e0'))));
+                        ctx.beginPath();
+                        ctx.arc(fx, fy, fingerRadius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // Red arrow (paper hand symbol)
+                    ctx.fillStyle =
+                        e.type === 'explosive' ? '#ffea00' :
+                        (e.type === 'tank' ? '#00c8ff' :
+                        (e.type === 'splitter' ? '#6c8f00' :
+                        (e.type === 'splitterling' ? '#5a7a2a' : '#ff0000')));
+                    ctx.beginPath();
+                    ctx.moveTo(drawX, drawY - 5);
+                    ctx.lineTo(drawX - 8, drawY + 5);
+                    ctx.lineTo(drawX + 8, drawY + 5);
+                    ctx.fill();
+                    
+                    if (e.type === 'explosive') {
+                        // Distinct explosive marker and telegraph ring.
+                        ctx.fillStyle = '#7a0000';
+                        ctx.font = 'bold 14px Comic Neue';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('!', drawX, drawY + 5);
+                        
+                        const ringRadius = e.radius + 10 + Math.sin(Date.now() * 0.02) * 2;
+                        ctx.strokeStyle = explosiveWindup ? '#ff2d2d' : '#ff8c42';
+                        ctx.lineWidth = explosiveWindup ? 4 : 2;
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, ringRadius, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    
+                    if (e.type === 'tank') {
+                        // Armor plate look to read as "tank".
+                        ctx.strokeStyle = '#b7d8ff';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, e.radius - 4, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    
+                    if (e.type === 'splitter') {
+                        // Splitter seam to hint at split-on-death.
+                        ctx.strokeStyle = '#6a8a1a';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(drawX - e.radius * 0.6, drawY - e.radius * 0.6);
+                        ctx.lineTo(drawX + e.radius * 0.6, drawY + e.radius * 0.6);
+                        ctx.stroke();
+                    }
+                    
+                    // Health bar
+                    const barWidth = 30;
+                    const barHeight = 4;
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth, barHeight);
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth * (e.health / e.maxHealth), barHeight);
+                    
+                    // Slow effect
+                    if (e.slowTimer > 0) {
+                        ctx.strokeStyle = '#00ffff';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, e.radius + 5, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
                 }
             });
             
