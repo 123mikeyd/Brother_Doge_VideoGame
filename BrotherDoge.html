@@ -544,17 +544,17 @@
                 <div class="breedCard" onclick="selectBreed('red')">
                     <h3>🔴 Red Doge</h3>
                     <div class="stats">
-                        Speed: 100%<br>
-                        Luck: 350%<br>
-                        Damage: 200%<br>
-                        Health: 500%<br>
-                        Magnet: 500%<br>
-                        Dodge: 300%<br>
-                        Regen: 5.0 HP/s
+                        Speed: 85%<br>
+                        Luck: 150%<br>
+                        Damage: 130%<br>
+                        Health: 350%<br>
+                        Magnet: 180%<br>
+                        Dodge: 100%<br>
+                        Regen: 3.0 HP/s
                     </div>
                     <div class="perk">
                         <strong>Test Tank:</strong><br>
-                        Max health for testing
+                        Slow but tanky bruiser
                     </div>
                 </div>
             </div>
@@ -563,6 +563,7 @@
         <div id="pauseOverlay">
             <h1>⏸️ PAUSED</h1>
             <p>Press ESC to resume</p>
+            <div id="pauseBuildInfo" style="margin:15px 0;padding:15px;background:rgba(0,0,0,0.5);border-radius:10px;border:2px solid #ffd700;max-width:400px;text-align:left;font-size:14px;color:#ddd;"></div>
             <button id="soundToggle" onclick="toggleSound()">🔊 Sound: ON</button>
         </div>
         
@@ -626,9 +627,13 @@
         let gameLoopId;
         let lastTime = 0;
         
-        // Arena dimensions
-        const ARENA_WIDTH = 800;
-        const ARENA_HEIGHT = 600;
+        // Arena dimensions (dynamic - expands for boss fight)
+        let ARENA_WIDTH = 800;
+        let ARENA_HEIGHT = 600;
+        const BASE_ARENA_WIDTH = 800;
+        const BASE_ARENA_HEIGHT = 600;
+        const BOSS_ARENA_WIDTH = 1100;
+        const BOSS_ARENA_HEIGHT = 800;
         
         // === SOUND SYSTEM (Web Audio API) ===
         let audioCtx = null;
@@ -788,6 +793,22 @@
             if (gameState !== 'playing') return;
             paused = !paused;
             document.getElementById('pauseOverlay').classList.toggle('visible', paused);
+            if (paused) {
+                const buildInfo = document.getElementById('pauseBuildInfo');
+                if (buildInfo && player.breed) {
+                    const weaponList = player.weapons.map(w => `${w.name} ${'⭐'.repeat(w.level)}`).join('<br>');
+                    const perkList = player.perks.length > 0 ? player.perks.map(p => `${getPerkIcon ? getPerkIcon(p.stat) : '⭐'} ${p.name}`).join('<br>') : 'None';
+                    buildInfo.innerHTML = `
+                        <div style="color:#ffd700;font-size:16px;margin-bottom:8px;">📋 Your Build</div>
+                        <div style="margin-bottom:8px;"><span style="color:#ffd700;">Breed:</span> ${breeds[player.breed].name}</div>
+                        <div style="margin-bottom:8px;"><span style="color:#ffd700;">Weapons:</span><br>${weaponList}</div>
+                        <div style="margin-bottom:8px;"><span style="color:#ffd700;">Perks:</span><br>${perkList}</div>
+                        <div style="margin-bottom:4px;"><span style="color:#ffd700;">Stats:</span></div>
+                        <div>HP: ${Math.round(player.health)}/${player.maxHealth} | DMG: ${Math.round(player.damage * 100)}% | SPD: ${Math.round(player.speed)}</div>
+                        <div>Dodge: ${Math.round(player.dodge * 100)}% | Regen: ${player.regen.toFixed(1)}/s | Magnet: ${player.magnet.toFixed(1)}x</div>
+                    `;
+                }
+            }
         }
         
         function toggleSound() {
@@ -834,7 +855,7 @@
             red: {
                 name: 'Red Doge',
                 color: '#d83a3a',
-                stats: { speed: 1.0, luck: 3.5, damage: 2.0, health: 5.0, magnet: 5.0, dodge: 3.0, regen: 5 },
+                stats: { speed: 0.85, luck: 1.5, damage: 1.3, health: 3.5, magnet: 1.8, dodge: 1.0, regen: 3 },
                 perk: 'testTank'
             }
         };
@@ -915,7 +936,8 @@
             breed: null,
             weapons: [],
             perks: [],
-            visualAdditions: []
+            visualAdditions: [],
+            iframes: 0
         };
         
         // Game objects
@@ -933,6 +955,8 @@
         function addScreenShake(intensity) {
             screenShake = Math.max(screenShake, intensity);
         }
+        let waveClearTimer = null;
+        let bossIntro = null; // { timer, phase, targetWidth, targetHeight }
         let waveActive = false;
         let waveTimer = 0;
         let waveDuration = 0;
@@ -977,11 +1001,12 @@
             
             // Wave configuration
             if (currentWave === 10) {
-                // Boss wave
+                // Boss wave - start cinematic intro
                 waveTimer = 0;
                 enemiesToSpawn = 0;
                 spawnTimer = 0;
-                spawnBoss();
+                bossIntro = { timer: 0, phase: 'expand', duration: 3.0 };
+                gameState = 'bossIntro';
             } else {
                 // Normal wave
                 waveDuration = 30 + (currentWave * 10);
@@ -997,16 +1022,22 @@
         function spawnBoss() {
             boss = {
                 x: ARENA_WIDTH / 2,
-                y: 100,
+                y: 150,
                 radius: 72,
                 health: 9000 * difficulty,
                 maxHealth: 9000 * difficulty,
                 speed: 75,
                 damage: 36,
-                attackTimer: 0,
+                attackTimer: 2,
                 spawnAdds1: false,
+                spawnAdds15: false,
                 spawnAdds2: false,
-                detachTimer: 1.8
+                detachTimer: 1.8,
+                enraged: false,
+                slamCooldown: 0,
+                sweepAngle: 0,
+                sweepActive: false,
+                sweepTimer: 0
             };
         }
         
@@ -1091,7 +1122,34 @@
         
         // Update game
         function update(dt) {
-            if (gameState !== 'playing' || paused) return;
+            if (paused) return;
+            
+            // Boss intro cinematic
+            if (gameState === 'bossIntro' && bossIntro) {
+                bossIntro.timer += dt;
+                const progress = Math.min(1, bossIntro.timer / bossIntro.duration);
+                
+                // Smoothly expand arena
+                const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+                ARENA_WIDTH = BASE_ARENA_WIDTH + (BOSS_ARENA_WIDTH - BASE_ARENA_WIDTH) * ease;
+                ARENA_HEIGHT = BASE_ARENA_HEIGHT + (BOSS_ARENA_HEIGHT - BASE_ARENA_HEIGHT) * ease;
+                resizeCanvas();
+                
+                // Center player during expansion
+                player.x = ARENA_WIDTH / 2;
+                player.y = ARENA_HEIGHT / 2;
+                
+                if (progress >= 1) {
+                    // Intro complete - spawn boss and start fight
+                    spawnBoss();
+                    gameState = 'playing';
+                    bossIntro = null;
+                    addScreenShake(10);
+                }
+                return;
+            }
+            
+            if (gameState !== 'playing') return;
             
             // Player movement
             let dx = 0, dy = 0;
@@ -1125,6 +1183,9 @@
                 }
                 player.health = Math.min(player.maxHealth, player.health + regen * dt);
             }
+            
+            // Invincibility frames
+            if (player.iframes > 0) player.iframes -= dt;
             
             // Shooting
             if (mouse.down) {
@@ -1271,8 +1332,9 @@
                         const hitDist = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
                         
                         if (hitDist < player.radius + enemy.radius + 4) {
-                            if (!(player.breed === 'grey' && Math.random() < 0.2)) {
+                            if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
                                 player.health -= enemy.damage * 1.8;
+                                player.iframes = 0.4;
                                 if (player.health <= 0) gameOver();
                             }
                             enemy.ramState = 'approach';
@@ -1350,9 +1412,10 @@
                     }
                 } else if (!isExplosive && dist <= meleeRange && enemy.attackTimer <= 0) {
                     // Doge Reflex dodge check still applies for Grey Doge.
-                    if (!(player.breed === 'grey' && Math.random() < 0.2)) {
+                    if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
                         const meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1);
                         player.health -= meleeDamage;
+                        player.iframes = 0.4;
                         playSound('hurt');
                         if (player.health <= 0) gameOver();
                     }
@@ -1477,6 +1540,18 @@
                 if (enemy.health <= 0) {
                     kills++;
                     playSound('kill');
+                    // Death burst - paper scraps fly out
+                    for (let i = 0; i < 8; i++) {
+                        const a = Math.random() * Math.PI * 2;
+                        const spd = 80 + Math.random() * 150;
+                        particles.push({
+                            x: enemy.x, y: enemy.y,
+                            vx: Math.cos(a) * spd,
+                            vy: Math.sin(a) * spd,
+                            life: 0.3 + Math.random() * 0.3,
+                            color: ['#ffffff', '#e8e0d0', '#d4ccc0', '#ff4444'][Math.floor(Math.random() * 4)]
+                        });
+                    }
                     // Splitter tears apart into paper scraps.
                     if (enemy.type === 'splitter') {
                         for (let i = 0; i < 3; i++) {
@@ -1555,8 +1630,9 @@
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist < player.radius + p.radius) {
                     // Doge Reflex can dodge projectile hits too.
-                    if (!(player.breed === 'grey' && Math.random() < 0.2)) {
+                    if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
                         player.health -= p.damage;
+                        player.iframes = 0.3;
                         if (player.health <= 0) gameOver();
                     }
                     return false;
@@ -1701,8 +1777,14 @@
                     if (coinsOnGround.length > 0) {
                         // Auto-magnetize all remaining coins when enemies are cleared
                         coinsOnGround.forEach(c => c.magnetized = true);
+                    } else if (!waveClearTimer) {
+                        waveClearTimer = 1.5;
                     } else {
-                        openShop();
+                        waveClearTimer -= dt;
+                        if (waveClearTimer <= 0) {
+                            waveClearTimer = null;
+                            openShop();
+                        }
                     }
                 }
             } else if (boss && boss.health <= 0) {
@@ -1724,54 +1806,160 @@
                 boss.y += (dy / dist) * boss.speed * dt;
             }
             
+            // Enrage at 25% health
+            if (!boss.enraged && boss.health < boss.maxHealth * 0.25) {
+                boss.enraged = true;
+                boss.speed = 120;
+                boss.damage = 50;
+                addScreenShake(15);
+                // Spawn a ring of enemies
+                for (let i = 0; i < 12; i++) {
+                    const a = (i / 12) * Math.PI * 2;
+                    enemies.push({
+                        x: boss.x + Math.cos(a) * 200,
+                        y: boss.y + Math.sin(a) * 200,
+                        radius: 18, speed: 160, health: 80 * difficulty, maxHealth: 80 * difficulty,
+                        damage: 15, type: 'shredder', slowTimer: 0, attackTimer: Math.random() * 0.5,
+                        ramState: 'approach', ramWindup: 0, ramDash: 0, ramCooldown: 0, ramDirX: 0, ramDirY: 0
+                    });
+                }
+            }
+            
+            // Sweep attack
+            if (boss.sweepActive) {
+                boss.sweepTimer -= dt;
+                boss.sweepAngle += 3.5 * dt;
+                // Fire projectiles in a sweeping arc
+                if (Math.random() < 15 * dt) {
+                    const a = boss.sweepAngle;
+                    enemyProjectiles.push({
+                        x: boss.x + Math.cos(a) * boss.radius,
+                        y: boss.y + Math.sin(a) * boss.radius,
+                        vx: Math.cos(a) * 280,
+                        vy: Math.sin(a) * 280,
+                        damage: 15,
+                        radius: 6,
+                        life: 2.5
+                    });
+                }
+                if (boss.sweepTimer <= 0) boss.sweepActive = false;
+            }
+            
+            // Slam cooldown
+            if (boss.slamCooldown > 0) boss.slamCooldown -= dt;
+            
             // Attacks
             boss.attackTimer -= dt;
             if (boss.attackTimer <= 0) {
-                // Market Crash (AOE)
-                const attackType = Math.random();
-                if (attackType < 0.33) {
-                    // AOE slam
-                    enemies.forEach(e => {
-                        const edx = e.x - boss.x;
-                        const edy = e.y - boss.y;
-                        const edist = Math.sqrt(edx * edx + edy * edy);
-                        if (edist < 150) {
-                            e.x += (edx / edist) * 100;
-                            e.y += (edy / edist) * 100;
-                        }
-                    });
-                    
+                const healthPercent = boss.health / boss.maxHealth;
+                const attackRoll = Math.random();
+                const attackRate = boss.enraged ? 1.8 : 3;
+                
+                if (attackRoll < 0.25) {
+                    // MARKET CRASH - AOE slam with screen shake
+                    addScreenShake(8);
+                    for (let i = 0; i < 20; i++) {
+                        const a = (i / 20) * Math.PI * 2;
+                        particles.push({
+                            x: boss.x + Math.cos(a) * 30,
+                            y: boss.y + Math.sin(a) * 30,
+                            vx: Math.cos(a) * 200,
+                            vy: Math.sin(a) * 200,
+                            life: 0.4,
+                            color: '#ff4444'
+                        });
+                    }
                     const pdx = player.x - boss.x;
                     const pdy = player.y - boss.y;
                     const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (pdist < 150 && !player.diamond) {
-                        player.x += (pdx / pdist) * 100;
-                        player.y += (pdy / pdist) * 100;
-                        player.health -= 20;
+                    if (pdist < 180 && player.iframes <= 0) {
+                        player.health -= 25;
+                        player.iframes = 0.5;
+                        // Knockback
+                        if (!player.diamond) {
+                            player.x += (pdx / pdist) * 120;
+                            player.y += (pdy / pdist) * 120;
+                        }
+                        if (player.health <= 0) gameOver();
                     }
-                } else if (attackType < 0.66) {
-                    // Pump & Dump (charge)
-                    boss.speed = 300;
-                    setTimeout(() => boss.speed = 80, 1000);
-                } else {
-                    // Liquidation (summon circles)
-                    for (let i = 0; i < 3; i++) {
+                    
+                } else if (attackRoll < 0.45) {
+                    // PUMP & DUMP - charge at player
+                    boss.speed = boss.enraged ? 450 : 300;
+                    setTimeout(() => { if (boss) boss.speed = boss.enraged ? 120 : 75; }, 1000);
+                    addScreenShake(4);
+                    
+                } else if (attackRoll < 0.65) {
+                    // LIQUIDATION - danger circles on the ground
+                    const circleCount = boss.enraged ? 5 : 3;
+                    for (let i = 0; i < circleCount; i++) {
                         const angle = Math.random() * Math.PI * 2;
-                        const dist = 100 + Math.random() * 200;
+                        const dist = 80 + Math.random() * 250;
                         const cx = boss.x + Math.cos(angle) * dist;
                         const cy = boss.y + Math.sin(angle) * dist;
-                        
-                        // Damage if player in circle after delay
+                        // Visual warning
+                        fireZones.push({
+                            x: cx, y: cy,
+                            radius: 60,
+                            duration: 1.0,
+                            life: 1.0,
+                            dps: 0 // Just visual warning
+                        });
                         setTimeout(() => {
-                            const pdx = player.x - cx;
-                            const pdy = player.y - cy;
-                            if (Math.sqrt(pdx * pdx + pdy * pdy) < 50) {
-                                player.health -= 30;
+                            if (gameState !== 'playing') return;
+                            addScreenShake(5);
+                            const pdx2 = player.x - cx;
+                            const pdy2 = player.y - cy;
+                            if (Math.sqrt(pdx2 * pdx2 + pdy2 * pdy2) < 60 && player.iframes <= 0) {
+                                player.health -= 35;
+                                player.iframes = 0.4;
+                                if (player.health <= 0) gameOver();
+                            }
+                            // Explosion visual
+                            for (let j = 0; j < 12; j++) {
+                                const pa = Math.random() * Math.PI * 2;
+                                particles.push({
+                                    x: cx, y: cy,
+                                    vx: Math.cos(pa) * 150,
+                                    vy: Math.sin(pa) * 150,
+                                    life: 0.3,
+                                    color: '#ff6666'
+                                });
                             }
                         }, 1000);
                     }
+                    
+                } else if (attackRoll < 0.80) {
+                    // PAPER STORM - sweeping projectile arc
+                    boss.sweepActive = true;
+                    boss.sweepTimer = 2.0;
+                    boss.sweepAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
+                    
+                } else {
+                    // HOSTILE TAKEOVER - teleport near player and slam
+                    const teleAngle = Math.random() * Math.PI * 2;
+                    const teleDist = 150 + Math.random() * 100;
+                    boss.x = player.x + Math.cos(teleAngle) * teleDist;
+                    boss.y = player.y + Math.sin(teleAngle) * teleDist;
+                    // Clamp to arena
+                    boss.x = Math.max(boss.radius, Math.min(ARENA_WIDTH - boss.radius, boss.x));
+                    boss.y = Math.max(boss.radius, Math.min(ARENA_HEIGHT - boss.radius, boss.y));
+                    addScreenShake(6);
+                    // Visual teleport particles
+                    for (let i = 0; i < 15; i++) {
+                        const a = Math.random() * Math.PI * 2;
+                        particles.push({
+                            x: boss.x + Math.cos(a) * 40,
+                            y: boss.y + Math.sin(a) * 40,
+                            vx: Math.cos(a) * 100,
+                            vy: Math.sin(a) * 100,
+                            life: 0.5,
+                            color: '#ffdddd'
+                        });
+                    }
                 }
-                boss.attackTimer = 3;
+                
+                boss.attackTimer = attackRate;
             }
             
             // Outer hands periodically detach and crawl toward player.
@@ -1786,18 +1974,28 @@
             if (!boss.spawnAdds1 && healthPercent <= 0.70) {
                 boss.spawnAdds1 = true;
                 spawnBossHands(16, false);
+                addScreenShake(8);
+            }
+            if (!boss.spawnAdds15 && healthPercent <= 0.50) {
+                boss.spawnAdds15 = true;
+                spawnBossHands(20, true);
+                addScreenShake(10);
+                // Boss gets faster at half health
+                boss.speed = 100;
             }
             if (!boss.spawnAdds2 && healthPercent <= 0.30) {
                 boss.spawnAdds2 = true;
                 spawnBossHands(24, true);
+                addScreenShake(12);
             }
             
             // Collision with player
             const pdx = player.x - boss.x;
             const pdy = player.y - boss.y;
             const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
-            if (pdist < player.radius + boss.radius) {
+            if (pdist < player.radius + boss.radius && player.iframes <= 0) {
                 player.health -= boss.damage * dt;
+                player.iframes = 0.15;
                 if (player.health <= 0) gameOver();
             }
             
@@ -2461,6 +2659,10 @@
         // Reset game
         function resetGame() {
             currentWave = 1;
+            ARENA_WIDTH = BASE_ARENA_WIDTH;
+            ARENA_HEIGHT = BASE_ARENA_HEIGHT;
+            resizeCanvas();
+            bossIntro = null;
             coins = 0;
             kills = 0;
             projectiles = [];
@@ -2506,8 +2708,11 @@
                 breed: null,
                 weapons: [],
                 perks: [],
-                visualAdditions: []
+                visualAdditions: [],
+                iframes: 0
             };
+            
+            waveClearTimer = null;
             
             updateWeaponUI();
         }
@@ -3086,6 +3291,20 @@
                         ctx.stroke();
                     }
                     
+                    if (e.type === 'shredder') {
+                        // Jagged claw marks across the hand
+                        ctx.strokeStyle = '#aa0000';
+                        ctx.lineWidth = 2;
+                        for (let s = 0; s < 3; s++) {
+                            const sx = drawX - 6 + s * 6;
+                            ctx.beginPath();
+                            ctx.moveTo(sx, drawY - e.radius * 0.5);
+                            ctx.lineTo(sx + 2, drawY);
+                            ctx.lineTo(sx, drawY + e.radius * 0.5);
+                            ctx.stroke();
+                        }
+                    }
+                    
                     // Health bar
                     const barWidth = 30;
                     const barHeight = 4;
@@ -3102,6 +3321,30 @@
                         ctx.arc(drawX, drawY, e.radius + 5, 0, Math.PI * 2);
                         ctx.stroke();
                     }
+                }
+            });
+            
+            // Off-screen enemy indicators
+            const indicatorMargin = 30;
+            enemies.forEach(e => {
+                const onScreen = e.x > 0 && e.x < canvas.width && e.y > 0 && e.y < canvas.height;
+                if (!onScreen) {
+                    const angle = Math.atan2(e.y - player.y, e.x - player.x);
+                    const edgeX = Math.max(indicatorMargin, Math.min(canvas.width - indicatorMargin, player.x + Math.cos(angle) * 280));
+                    const edgeY = Math.max(indicatorMargin, Math.min(canvas.height - indicatorMargin, player.y + Math.sin(angle) * 280));
+                    ctx.save();
+                    ctx.translate(edgeX, edgeY);
+                    ctx.rotate(angle);
+                    ctx.fillStyle = e.type === 'splitter' ? '#f5e6c8' : (e.type === 'fomo' ? '#9b59b6' : (e.type === 'tank' ? '#7b8ea8' : (e.type === 'explosive' ? '#ff9f68' : '#ff4444')));
+                    ctx.globalAlpha = 0.7;
+                    ctx.beginPath();
+                    ctx.moveTo(10, 0);
+                    ctx.lineTo(-5, -6);
+                    ctx.lineTo(-5, 6);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    ctx.restore();
                 }
             });
             
@@ -3184,6 +3427,11 @@
                 ctx.font = 'bold 20px Comic Neue';
                 ctx.textAlign = 'center';
                 ctx.fillText('THE PAPER ABOMINATION', boss.x, boss.y - boss.radius - 34);
+            }
+            
+            // Flash during iframes
+            if (player.iframes > 0 && Math.floor(player.iframes * 20) % 2 === 0) {
+                ctx.globalAlpha = 0.3;
             }
             
             // Draw player
@@ -3474,6 +3722,72 @@
                 ctx.restore();
 
 
+            }
+            ctx.globalAlpha = 1;
+            
+            // Boss intro cinematic
+            if (gameState === 'bossIntro' && bossIntro) {
+                const progress = Math.min(1, bossIntro.timer / bossIntro.duration);
+                
+                // Pulsing arena border
+                const pulse = 0.5 + Math.sin(bossIntro.timer * 6) * 0.3;
+                ctx.strokeStyle = `rgba(139, 0, 0, ${pulse})`;
+                ctx.lineWidth = 4 + progress * 4;
+                ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+                
+                // Dark vignette closing in then opening
+                const vignetteAlpha = 0.4 * (1 - progress);
+                if (vignetteAlpha > 0.01) {
+                    const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, canvas.width * 0.7);
+                    grad.addColorStop(0, 'transparent');
+                    grad.addColorStop(1, `rgba(0, 0, 0, ${vignetteAlpha})`);
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                
+                // Text
+                const textAlpha = Math.min(1, bossIntro.timer * 2);
+                ctx.globalAlpha = textAlpha;
+                ctx.font = 'bold 36px Comic Neue';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText('THE ARENA EXPANDS...', canvas.width/2 + 2, canvas.height/2 - 40 + 2);
+                ctx.fillStyle = '#8b0000';
+                ctx.fillText('THE ARENA EXPANDS...', canvas.width/2, canvas.height/2 - 40);
+                
+                if (progress > 0.5) {
+                    const bossTextAlpha = (progress - 0.5) * 2;
+                    ctx.globalAlpha = bossTextAlpha;
+                    ctx.font = 'bold 52px Comic Neue';
+                    ctx.fillStyle = '#000';
+                    ctx.fillText('THE PAPER ABOMINATION', canvas.width/2 + 2, canvas.height/2 + 20 + 2);
+                    ctx.fillStyle = '#ff4444';
+                    ctx.fillText('THE PAPER ABOMINATION', canvas.width/2, canvas.height/2 + 20);
+                    
+                    ctx.font = 'bold 20px Comic Neue';
+                    ctx.fillStyle = '#ffb3b3';
+                    ctx.fillText('PREPARE YOURSELF', canvas.width/2, canvas.height/2 + 55);
+                }
+                ctx.globalAlpha = 1;
+            }
+            
+            // Wave clear banner
+            if (waveClearTimer && waveClearTimer > 0) {
+                const t = 1.5 - waveClearTimer;
+                const scale = Math.min(1, t * 4);
+                const alpha = waveClearTimer < 0.5 ? waveClearTimer * 2 : 1;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.font = `bold ${Math.round(48 * scale)}px Comic Neue`;
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText('WAVE CLEAR!', canvas.width / 2 + 2, canvas.height / 2 + 2);
+                ctx.fillStyle = '#ffd700';
+                ctx.fillText('WAVE CLEAR!', canvas.width / 2, canvas.height / 2);
+                ctx.font = 'bold 24px Comic Neue';
+                ctx.fillStyle = '#4ecdc4';
+                ctx.fillText(`+${coins} coins earned`, canvas.width / 2, canvas.height / 2 + 40);
+                ctx.restore();
             }
             
             if (screenShake > 0) ctx.restore();
