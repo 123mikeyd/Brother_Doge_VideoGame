@@ -494,67 +494,73 @@
             <h1>🐕 CHOOSE YOUR DOGE 🐕</h1>
             <div class="breedOptions">
                 <div class="breedCard" onclick="selectBreed('yellow')">
-                    <h3>🟡 Yellow Doge</h3>
+                    <h3>🟡 Lassy</h3>
                     <div class="stats">
-                        Speed: 115%<br>
-                        Luck: 420%<br>
-                        Damage: 125%<br>
-                        Health: 200%<br>
-                        Magnet: 150%<br>
-                        Dodge: 130%<br>
-                        Regen: 3.0 HP/s
+                        <em style="color:#aaa;font-size:12px">"The classic good boy. Loyal, lucky, and always finds treasure."</em><br><br>
+                        Speed: 110% | Luck: 350%<br>
+                        Damage: 115% | Health: 220%<br>
+                        Magnet: 180% | Dodge: 110%<br>
+                        Regen: 2.5 HP/s
                     </div>
                     <div class="perk">
-                        <strong>Much Find:</strong><br>
-                        15% chance for bonus coins on kill
+                        <strong>🍀 Much Find:</strong><br>
+                        Bonus coins on kill (luck-scaled)
                     </div>
                 </div>
                 <div class="breedCard" onclick="selectBreed('black')">
-                    <h3>⚫ Black Doge</h3>
+                    <h3>⚫ Streets</h3>
                     <div class="stats">
-                        Speed: 90%<br>
-                        Luck: 210%<br>
-                        Damage: 150%<br>
-                        Health: 280%<br>
-                        Magnet: 320%<br>
-                        Dodge: 180%<br>
-                        Regen: 2.0 HP/s
+                        <em style="color:#aaa;font-size:12px">"Grew up in the alleys. Hits hard, moves fast, trusts nobody."</em><br><br>
+                        Speed: 120% | Luck: 150%<br>
+                        Damage: 170% | Health: 200%<br>
+                        Magnet: 120% | Dodge: 220%<br>
+                        Regen: 1.0 HP/s
                     </div>
                     <div class="perk">
-                        <strong>HODL Strike:</strong><br>
+                        <strong>💥 HODL Strike:</strong><br>
                         +20% damage, -10% fire rate
                     </div>
                 </div>
                 <div class="breedCard" onclick="selectBreed('grey')">
-                    <h3>⚪ Grey Doge</h3>
+                    <h3>👻 Phantom</h3>
                     <div class="stats">
-                        Speed: 105%<br>
-                        Luck: 250%<br>
-                        Damage: 180%<br>
-                        Health: 300%<br>
-                        Magnet: 200%<br>
-                        Dodge: 120%<br>
-                        Regen: 1.5 HP/s
+                        <em style="color:#aaa;font-size:12px">"A ghost of the blockchain. You can't hit what you can't see."</em><br><br>
+                        Speed: 130% | Luck: 200%<br>
+                        Damage: 140% | Health: 150%<br>
+                        Magnet: 150% | Dodge: 250%<br>
+                        Regen: 1.0 HP/s
                     </div>
                     <div class="perk">
-                        <strong>Doge Reflex:</strong><br>
-                        20% chance to dodge attacks
+                        <strong>👻 Doge Reflex:</strong><br>
+                        20% chance to dodge any attack
                     </div>
                 </div>
                 <div class="breedCard" onclick="selectBreed('red')">
-                    <h3>🔴 Red Doge</h3>
+                    <h3>🔴 Clifford</h3>
                     <div class="stats">
-                        Speed: 85%<br>
-                        Luck: 150%<br>
-                        Damage: 130%<br>
-                        Health: 350%<br>
-                        Magnet: 180%<br>
-                        Dodge: 100%<br>
-                        Regen: 3.0 HP/s
+                        <em style="color:#aaa;font-size:12px">"The big red doge. Slow as a brick wall, tough as one too."</em><br><br>
+                        Speed: 80% | Luck: 120%<br>
+                        Damage: 160% | Health: 400%<br>
+                        Magnet: 150% | Dodge: 100%<br>
+                        Regen: 3.5 HP/s
                     </div>
                     <div class="perk">
-                        <strong>Test Tank:</strong><br>
-                        Slow but tanky bruiser
+                        <strong>🛡️ Iron Hide:</strong><br>
+                        Massive HP pool, high regen
+                    </div>
+                </div>
+                <div class="breedCard" onclick="selectBreed('purple')">
+                    <h3>🟣 Cosmos</h3>
+                    <div class="stats">
+                        <em style="color:#aaa;font-size:12px">"Born from stardust. Bends gravity itself to gather riches."</em><br><br>
+                        Speed: 100% | Luck: 300%<br>
+                        Damage: 100% | Health: 250%<br>
+                        Magnet: 350% | Dodge: 130%<br>
+                        Regen: 2.0 HP/s
+                    </div>
+                    <div class="perk">
+                        <strong>🌌 Cosmic Pull:</strong><br>
+                        Massive magnet range, slows nearby enemies
                     </div>
                 </div>
             </div>
@@ -835,28 +841,34 @@
         // Breeds
         const breeds = {
             yellow: {
-                name: 'Yellow Doge',
+                name: 'Lassy',
                 color: '#ffd700',
-                stats: { speed: 1.15, luck: 4.2, damage: 1.25, health: 2.0, magnet: 1.5, dodge: 1.3, regen: 3 },
+                stats: { speed: 1.1, luck: 3.5, damage: 1.15, health: 2.2, magnet: 1.8, dodge: 1.1, regen: 2.5 },
                 perk: 'muchFind'
             },
             black: {
-                name: 'Black Doge',
+                name: 'Streets',
                 color: '#2c2c2c',
-                stats: { speed: 0.9, luck: 2.1, damage: 1.5, health: 2.8, magnet: 3.2, dodge: 1.8, regen: 2 },
+                stats: { speed: 1.2, luck: 1.5, damage: 1.7, health: 2.0, magnet: 1.2, dodge: 2.2, regen: 1.0 },
                 perk: 'hodlStrike'
             },
             grey: {
-                name: 'Grey Doge',
+                name: 'Phantom',
                 color: '#808080',
-                stats: { speed: 1.05, luck: 2.5, damage: 1.8, health: 3, magnet: 2.0, dodge: 1.2, regen: 1.5 },
+                stats: { speed: 1.3, luck: 2.0, damage: 1.4, health: 1.5, magnet: 1.5, dodge: 2.5, regen: 1.0 },
                 perk: 'dogeReflex'
             },
             red: {
-                name: 'Red Doge',
+                name: 'Clifford',
                 color: '#d83a3a',
-                stats: { speed: 0.85, luck: 1.5, damage: 1.3, health: 3.5, magnet: 1.8, dodge: 1.0, regen: 3 },
+                stats: { speed: 0.8, luck: 1.2, damage: 1.6, health: 4.0, magnet: 1.5, dodge: 1.0, regen: 3.5 },
                 perk: 'testTank'
+            },
+            purple: {
+                name: 'Cosmos',
+                color: '#9b59b6',
+                stats: { speed: 1.0, luck: 3.0, damage: 1.0, health: 2.5, magnet: 3.5, dodge: 1.3, regen: 2.0 },
+                perk: 'cosmicPull'
             }
         };
         
@@ -868,10 +880,10 @@
             minigun: { name: 'So Minigun', damage: 20, fireRate: 10, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, movePenalty: 0.5, color: '#95e1d3' },
             launcher: { name: 'Moon Launcher', damage: 60, fireRate: 1, range: 400, knockback: 5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181', homing: 0.03, speed: 300, fireZone: true, fireZoneDuration: 2.5, fireZoneDPS: 20 },
             piercer: { name: 'Diamond Piercer', damage: 45, fireRate: 2.5, range: 700, knockback: 0, explosive: 0, expSize: 0, pierce: 5, slow: 0, color: '#aa96da', speed: 300, accelerates: true, damageRamp: 15, spinRate: 12 },
-            shredder: { name: 'Such Shuriken', damage: 12, fireRate: 11, range: 170, knockback: 0.2, explosive: 0, expSize: 0, pierce: 1, slow: 0.15, movePenalty: 0.05, color: '#d6dde8' },
+            shredder: { name: 'Such Shuriken', damage: 12, fireRate: 11, range: 170, knockback: 0.2, explosive: 0, expSize: 0, pierce: 1, slow: 0.15, movePenalty: 0.05, color: '#d6dde8', spinRate: 25 },
             cannon: { name: 'HODL Cannon', damage: 100, fireRate: 0.8, range: 500, knockback: 15, explosive: 35, expSize: 50, pierce: 0, slow: 0, color: '#ffffd2', gravity: 400, speed: 400 },
             cointoss: { name: 'Doge Coin Toss', damage: 120, fireRate: 5, range: 350, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0.3, bounce: 2, color: '#ffd700', speed: 450, spinRate: 15, arc: true },
-            moon: { name: 'To The Moon', damage: 250, fireRate: 0.3, range: 800, knockback: 0, explosive: 50, expSize: 120, pierce: 0, slow: 0, guided: true, color: '#ff6b6b', speed: 250, homingStrength: 0.06, spinRate: 0 }
+            moon: { name: 'To The Moon', damage: 250, fireRate: 0.3, range: 800, knockback: 8, explosive: 50, expSize: 140, pierce: 0, slow: 0, guided: true, color: '#ffffcc', speed: 150, homingStrength: 0.04, spinRate: 0 }
         };
         
         // Perks
@@ -906,8 +918,8 @@
         };
         
         // Unlocks
-        let unlockedWeapons = ['pistol', 'rifle', 'shotgun'];
-        let unlockedBreeds = ['yellow', 'black', 'grey', 'red'];
+        let unlockedWeapons = ['pistol', 'rifle', 'shotgun', 'cointoss'];
+        let unlockedBreeds = ['yellow', 'black', 'grey', 'red', 'purple'];
         let highestDifficulty = 1;
         
         // Player
@@ -1186,6 +1198,16 @@
             
             // Invincibility frames
             if (player.iframes > 0) player.iframes -= dt;
+            
+            // Cosmic Pull - Purple Doge pulls coins and slows nearby enemies
+            if (player.breed === 'purple') {
+                enemies.forEach(e => {
+                    const d = Math.sqrt((e.x - player.x) * (e.x - player.x) + (e.y - player.y) * (e.y - player.y));
+                    if (d < 120) {
+                        e.slowTimer = Math.max(e.slowTimer, 0.1);
+                    }
+                });
+            }
             
             // Shooting
             if (mouse.down) {
@@ -1696,7 +1718,8 @@
                 const dx = c.x - player.x;
                 const dy = c.y - player.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                const pickupRange = player.radius + 35 + (55 * player.magnet);
+                const cosmicBonus = player.breed === 'purple' ? 1.5 : 1;
+                const pickupRange = (player.radius + 35 + (55 * player.magnet)) * cosmicBonus;
                 
                 if (!c.magnetized && dist < pickupRange) {
                     c.magnetized = true;
@@ -2047,7 +2070,7 @@
                 let pierce = weapon.pierce;
                 if (player.moon) pierce += 2;
                 
-                const radiusMap = { launcher: 10, cannon: 10, moon: 12 };
+                const radiusMap = { launcher: 10, cannon: 10, moon: 28 };
                 
                 return {
                     x: player.x + Math.cos(finalAngle) * 30,
@@ -2898,46 +2921,81 @@
                     ctx.restore();
                     
                 } else if (p.weaponType === 'moon') {
-                    // Epic guided missile with contrail
+                    // ACTUAL MOON - comically large celestial body
                     ctx.save();
                     ctx.translate(p.x, p.y);
-                    ctx.rotate(angle);
-                    // Multi-layer flame exhaust
-                    for (let i = 0; i < 3; i++) {
-                        const len = 18 + Math.sin((p.age || 0) * 35 + i) * 6;
-                        const w = 6 - i * 1.5;
-                        ctx.fillStyle = ['rgba(255,68,0,0.8)', 'rgba(255,136,0,0.7)', 'rgba(255,255,0,0.6)'][i];
-                        ctx.beginPath();
-                        ctx.moveTo(-14, -w);
-                        ctx.quadraticCurveTo(-14 - len, 0, -14, w);
-                        ctx.fill();
-                    }
-                    // Missile body
-                    ctx.fillStyle = '#dfe7ff';
-                    ctx.fillRect(-14, -6, 28, 12);
-                    // Gold stripes
-                    ctx.fillStyle = '#ffd700';
-                    ctx.fillRect(-8, -6, 2, 12);
-                    ctx.fillRect(4, -6, 2, 12);
-                    // Gold nose cone
-                    ctx.fillStyle = '#ffd700';
+                    
+                    // Glow aura
+                    const glowGrad = ctx.createRadialGradient(0, 0, p.radius * 0.8, 0, 0, p.radius * 2);
+                    glowGrad.addColorStop(0, 'rgba(255, 255, 200, 0.3)');
+                    glowGrad.addColorStop(1, 'transparent');
+                    ctx.fillStyle = glowGrad;
                     ctx.beginPath();
-                    ctx.moveTo(20, 0); ctx.lineTo(14, -6); ctx.lineTo(14, 6);
+                    ctx.arc(0, 0, p.radius * 2, 0, Math.PI * 2);
                     ctx.fill();
-                    // Fins
-                    ctx.fillStyle = '#ffd700';
+                    
+                    // Moon body - gradient from light yellow to grey
+                    const moonGrad = ctx.createRadialGradient(-6, -6, 2, 0, 0, p.radius);
+                    moonGrad.addColorStop(0, '#fffff0');
+                    moonGrad.addColorStop(0.5, '#e8e4c9');
+                    moonGrad.addColorStop(1, '#c0b898');
+                    ctx.fillStyle = moonGrad;
                     ctx.beginPath();
-                    ctx.moveTo(-10, -6); ctx.lineTo(-16, -12); ctx.lineTo(-5, -6);
+                    ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Craters
+                    ctx.fillStyle = 'rgba(160, 150, 120, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(-8, -5, 6, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.beginPath();
-                    ctx.moveTo(-10, 6); ctx.lineTo(-16, 12); ctx.lineTo(-5, 6);
+                    ctx.arc(7, 3, 4, 0, Math.PI * 2);
                     ctx.fill();
-                    // Blinking light
-                    ctx.fillStyle = Math.sin((p.age || 0) * 18) > 0 ? 'rgba(255,80,80,0.9)' : 'rgba(255,80,80,0.2)';
                     ctx.beginPath();
-                    ctx.arc(0, 0, 2, 0, Math.PI * 2);
+                    ctx.arc(-3, 8, 5, 0, Math.PI * 2);
                     ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(10, -7, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Crater shadows (slightly darker)
+                    ctx.fillStyle = 'rgba(130, 120, 90, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(-7, -4, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(-2, 9, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Highlight crescent (lit side of moon)
+                    ctx.fillStyle = 'rgba(255, 255, 240, 0.25)';
+                    ctx.beginPath();
+                    ctx.arc(-4, -4, p.radius * 0.7, -1.2, 1.2);
+                    ctx.fill();
+                    
+                    // Wobble text "🌙" emoji vibe - draw "MOON" tiny on it
+                    const wobble = Math.sin((p.age || 0) * 3) * 0.1;
+                    ctx.rotate(wobble);
+                    ctx.fillStyle = 'rgba(100, 90, 60, 0.4)';
+                    ctx.font = 'bold 10px Comic Neue';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('MOON', 0, 0);
+                    
                     ctx.restore();
+                    
+                    // Sparkle trail behind the moon
+                    if (Math.random() < 0.4) {
+                        particles.push({
+                            x: p.x - Math.cos(angle) * p.radius + (Math.random() - 0.5) * 20,
+                            y: p.y - Math.sin(angle) * p.radius + (Math.random() - 0.5) * 20,
+                            vx: (Math.random() - 0.5) * 30,
+                            vy: (Math.random() - 0.5) * 30,
+                            life: 0.4 + Math.random() * 0.3,
+                            color: ['#fffff0', '#ffd700', '#ffe4b5'][Math.floor(Math.random() * 3)]
+                        });
+                    }
                     
                 } else if (p.weaponType === 'piercer') {
                     // Spinning diamond crystal with afterimages
@@ -3083,8 +3141,31 @@
                     ctx.fill();
                     ctx.restore();
                     
+                } else if (p.weaponType === 'shredder') {
+                    // Tiny silver throwing star
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.spin || p.age * 25 || 0));
+                    ctx.fillStyle = '#c8cdd4';
+                    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    for (let i = 0; i < 4; i++) {
+                        const a = i * Math.PI / 2;
+                        ctx.lineTo(Math.cos(a) * 7, Math.sin(a) * 7);
+                        ctx.lineTo(Math.cos(a + Math.PI/4) * 2.5, Math.sin(a + Math.PI/4) * 2.5);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    // Tiny center
+                    ctx.fillStyle = '#888';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
                 } else {
-                    // Default (shuriken, shotgun pellets, etc) - keep original look
+                    // Default (shotgun pellets, etc)
                     ctx.fillStyle = p.color;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
