@@ -470,6 +470,46 @@
             font-size: 16px;
             text-shadow: 2px 2px 0 #000;
         }
+        #perkHud {
+            position: absolute;
+            top: 90px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,215,0,0.3);
+            color: #ddd;
+            font-size: 11px;
+            max-height: 300px;
+            overflow-y: auto;
+            pointer-events: none;
+            min-width: 120px;
+        }
+        
+        #perkHud .perk-title {
+            color: #ffd700;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        #perkHud .perk-entry {
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            white-space: nowrap;
+        }
+        
+        #perkHud .perk-entry.rank-5 {
+            color: #ffd700;
+        }
+        
+        #perkHud .perk-entry.rank-4 {
+            color: #a855f7;
+        }
+        
+        #perkHud .perk-entry.rank-3 {
+            color: #5b7cff;
+        }
     </style>
 </head>
 <body>
@@ -488,6 +528,7 @@
                 <div class="weapon-slot" id="slot2">3</div>
                 <div class="weapon-slot" id="slot3">4</div>
             </div>
+            <div id="perkHud" class="hud" style="display:none;"></div>
         </div>
         
         <div id="breedSelect">
@@ -968,6 +1009,8 @@
             screenShake = Math.max(screenShake, intensity);
         }
         let waveClearTimer = null;
+        let carryoverPerks = []; // Perks that persist across difficulty runs
+        let carryoverPerkKeys = new Set();
         let bossIntro = null; // { timer, phase, targetWidth, targetHeight }
         let waveActive = false;
         let waveTimer = 0;
@@ -994,6 +1037,14 @@
             // Give starter weapon
             player.weapons = [{ ...weaponTypes.pistol, type: 'pistol', lastShot: 0, level: 1 }];
             updateWeaponUI();
+            
+            // Reapply carried-over perks from previous runs
+            if (carryoverPerks.length > 0) {
+                player.perks = [...carryoverPerks];
+                ownedPerkKeys = new Set(carryoverPerkKeys);
+                carryoverPerks.forEach(perk => applyPerk(perk));
+                updatePerkDisplay();
+            }
             
             document.getElementById('breedSelect').style.display = 'none';
             startWave();
@@ -2482,17 +2533,7 @@
             renderShop();
         }
         
-        // Buy perk
-        function buyPerk(slotIndex) {
-            const offer = shopPerkOffers[slotIndex];
-            if (!offer || offer.sold) return;
-            const { key, perk, price } = offer;
-            if (coins < price) return;
-            
-            coins -= price;
-            playSound('buy');
-            
-            // Apply perk
+        function applyPerk(perk) {
             if (perk.stat === 'maxHealth') {
                 player.maxHealth += perk.value;
                 player.health += perk.value;
@@ -2511,7 +2552,7 @@
             } else if (perk.stat === 'projectileBounce') {
                 player.projectileBounce += perk.value;
             } else if (perk.stat === 'turret') {
-                turrets.push({ x: player.x + 50, y: player.y, timer: 0, life: 10 });
+                // Turret spawns handled separately in combat
             } else if (perk.stat === 'diamond') {
                 player.diamond = true;
                 player.magnet += 0.5;
@@ -2525,9 +2566,6 @@
                 player.health += 100;
             } else if (perk.stat === 'turretMaster') {
                 player.turretMaster = true;
-                turrets.push({ x: player.x + 50, y: player.y, timer: 0, life: 15 });
-                turrets.push({ x: player.x - 50, y: player.y, timer: 0, life: 15 });
-                turrets.push({ x: player.x, y: player.y + 50, timer: 0, life: 15 });
             } else if (perk.stat === 'apex') {
                 player.apex = true;
                 player.maxHealth += 220;
@@ -2537,14 +2575,28 @@
                 player.regen += 2.5;
                 player.magnet += 0.35;
             }
+        }
+
+        // Buy perk
+        function buyPerk(slotIndex) {
+            const offer = shopPerkOffers[slotIndex];
+            if (!offer || offer.sold) return;
+            const { key, perk, price } = offer;
+            if (coins < price) return;
+            
+            coins -= price;
+            playSound('buy');
+            
+            // Apply perk
+            applyPerk(perk);
             
             ownedPerkKeys.add(key);
             player.perks.push(perk);
-            addVisualAddition(perk);
             offer.sold = true;
             lockedPerkSlots.delete(slotIndex);
             updateUI();
             renderShop();
+            updatePerkDisplay();
         }
         
         // Upgrade a weapon
@@ -2666,6 +2718,8 @@
         // Restart game
         function restartGame() {
             document.getElementById('gameOver').classList.remove('visible');
+            carryoverPerks = [];
+            carryoverPerkKeys = new Set();
             resetGame();
             document.getElementById('breedSelect').style.display = 'flex';
         }
@@ -2675,6 +2729,9 @@
             document.getElementById('victory').classList.remove('visible');
             difficulty++;
             if (difficulty > highestDifficulty) highestDifficulty = difficulty;
+            // Carry perks to next difficulty
+            carryoverPerks = [...player.perks];
+            carryoverPerkKeys = new Set(ownedPerkKeys);
             resetGame();
             document.getElementById('breedSelect').style.display = 'flex';
         }
@@ -2738,6 +2795,7 @@
             waveClearTimer = null;
             
             updateWeaponUI();
+            updatePerkDisplay();
         }
         
         // Update UI
@@ -2764,6 +2822,36 @@
                     slot.classList.remove('filled', 'active');
                 }
             }
+        }
+        
+        function updatePerkDisplay() {
+            const hud = document.getElementById('perkHud');
+            if (!hud) return;
+            if (player.perks.length === 0) {
+                hud.style.display = 'none';
+                return;
+            }
+            hud.style.display = 'block';
+            
+            // Count duplicate perks
+            const perkCounts = {};
+            player.perks.forEach(p => {
+                const label = getPerkIcon(p.stat) + ' ' + getPerkStatLabel(p.stat);
+                if (!perkCounts[label]) {
+                    perkCounts[label] = { count: 0, rank: p.rank };
+                }
+                perkCounts[label].count++;
+                perkCounts[label].rank = Math.max(perkCounts[label].rank, p.rank);
+            });
+            
+            let html = '<div class="perk-title">⭐ Perks</div>';
+            Object.entries(perkCounts)
+                .sort((a, b) => b[1].rank - a[1].rank)
+                .forEach(([label, data]) => {
+                    const countStr = data.count > 1 ? ` x${data.count}` : '';
+                    html += `<div class="perk-entry rank-${data.rank}">${label}${countStr}</div>`;
+                });
+            hud.innerHTML = html;
         }
         
         // Render
@@ -3576,30 +3664,7 @@
                     });
                 }
                 
-                // Visual additions (perks)
-                player.visualAdditions.forEach((addition, i) => {
-                    const angle = (i / player.visualAdditions.length) * Math.PI * 2;
-                    const dist = 25;
-                    const ax = player.x + Math.cos(angle) * dist;
-                    const ay = player.y + Math.sin(angle) * dist;
-                    
-                    if (addition.includes('diamond')) {
-                        ctx.fillStyle = '#00ffff';
-                        ctx.fillRect(ax - 8, ay - 8, 16, 16);
-                    } else if (addition.includes('rocket')) {
-                        ctx.fillStyle = '#ff6b6b';
-                        ctx.fillRect(ax - 5, ay - 10, 10, 20);
-                    } else if (addition.includes('aura')) {
-                        ctx.strokeStyle = '#ffd700';
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.arc(player.x, player.y, 35, 0, Math.PI * 2);
-                        ctx.stroke();
-                    } else {
-                        ctx.fillStyle = '#ffd700';
-                        ctx.fillRect(ax - 5, ay - 5, 10, 10);
-                    }
-                });
+                // Visual additions removed - perks shown in HUD
                 const x = player.x;
                 const y = player.y;
                 const r = player.radius;
