@@ -1235,6 +1235,7 @@
             });
             
             // Update enemies
+            let pendingSpawns = [];
             enemies = enemies.filter(enemy => {
                 // Movement
                 let ex = player.x - enemy.x;
@@ -1313,6 +1314,17 @@
                         enemy.y -= ey * speed * dt;
                     }
                     // Between backOffWhen and approachUntil: stand still and shoot (no tracking)
+                } else if (enemy.type === 'splitter' || enemy.type === 'splitterling') {
+                    // Splitter: wobbling unstable rush toward player
+                    const wobble = Math.sin(Date.now() * 0.008 + enemy.x * 0.1) * 0.6;
+                    const perpX = -ey;
+                    const perpY = ex;
+                    // Speed up when close (frantic, about to burst)
+                    const rushMult = enemy.type === 'splitter' && dist < 150 ? 1.4 : 1;
+                    if (dist > meleeRange) {
+                        enemy.x += (ex + perpX * wobble) * speed * rushMult * dt;
+                        enemy.y += (ey + perpY * wobble) * speed * rushMult * dt;
+                    }
                 } else {
                     // Melee enemies stop just outside player body and strike from there.
                     if (dist > meleeRange) {
@@ -1343,6 +1355,10 @@
                         player.health -= meleeDamage;
                         playSound('hurt');
                         if (player.health <= 0) gameOver();
+                    }
+                    // Splitter self-destructs on contact, triggering the split
+                    if (enemy.type === 'splitter') {
+                        enemy.health = 0;
                     }
                     enemy.attackTimer = enemy.type === 'shredder' ? 0.45 : 0.75;
                 }
@@ -1461,11 +1477,11 @@
                 if (enemy.health <= 0) {
                     kills++;
                     playSound('kill');
-                    // Splitter breaks into mini green hands.
+                    // Splitter tears apart into paper scraps.
                     if (enemy.type === 'splitter') {
                         for (let i = 0; i < 3; i++) {
                             const splitAngle = (i / 3) * Math.PI * 2 + Math.random() * 0.5;
-                            enemies.push({
+                            pendingSpawns.push({
                                 x: enemy.x + Math.cos(splitAngle) * 18,
                                 y: enemy.y + Math.sin(splitAngle) * 18,
                                 radius: 10,
@@ -1523,6 +1539,10 @@
                 
                 return true;
             });
+            // Add splitterlings that were spawned during the filter
+            if (pendingSpawns.length > 0) {
+                enemies = enemies.concat(pendingSpawns);
+            }
             
             // Update ranged enemy projectiles
             enemyProjectiles = enemyProjectiles.filter(p => {
@@ -2166,13 +2186,28 @@
                 const nextDmg = Math.round(weapon.damage * 1.25);
                 const nextRate = Math.round(weapon.fireRate * 1.12 * 100) / 100;
                 const nextDps = Math.round(nextDmg * nextRate * ((weapon.pellets || 0) > 0 ? weapon.pellets + 1 : 1));
+                const tierPrices = { pistol: 0, rifle: 40, shotgun: 40, minigun: 80, launcher: 80, shredder: 80, piercer: 120, cannon: 120, cointoss: 120, moon: 200 };
+                const baseValue = tierPrices[weapon.type] || 50;
+                const upgradeValue = (weapon.level - 1) * 30;
+                const sellValue = Math.round((baseValue + upgradeValue) * 0.5);
+                const canSell = player.weapons.length > 1;
                 div.innerHTML = `
-                    <div class="name">${weapon.name} ${stars}</div>
+                    <div class="shopItemHeader">
+                        <div class="name">${weapon.name} ${stars}</div>
+                        ${canSell ? `<button class="sell-btn" style="background:rgba(255,80,80,0.3);border:1px solid #ff6b6b;color:#ff6b6b;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Sell +${sellValue}🪙</button>` : ''}
+                    </div>
                     <div class="desc">DMG: ${weapon.damage} | Rate: ${weapon.fireRate}/s | DPS: ${dps}</div>
                     <div class="desc">${maxed ? '<span style="color:#ffd700">MAX LEVEL</span>' : `→ DMG: ${nextDmg} | Rate: ${nextRate}/s | DPS: ${nextDps}`}</div>
                     <div class="price">${maxed ? '---' : `${cost} 🪙`}</div>
                 `;
                 if (!maxed) div.onclick = () => upgradeWeapon(i);
+                const sellBtn = div.querySelector('.sell-btn');
+                if (sellBtn) {
+                    sellBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        sellWeapon(i);
+                    };
+                }
                 upgradeShop.appendChild(div);
             });
             
@@ -2307,6 +2342,25 @@
             if (weapon.pierce > 0) weapon.pierce += 1;
             if (weapon.explosive > 0) weapon.explosive = Math.round(weapon.explosive * 1.2);
             
+            updateUI();
+            updateWeaponUI();
+            renderShop();
+        }
+        
+        function sellWeapon(weaponIndex) {
+            if (player.weapons.length <= 1) return; // Can't sell your last weapon
+            const weapon = player.weapons[weaponIndex];
+            if (!weapon) return;
+            
+            // Refund based on tier and upgrade level
+            const tierPrices = { pistol: 0, rifle: 40, shotgun: 40, minigun: 80, launcher: 80, shredder: 80, piercer: 120, cannon: 120, cointoss: 120, moon: 200 };
+            const baseValue = tierPrices[weapon.type] || 50;
+            const upgradeValue = (weapon.level - 1) * 30;
+            const refund = Math.round((baseValue + upgradeValue) * 0.5);
+            
+            coins += refund;
+            playSound('buy');
+            player.weapons.splice(weaponIndex, 1);
             updateUI();
             updateWeaponUI();
             renderShop();
@@ -2936,8 +2990,8 @@
                         e.type === 'elite' ? '#c0c0c0' :
                         (e.type === 'explosive' ? '#ff9f68' :
                         (e.type === 'tank' ? '#7b8ea8' :
-                        (e.type === 'splitter' ? '#e0ff8f' :
-                        (e.type === 'splitterling' ? '#b8e986' : '#ffffff'))));
+                    (e.type === 'splitter' ? '#f5e6c8' :
+                    (e.type === 'splitterling' ? '#ede0cc' : '#ffffff'))));
                     ctx.beginPath();
                     ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
                     ctx.fill();
@@ -2952,8 +3006,8 @@
                             e.type === 'elite' ? '#a0a0a0' :
                             (e.type === 'explosive' ? '#ff7f50' :
                             (e.type === 'tank' ? '#5c6f89' :
-                            (e.type === 'splitter' ? '#b8d968' :
-                            (e.type === 'splitterling' ? '#8cbf5c' : '#e0e0e0'))));
+                            (e.type === 'splitter' ? '#ddd0b8' :
+                            (e.type === 'splitterling' ? '#d5c8b0' : '#e0e0e0'))));
                         ctx.beginPath();
                         ctx.arc(fx, fy, fingerRadius, 0, Math.PI * 2);
                         ctx.fill();
@@ -2963,8 +3017,8 @@
                     ctx.fillStyle =
                         e.type === 'explosive' ? '#ffea00' :
                         (e.type === 'tank' ? '#00c8ff' :
-                        (e.type === 'splitter' ? '#6c8f00' :
-                        (e.type === 'splitterling' ? '#5a7a2a' : '#ff0000')));
+                        (e.type === 'splitter' ? '#8b0000' :
+                        (e.type === 'splitterling' ? '#aa0000' : '#ff0000')));
                     ctx.beginPath();
                     ctx.moveTo(drawX, drawY - 5);
                     ctx.lineTo(drawX - 8, drawY + 5);
@@ -2996,12 +3050,39 @@
                     }
                     
                     if (e.type === 'splitter') {
-                        // Splitter seam to hint at split-on-death.
-                        ctx.strokeStyle = '#6a8a1a';
-                        ctx.lineWidth = 2;
+                        // Crumple cracks - this paper hand is about to tear apart
+                        ctx.strokeStyle = 'rgba(139, 90, 43, 0.5)';
+                        ctx.lineWidth = 1.5;
                         ctx.beginPath();
-                        ctx.moveTo(drawX - e.radius * 0.6, drawY - e.radius * 0.6);
-                        ctx.lineTo(drawX + e.radius * 0.6, drawY + e.radius * 0.6);
+                        ctx.moveTo(drawX - e.radius * 0.7, drawY - e.radius * 0.2);
+                        ctx.lineTo(drawX + e.radius * 0.7, drawY + e.radius * 0.3);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(drawX - e.radius * 0.3, drawY - e.radius * 0.6);
+                        ctx.lineTo(drawX + e.radius * 0.2, drawY + e.radius * 0.1);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(drawX + e.radius * 0.1, drawY - e.radius * 0.1);
+                        ctx.lineTo(drawX + e.radius * 0.5, drawY + e.radius * 0.6);
+                        ctx.stroke();
+                        // Pulsing "about to tear" dashed outline
+                        const tearPulse = 0.5 + Math.sin(Date.now() * 0.004) * 0.3;
+                        ctx.strokeStyle = `rgba(180, 140, 80, ${tearPulse})`;
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([3, 4]);
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, e.radius - 2, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                    
+                    if (e.type === 'splitterling') {
+                        // Torn edge - small paper scrap
+                        ctx.strokeStyle = 'rgba(160, 120, 70, 0.4)';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(drawX - e.radius * 0.5, drawY - e.radius * 0.3);
+                        ctx.lineTo(drawX + e.radius * 0.4, drawY + e.radius * 0.2);
                         ctx.stroke();
                     }
                     
