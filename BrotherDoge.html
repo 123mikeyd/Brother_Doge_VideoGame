@@ -253,6 +253,12 @@
             box-shadow: 0 0 8px rgba(78,205,196,0.4);
         }
         
+        .shopItem.rank-1 { border-left: 3px solid #888; }
+        .shopItem.rank-2 { border-left: 3px solid #4ecdc4; }
+        .shopItem.rank-3 { border-left: 3px solid #5b7cff; }
+        .shopItem.rank-4 { border-left: 3px solid #a855f7; }
+        .shopItem.rank-5 { border-left: 3px solid #ffd700; background: rgba(255,215,0,0.08); }
+        
         #refreshShop {
             background: #ff6b6b;
             color: white;
@@ -464,6 +470,46 @@
             font-size: 16px;
             text-shadow: 2px 2px 0 #000;
         }
+        #perkHud {
+            position: absolute;
+            top: 90px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,215,0,0.3);
+            color: #ddd;
+            font-size: 11px;
+            max-height: 300px;
+            overflow-y: auto;
+            pointer-events: none;
+            min-width: 120px;
+        }
+        
+        #perkHud .perk-title {
+            color: #ffd700;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        #perkHud .perk-entry {
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            white-space: nowrap;
+        }
+        
+        #perkHud .perk-entry.rank-5 {
+            color: #ffd700;
+        }
+        
+        #perkHud .perk-entry.rank-4 {
+            color: #a855f7;
+        }
+        
+        #perkHud .perk-entry.rank-3 {
+            color: #5b7cff;
+        }
     </style>
 </head>
 <body>
@@ -482,73 +528,80 @@
                 <div class="weapon-slot" id="slot2">3</div>
                 <div class="weapon-slot" id="slot3">4</div>
             </div>
+            <div id="perkHud" class="hud" style="display:none;"></div>
         </div>
         
         <div id="breedSelect">
             <h1>🐕 CHOOSE YOUR DOGE 🐕</h1>
             <div class="breedOptions">
                 <div class="breedCard" onclick="selectBreed('yellow')">
-                    <h3>🟡 Yellow Doge</h3>
+                    <h3>🟡 Lassy</h3>
                     <div class="stats">
-                        Speed: 115%<br>
-                        Luck: 420%<br>
-                        Damage: 125%<br>
-                        Health: 200%<br>
-                        Magnet: 150%<br>
-                        Dodge: 130%<br>
-                        Regen: 3.0 HP/s
+                        <em style="color:#aaa;font-size:12px">"The classic good boy. Loyal, lucky, and always finds treasure."</em><br><br>
+                        Speed: 110% | Luck: 350%<br>
+                        Damage: 115% | Health: 220%<br>
+                        Magnet: 180% | Dodge: 110%<br>
+                        Regen: 2.5 HP/s
                     </div>
                     <div class="perk">
-                        <strong>Much Find:</strong><br>
-                        15% chance for bonus coins on kill
+                        <strong>🍀 Much Find:</strong><br>
+                        Bonus coins on kill (luck-scaled)
                     </div>
                 </div>
                 <div class="breedCard" onclick="selectBreed('black')">
-                    <h3>⚫ Black Doge</h3>
+                    <h3>⚫ Streets</h3>
                     <div class="stats">
-                        Speed: 90%<br>
-                        Luck: 210%<br>
-                        Damage: 150%<br>
-                        Health: 280%<br>
-                        Magnet: 320%<br>
-                        Dodge: 180%<br>
-                        Regen: 2.0 HP/s
+                        <em style="color:#aaa;font-size:12px">"Grew up in the alleys. Hits hard, moves fast, trusts nobody."</em><br><br>
+                        Speed: 120% | Luck: 150%<br>
+                        Damage: 170% | Health: 200%<br>
+                        Magnet: 120% | Dodge: 220%<br>
+                        Regen: 1.0 HP/s
                     </div>
                     <div class="perk">
-                        <strong>HODL Strike:</strong><br>
+                        <strong>💥 HODL Strike:</strong><br>
                         +20% damage, -10% fire rate
                     </div>
                 </div>
                 <div class="breedCard" onclick="selectBreed('grey')">
-                    <h3>⚪ Grey Doge</h3>
+                    <h3>👻 Phantom</h3>
                     <div class="stats">
-                        Speed: 105%<br>
-                        Luck: 250%<br>
-                        Damage: 180%<br>
-                        Health: 300%<br>
-                        Magnet: 200%<br>
-                        Dodge: 120%<br>
-                        Regen: 1.5 HP/s
+                        <em style="color:#aaa;font-size:12px">"A ghost of the blockchain. You can't hit what you can't see."</em><br><br>
+                        Speed: 130% | Luck: 200%<br>
+                        Damage: 140% | Health: 150%<br>
+                        Magnet: 150% | Dodge: 250%<br>
+                        Regen: 1.0 HP/s
                     </div>
                     <div class="perk">
-                        <strong>Doge Reflex:</strong><br>
-                        20% chance to dodge attacks
+                        <strong>👻 Doge Reflex:</strong><br>
+                        20% chance to dodge any attack
                     </div>
                 </div>
                 <div class="breedCard" onclick="selectBreed('red')">
-                    <h3>🔴 Red Doge</h3>
+                    <h3>🔴 Clifford</h3>
                     <div class="stats">
-                        Speed: 100%<br>
-                        Luck: 350%<br>
-                        Damage: 200%<br>
-                        Health: 500%<br>
-                        Magnet: 500%<br>
-                        Dodge: 300%<br>
-                        Regen: 5.0 HP/s
+                        <em style="color:#aaa;font-size:12px">"The big red doge. Slow as a brick wall, tough as one too."</em><br><br>
+                        Speed: 80% | Luck: 120%<br>
+                        Damage: 160% | Health: 400%<br>
+                        Magnet: 150% | Dodge: 100%<br>
+                        Regen: 3.5 HP/s
                     </div>
                     <div class="perk">
-                        <strong>Test Tank:</strong><br>
-                        Max health for testing
+                        <strong>🛡️ Iron Hide:</strong><br>
+                        Massive HP pool, high regen
+                    </div>
+                </div>
+                <div class="breedCard" onclick="selectBreed('purple')">
+                    <h3>🟣 Cosmos</h3>
+                    <div class="stats">
+                        <em style="color:#aaa;font-size:12px">"Born from stardust. Bends gravity itself to gather riches."</em><br><br>
+                        Speed: 100% | Luck: 300%<br>
+                        Damage: 100% | Health: 250%<br>
+                        Magnet: 350% | Dodge: 130%<br>
+                        Regen: 2.0 HP/s
+                    </div>
+                    <div class="perk">
+                        <strong>🌌 Cosmic Pull:</strong><br>
+                        Massive magnet range, slows nearby enemies
                     </div>
                 </div>
             </div>
@@ -557,6 +610,7 @@
         <div id="pauseOverlay">
             <h1>⏸️ PAUSED</h1>
             <p>Press ESC to resume</p>
+            <div id="pauseBuildInfo" style="margin:15px 0;padding:15px;background:rgba(0,0,0,0.5);border-radius:10px;border:2px solid #ffd700;max-width:400px;text-align:left;font-size:14px;color:#ddd;"></div>
             <button id="soundToggle" onclick="toggleSound()">🔊 Sound: ON</button>
         </div>
         
@@ -620,9 +674,13 @@
         let gameLoopId;
         let lastTime = 0;
         
-        // Arena dimensions
-        const ARENA_WIDTH = 800;
-        const ARENA_HEIGHT = 600;
+        // Arena dimensions (dynamic - expands for boss fight)
+        let ARENA_WIDTH = 800;
+        let ARENA_HEIGHT = 600;
+        const BASE_ARENA_WIDTH = 800;
+        const BASE_ARENA_HEIGHT = 600;
+        const BOSS_ARENA_WIDTH = 1100;
+        const BOSS_ARENA_HEIGHT = 800;
         
         // === SOUND SYSTEM (Web Audio API) ===
         let audioCtx = null;
@@ -782,6 +840,22 @@
             if (gameState !== 'playing') return;
             paused = !paused;
             document.getElementById('pauseOverlay').classList.toggle('visible', paused);
+            if (paused) {
+                const buildInfo = document.getElementById('pauseBuildInfo');
+                if (buildInfo && player.breed) {
+                    const weaponList = player.weapons.map(w => `${w.name} ${'⭐'.repeat(w.level)}`).join('<br>');
+                    const perkList = player.perks.length > 0 ? player.perks.map(p => `${getPerkIcon ? getPerkIcon(p.stat) : '⭐'} ${p.name}`).join('<br>') : 'None';
+                    buildInfo.innerHTML = `
+                        <div style="color:#ffd700;font-size:16px;margin-bottom:8px;">📋 Your Build</div>
+                        <div style="margin-bottom:8px;"><span style="color:#ffd700;">Breed:</span> ${breeds[player.breed].name}</div>
+                        <div style="margin-bottom:8px;"><span style="color:#ffd700;">Weapons:</span><br>${weaponList}</div>
+                        <div style="margin-bottom:8px;"><span style="color:#ffd700;">Perks:</span><br>${perkList}</div>
+                        <div style="margin-bottom:4px;"><span style="color:#ffd700;">Stats:</span></div>
+                        <div>HP: ${Math.round(player.health)}/${player.maxHealth} | DMG: ${Math.round(player.damage * 100)}% | SPD: ${Math.round(player.speed)}</div>
+                        <div>Dodge: ${Math.round(player.dodge * 100)}% | Regen: ${player.regen.toFixed(1)}/s | Magnet: ${player.magnet.toFixed(1)}x</div>
+                    `;
+                }
+            }
         }
         
         function toggleSound() {
@@ -808,79 +882,85 @@
         // Breeds
         const breeds = {
             yellow: {
-                name: 'Yellow Doge',
+                name: 'Lassy',
                 color: '#ffd700',
-                stats: { speed: 1.15, luck: 4.2, damage: 1.25, health: 2.0, magnet: 1.5, dodge: 1.3, regen: 3 },
+                stats: { speed: 1.1, luck: 3.5, damage: 1.15, health: 2.2, magnet: 1.8, dodge: 1.1, regen: 2.5 },
                 perk: 'muchFind'
             },
             black: {
-                name: 'Black Doge',
+                name: 'Streets',
                 color: '#2c2c2c',
-                stats: { speed: 0.9, luck: 2.1, damage: 1.5, health: 2.8, magnet: 3.2, dodge: 1.8, regen: 2 },
+                stats: { speed: 1.2, luck: 1.5, damage: 1.7, health: 2.0, magnet: 1.2, dodge: 2.2, regen: 1.0 },
                 perk: 'hodlStrike'
             },
             grey: {
-                name: 'Grey Doge',
+                name: 'Phantom',
                 color: '#808080',
-                stats: { speed: 1.05, luck: 2.5, damage: 1.8, health: 3, magnet: 2.0, dodge: 1.2, regen: 1.5 },
+                stats: { speed: 1.3, luck: 2.0, damage: 1.4, health: 1.5, magnet: 1.5, dodge: 2.5, regen: 1.0 },
                 perk: 'dogeReflex'
             },
             red: {
-                name: 'Red Doge',
+                name: 'Clifford',
                 color: '#d83a3a',
-                stats: { speed: 1.0, luck: 3.5, damage: 2.0, health: 5.0, magnet: 5.0, dodge: 3.0, regen: 5 },
+                stats: { speed: 0.8, luck: 1.2, damage: 1.6, health: 4.0, magnet: 1.5, dodge: 1.0, regen: 3.5 },
                 perk: 'testTank'
+            },
+            purple: {
+                name: 'Cosmos',
+                color: '#9b59b6',
+                stats: { speed: 1.0, luck: 3.0, damage: 1.0, health: 2.5, magnet: 3.5, dodge: 1.3, regen: 2.0 },
+                perk: 'cosmicPull'
             }
         };
         
         // Weapons
         const weaponTypes = {
             pistol: { name: 'Much Pistol', damage: 15, fireRate: 4, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, color: '#ffd700' },
-            rifle: { name: 'Very Rifle', damage: 38, fireRate: 3.5, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#4ecdc4' },
+            rifle: { name: 'Very Rifle', damage: 38, fireRate: 3.5, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#4ecdc4', speed: 900, falloff: 0.75 },
             shotgun: { name: 'Wow Shotgun', damage: 18, fireRate: 1.5, range: 200, knockback: 3, explosive: 0, expSize: 0, pierce: 0, slow: 0, pellets: 4, spread: 0.2, color: '#ff6b6b' },
             minigun: { name: 'So Minigun', damage: 20, fireRate: 10, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, movePenalty: 0.5, color: '#95e1d3' },
-            launcher: { name: 'Moon Launcher', damage: 60, fireRate: 1, range: 400, knockback: 5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181' },
-            piercer: { name: 'Diamond Piercer', damage: 65, fireRate: 3, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#aa96da' },
-            shredder: { name: 'Such Shuriken', damage: 12, fireRate: 11, range: 170, knockback: 0.2, explosive: 0, expSize: 0, pierce: 1, slow: 0.15, movePenalty: 0.05, color: '#d6dde8' },
-            cannon: { name: 'HODL Cannon', damage: 80, fireRate: 0.8, range: 500, knockback: 10, explosive: 20, expSize: 60, pierce: 0, slow: 0, color: '#ffffd2' },
-            cointoss: { name: 'Doge Coin Toss', damage: 120, fireRate: 5, range: 350, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0.3, bounce: 2, color: '#ffd700' },
-            moon: { name: 'To The Moon', damage: 250, fireRate: 0.3, range: 800, knockback: 0, explosive: 50, expSize: 120, pierce: 0, slow: 0, guided: true, color: '#ff6b6b' }
+            launcher: { name: 'Moon Launcher', damage: 60, fireRate: 1, range: 400, knockback: 5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181', homing: 0.03, speed: 300, fireZone: true, fireZoneDuration: 2.5, fireZoneDPS: 20 },
+            piercer: { name: 'Diamond Piercer', damage: 45, fireRate: 2.5, range: 700, knockback: 0, explosive: 0, expSize: 0, pierce: 5, slow: 0, color: '#aa96da', speed: 300, accelerates: true, damageRamp: 15, spinRate: 12 },
+            shredder: { name: 'Such Shuriken', damage: 12, fireRate: 11, range: 170, knockback: 0.2, explosive: 0, expSize: 0, pierce: 1, slow: 0.15, movePenalty: 0.05, color: '#d6dde8', spinRate: 25 },
+            cannon: { name: 'HODL Cannon', damage: 100, fireRate: 0.8, range: 500, knockback: 15, explosive: 35, expSize: 50, pierce: 0, slow: 0, color: '#ffffd2', gravity: 400, speed: 400 },
+            cointoss: { name: 'Doge Coin Toss', damage: 120, fireRate: 5, range: 350, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0.3, bounce: 2, color: '#ffd700', speed: 450, spinRate: 15, arc: true },
+            moon: { name: 'To The Moon', damage: 250, fireRate: 0.3, range: 800, knockback: 8, explosive: 50, expSize: 140, pierce: 0, slow: 0, guided: true, color: '#ffffcc', speed: 150, homingStrength: 0.04, spinRate: 0 }
         };
         
         // Perks
         const perkTypes = {
-            health1: { name: 'Paper Health', rank: 1, stat: 'maxHealth', value: 18, price: 30 },
-            speed1: { name: 'Paper Speed', rank: 1, stat: 'speed', value: 0.08, price: 30 },
-            regen1: { name: 'Paper Regen', rank: 1, stat: 'regen', value: 0.9, price: 30 },
-            dodge1: { name: 'Paper Dodge', rank: 1, stat: 'dodge', value: 0.05, price: 30 },
+            health1: { name: 'Paper Health', rank: 1, stat: 'maxHealth', value: 18, price: 25 },
+            speed1: { name: 'Paper Speed', rank: 1, stat: 'speed', value: 0.08, price: 25 },
+            regen1: { name: 'Paper Regen', rank: 1, stat: 'regen', value: 1.2, price: 25 },
+            dodge1: { name: 'Paper Dodge', rank: 1, stat: 'dodge', value: 0.05, price: 25 },
             
             health2: { name: 'HODL Health', rank: 2, stat: 'maxHealth', value: 40, price: 60 },
             speed2: { name: 'HODL Speed', rank: 2, stat: 'speed', value: 0.14, price: 60 },
-            regen2: { name: 'HODL Regen', rank: 2, stat: 'regen', value: 2.4, price: 60 },
+            regen2: { name: 'HODL Regen', rank: 2, stat: 'regen', value: 3.0, price: 60 },
             dodge2: { name: 'HODL Dodge', rank: 2, stat: 'dodge', value: 0.12, price: 60 },
             
             health3: { name: 'Crypto Health', rank: 3, stat: 'maxHealth', value: 75, price: 100 },
             speed3: { name: 'Crypto Speed', rank: 3, stat: 'speed', value: 0.22, price: 100 },
-            regen3: { name: 'Crypto Regen', rank: 3, stat: 'regen', value: 4.5, price: 100 },
+            regen3: { name: 'Crypto Regen', rank: 3, stat: 'regen', value: 5.5, price: 100 },
             dodge3: { name: 'Crypto Dodge', rank: 3, stat: 'dodge', value: 0.2, price: 100 },
-            bounce3: { name: 'Crypto Bounce', rank: 3, stat: 'projectileBounce', value: 2, price: 120 },
+            bounce3: { name: 'Crypto Bounce', rank: 3, stat: 'projectileBounce', value: 2, price: 100 },
             
             health4: { name: 'Whale Health', rank: 4, stat: 'maxHealth', value: 150, price: 180 },
             speed4: { name: 'Whale Speed', rank: 4, stat: 'speed', value: 0.35, price: 180 },
-            regen4: { name: 'Whale Regen', rank: 4, stat: 'regen', value: 7.5, price: 180 },
+            regen4: { name: 'Whale Regen', rank: 4, stat: 'regen', value: 9.0, price: 180 },
             dodge4: { name: 'Whale Dodge', rank: 4, stat: 'dodge', value: 0.32, price: 180 },
             turret4: { name: 'Whale Turret', rank: 4, stat: 'turret', value: 1, price: 250, desc: 'Spawn auto-turret' },
             
-            diamond: { name: '💎 DIAMOND HANDS 💎', rank: 5, stat: 'diamond', value: 1, price: 500, desc: '+50% Magnet Radius, +30% Damage, Knockback Immunity' },
-            moon5: { name: '🌙 MOON SHOT', rank: 5, stat: 'moon', value: 1, price: 500, desc: 'Pierce +2, +50% Crit Damage' },
-            hodl5: { name: '👑 HODL KING', rank: 5, stat: 'hodl', value: 1, price: 500, desc: '+100 HP, +10 HP/s regen below 25% health' },
-            turret5: { name: '🤖 TURRET MASTER', rank: 5, stat: 'turretMaster', value: 1, price: 500, desc: '3 auto-turrets, 15s duration' },
+            diamond: { name: '💎 DIAMOND HANDS 💎', rank: 5, stat: 'diamond', value: 1, price: 600, desc: '+50% Magnet Radius, +30% Damage, Knockback Immunity' },
+            moon5: { name: '🌙 MOON SHOT', rank: 5, stat: 'moon', value: 1, price: 600, desc: 'Pierce +2, +50% Crit Damage' },
+            hodl5: { name: '👑 HODL KING', rank: 5, stat: 'hodl', value: 1, price: 600, desc: '+100 HP, +10 HP/s regen below 25% health' },
+            turret5: { name: '🤖 TURRET MASTER', rank: 5, stat: 'turretMaster', value: 1, price: 600, desc: '3 auto-turrets, 15s duration' },
             apex5: { name: '🔥 APEX HODLER 🔥', rank: 5, stat: 'apex', value: 1, price: 650, desc: '+220 HP, +40% damage, +20% speed, +2.5 regen, +35% magnet' }
         };
         
         // Unlocks
-        let unlockedWeapons = ['pistol', 'rifle', 'shotgun'];
-        let unlockedBreeds = ['yellow', 'black', 'grey', 'red'];
+        let unlockedWeapons = ['pistol', 'rifle', 'shotgun', 'cointoss'];
+        let unlockedBreeds = ['yellow', 'black', 'grey', 'red', 'purple'];
         let highestDifficulty = 1;
         
         // Player
@@ -909,7 +989,8 @@
             breed: null,
             weapons: [],
             perks: [],
-            visualAdditions: []
+            visualAdditions: [],
+            iframes: 0
         };
         
         // Game objects
@@ -920,7 +1001,17 @@
         let enemyProjectiles = [];
         let turrets = [];
         let damageTexts = [];
+        let fireZones = [];
+        let screenShake = 0;
         let kills = 0;
+        
+        function addScreenShake(intensity) {
+            screenShake = Math.max(screenShake, intensity);
+        }
+        let waveClearTimer = null;
+        let carryoverPerks = []; // Perks that persist across difficulty runs
+        let carryoverPerkKeys = new Set();
+        let bossIntro = null; // { timer, phase, targetWidth, targetHeight }
         let waveActive = false;
         let waveTimer = 0;
         let waveDuration = 0;
@@ -947,6 +1038,14 @@
             player.weapons = [{ ...weaponTypes.pistol, type: 'pistol', lastShot: 0, level: 1 }];
             updateWeaponUI();
             
+            // Reapply carried-over perks from previous runs
+            if (carryoverPerks.length > 0) {
+                player.perks = [...carryoverPerks];
+                ownedPerkKeys = new Set(carryoverPerkKeys);
+                carryoverPerks.forEach(perk => applyPerk(perk));
+                updatePerkDisplay();
+            }
+            
             document.getElementById('breedSelect').style.display = 'none';
             startWave();
         }
@@ -956,6 +1055,7 @@
             gameState = 'playing';
             currentWave = currentWave;
             waveActive = true;
+            fireZones = [];
             
             // Reset player to center and heal
             player.x = ARENA_WIDTH / 2;
@@ -964,11 +1064,12 @@
             
             // Wave configuration
             if (currentWave === 10) {
-                // Boss wave
+                // Boss wave - start cinematic intro
                 waveTimer = 0;
                 enemiesToSpawn = 0;
                 spawnTimer = 0;
-                spawnBoss();
+                bossIntro = { timer: 0, phase: 'expand', duration: 3.0 };
+                gameState = 'bossIntro';
             } else {
                 // Normal wave
                 waveDuration = 30 + (currentWave * 10);
@@ -984,16 +1085,22 @@
         function spawnBoss() {
             boss = {
                 x: ARENA_WIDTH / 2,
-                y: 100,
+                y: 150,
                 radius: 72,
                 health: 9000 * difficulty,
                 maxHealth: 9000 * difficulty,
                 speed: 75,
                 damage: 36,
-                attackTimer: 0,
+                attackTimer: 2,
                 spawnAdds1: false,
+                spawnAdds15: false,
                 spawnAdds2: false,
-                detachTimer: 1.8
+                detachTimer: 1.8,
+                enraged: false,
+                slamCooldown: 0,
+                sweepAngle: 0,
+                sweepActive: false,
+                sweepTimer: 0
             };
         }
         
@@ -1021,7 +1128,7 @@
             const enemy = {
                 x, y,
                 radius: type === 'elite' ? 25 : (type === 'explosive' ? 24 : (type === 'tank' ? 34 : (type === 'splitter' ? 22 : 20))),
-                speed: (100 + currentWave * 10) * (type === 'fomo' ? 1.5 : (type === 'explosive' ? 0.72 : (type === 'tank' ? 0.4 : (type === 'splitter' ? 0.92 : 1)))),
+                speed: (100 + currentWave * 10) * (type === 'fomo' ? 0.7 : (type === 'explosive' ? 0.72 : (type === 'tank' ? 0.4 : (type === 'splitter' ? 0.92 : 1)))),
                 health: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 7.0 : (type === 'splitter' ? 1.8 : 1))),
                 maxHealth: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 7.0 : (type === 'splitter' ? 1.8 : 1))),
                 damage: (10 + currentWave * 2) * (type === 'tank' ? 1.6 : 1),
@@ -1078,7 +1185,34 @@
         
         // Update game
         function update(dt) {
-            if (gameState !== 'playing' || paused) return;
+            if (paused) return;
+            
+            // Boss intro cinematic
+            if (gameState === 'bossIntro' && bossIntro) {
+                bossIntro.timer += dt;
+                const progress = Math.min(1, bossIntro.timer / bossIntro.duration);
+                
+                // Smoothly expand arena
+                const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+                ARENA_WIDTH = BASE_ARENA_WIDTH + (BOSS_ARENA_WIDTH - BASE_ARENA_WIDTH) * ease;
+                ARENA_HEIGHT = BASE_ARENA_HEIGHT + (BOSS_ARENA_HEIGHT - BASE_ARENA_HEIGHT) * ease;
+                resizeCanvas();
+                
+                // Center player during expansion
+                player.x = ARENA_WIDTH / 2;
+                player.y = ARENA_HEIGHT / 2;
+                
+                if (progress >= 1) {
+                    // Intro complete - spawn boss and start fight
+                    spawnBoss();
+                    gameState = 'playing';
+                    bossIntro = null;
+                    addScreenShake(10);
+                }
+                return;
+            }
+            
+            if (gameState !== 'playing') return;
             
             // Player movement
             let dx = 0, dy = 0;
@@ -1113,6 +1247,19 @@
                 player.health = Math.min(player.maxHealth, player.health + regen * dt);
             }
             
+            // Invincibility frames
+            if (player.iframes > 0) player.iframes -= dt;
+            
+            // Cosmic Pull - Purple Doge pulls coins and slows nearby enemies
+            if (player.breed === 'purple') {
+                enemies.forEach(e => {
+                    const d = Math.sqrt((e.x - player.x) * (e.x - player.x) + (e.y - player.y) * (e.y - player.y));
+                    if (d < 120) {
+                        e.slowTimer = Math.max(e.slowTimer, 0.1);
+                    }
+                });
+            }
+            
             // Shooting
             if (mouse.down) {
                 const now = Date.now();
@@ -1131,6 +1278,76 @@
             
             // Update projectiles
             projectiles = projectiles.filter(p => {
+                p.age += dt;
+                if (p.spinRate) p.spin += p.spinRate * dt;
+                
+                // Piercer: accelerates over time, gets faster
+                if (p.weaponType === 'piercer' && p.accelerates) {
+                    const currentSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                    const newSpeed = Math.min(currentSpeed * (1 + 1.5 * dt), 900);
+                    const angle = Math.atan2(p.vy, p.vx);
+                    p.vx = Math.cos(angle) * newSpeed;
+                    p.vy = Math.sin(angle) * newSpeed;
+                }
+                
+                // Cannon: gravity arc
+                if (p.weaponType === 'cannon' && p.gravity) {
+                    p.vy += p.gravity * dt;
+                    p.angle = Math.atan2(p.vy, p.vx);
+                }
+                
+                // Launcher: slight homing toward nearest enemy
+                if (p.weaponType === 'launcher' && p.homing) {
+                    let nearest = null;
+                    let nearestDist = 250;
+                    enemies.forEach(e => {
+                        const d = Math.sqrt((e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y));
+                        if (d < nearestDist) { nearestDist = d; nearest = e; }
+                    });
+                    if (nearest) {
+                        const targetAngle = Math.atan2(nearest.y - p.y, nearest.x - p.x);
+                        const currentAngle = Math.atan2(p.vy, p.vx);
+                        let diff = targetAngle - currentAngle;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        const newAngle = currentAngle + diff * p.homing;
+                        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                        p.vx = Math.cos(newAngle) * spd;
+                        p.vy = Math.sin(newAngle) * spd;
+                        p.angle = newAngle;
+                    }
+                }
+                
+                // Moon guided missile: strong homing
+                if (p.weaponType === 'moon' && p.guided) {
+                    let nearest = null;
+                    let nearestDist = 500;
+                    enemies.forEach(e => {
+                        const d = Math.sqrt((e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y));
+                        if (d < nearestDist) { nearestDist = d; nearest = e; }
+                    });
+                    if (!nearest && boss) {
+                        nearest = boss;
+                    }
+                    if (nearest) {
+                        const targetAngle = Math.atan2(nearest.y - p.y, nearest.x - p.x);
+                        const currentAngle = Math.atan2(p.vy, p.vx);
+                        let diff = targetAngle - currentAngle;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        const newAngle = currentAngle + diff * 0.06;
+                        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                        p.vx = Math.cos(newAngle) * spd;
+                        p.vy = Math.sin(newAngle) * spd;
+                        p.angle = newAngle;
+                    }
+                }
+                
+                // Coin toss: slight arc/gravity
+                if (p.weaponType === 'cointoss') {
+                    p.vy += 120 * dt;
+                }
+                
                 p.x += p.vx * dt;
                 p.y += p.vy * dt;
                 p.distance += Math.sqrt(p.vx * p.vx + p.vy * p.vy) * dt;
@@ -1139,10 +1356,12 @@
                     if (p.x < 0 || p.x > ARENA_WIDTH) {
                         p.vx *= -1;
                         p.bounce--;
+                        p.damage *= 1.2; // bonus damage on bounce
                     }
                     if (p.y < 0 || p.y > ARENA_HEIGHT) {
                         p.vy *= -1;
                         p.bounce--;
+                        p.damage *= 1.2;
                     }
                 }
                 
@@ -1150,6 +1369,7 @@
             });
             
             // Update enemies
+            let pendingSpawns = [];
             enemies = enemies.filter(enemy => {
                 // Movement
                 let ex = player.x - enemy.x;
@@ -1185,8 +1405,9 @@
                         const hitDist = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
                         
                         if (hitDist < player.radius + enemy.radius + 4) {
-                            if (!(player.breed === 'grey' && Math.random() < 0.2)) {
+                            if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
                                 player.health -= enemy.damage * 1.8;
+                                player.iframes = 0.4;
                                 if (player.health <= 0) gameOver();
                             }
                             enemy.ramState = 'approach';
@@ -1228,6 +1449,17 @@
                         enemy.y -= ey * speed * dt;
                     }
                     // Between backOffWhen and approachUntil: stand still and shoot (no tracking)
+                } else if (enemy.type === 'splitter' || enemy.type === 'splitterling') {
+                    // Splitter: wobbling unstable rush toward player
+                    const wobble = Math.sin(Date.now() * 0.008 + enemy.x * 0.1) * 0.6;
+                    const perpX = -ey;
+                    const perpY = ex;
+                    // Speed up when close (frantic, about to burst)
+                    const rushMult = enemy.type === 'splitter' && dist < 150 ? 1.4 : 1;
+                    if (dist > meleeRange) {
+                        enemy.x += (ex + perpX * wobble) * speed * rushMult * dt;
+                        enemy.y += (ey + perpY * wobble) * speed * rushMult * dt;
+                    }
                 } else {
                     // Melee enemies stop just outside player body and strike from there.
                     if (dist > meleeRange) {
@@ -1253,11 +1485,16 @@
                     }
                 } else if (!isExplosive && dist <= meleeRange && enemy.attackTimer <= 0) {
                     // Doge Reflex dodge check still applies for Grey Doge.
-                    if (!(player.breed === 'grey' && Math.random() < 0.2)) {
+                    if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
                         const meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1);
                         player.health -= meleeDamage;
+                        player.iframes = 0.4;
                         playSound('hurt');
                         if (player.health <= 0) gameOver();
+                    }
+                    // Splitter self-destructs on contact, triggering the split
+                    if (enemy.type === 'splitter') {
+                        enemy.health = 0;
                     }
                     enemy.attackTimer = enemy.type === 'shredder' ? 0.45 : 0.75;
                 }
@@ -1289,14 +1526,57 @@
                             });
                             
                             playSound('explosion');
-                            // Visual explosion
-                            for (let i = 0; i < 10; i++) {
+                            
+                            // Screen shake on explosion
+                            addScreenShake(p.weaponType === 'cannon' ? 12 : (p.weaponType === 'moon' ? 15 : 6));
+
+                            // Expanding ring effect
+                            for (let ring = 0; ring < 2; ring++) {
+                                const ringRadius = p.expSize * (0.3 + ring * 0.4);
+                                for (let i = 0; i < 16; i++) {
+                                    const a = (i / 16) * Math.PI * 2;
+                                    particles.push({
+                                        x: p.x + Math.cos(a) * ringRadius * 0.3,
+                                        y: p.y + Math.sin(a) * ringRadius * 0.3,
+                                        vx: Math.cos(a) * ringRadius * 3,
+                                        vy: Math.sin(a) * ringRadius * 3,
+                                        life: 0.3,
+                                        color: ring === 0 ? '#ffffff' : p.color
+                                    });
+                                }
+                            }
+                            // Bright center flash particles
+                            for (let i = 0; i < 20; i++) {
+                                const a = Math.random() * Math.PI * 2;
+                                const spd = 80 + Math.random() * 250;
                                 particles.push({
                                     x: p.x, y: p.y,
-                                    vx: (Math.random() - 0.5) * 200,
-                                    vy: (Math.random() - 0.5) * 200,
-                                    life: 0.5,
-                                    color: p.color
+                                    vx: Math.cos(a) * spd,
+                                    vy: Math.sin(a) * spd,
+                                    life: 0.25 + Math.random() * 0.35,
+                                    color: ['#ffffff', '#ffff00', '#ff8800', p.color][Math.floor(Math.random() * 4)]
+                                });
+                            }
+                            // Smoke puffs
+                            for (let i = 0; i < 6; i++) {
+                                particles.push({
+                                    x: p.x + (Math.random() - 0.5) * 30,
+                                    y: p.y + (Math.random() - 0.5) * 30,
+                                    vx: (Math.random() - 0.5) * 30,
+                                    vy: -30 - Math.random() * 40,
+                                    life: 0.6 + Math.random() * 0.3,
+                                    color: '#444444'
+                                });
+                            }
+                            
+                            // Launcher creates fire zone
+                            if (p.weaponType === 'launcher') {
+                                fireZones.push({
+                                    x: p.x, y: p.y,
+                                    radius: 50,
+                                    duration: 2.5,
+                                    life: 2.5,
+                                    dps: 20 * player.damage
                                 });
                             }
                         }
@@ -1318,6 +1598,11 @@
                         playSound(isCrit ? 'crit' : 'hit');
                         p.pierce--;
                         
+                        // Piercer ramps damage on each pierce
+                        if (p.weaponType === 'piercer' && p.damageRamp) {
+                            p.damage += p.damageRamp;
+                        }
+                        
                         if (p.pierce < 0) {
                             p.distance = p.range + 1; // Remove
                         }
@@ -1328,18 +1613,31 @@
                 if (enemy.health <= 0) {
                     kills++;
                     playSound('kill');
-                    // Splitter breaks into mini paper hands.
+                    // Death burst - paper scraps fly out
+                    for (let i = 0; i < 8; i++) {
+                        const a = Math.random() * Math.PI * 2;
+                        const spd = 80 + Math.random() * 150;
+                        particles.push({
+                            x: enemy.x, y: enemy.y,
+                            vx: Math.cos(a) * spd,
+                            vy: Math.sin(a) * spd,
+                            life: 0.3 + Math.random() * 0.3,
+                            color: ['#ffffff', '#e8e0d0', '#d4ccc0', '#ff4444'][Math.floor(Math.random() * 4)]
+                        });
+                    }
+                    // Splitter tears apart into paper scraps.
                     if (enemy.type === 'splitter') {
-                        for (let i = 0; i < 2; i++) {
-                            enemies.push({
-                                x: enemy.x + (Math.random() - 0.5) * 20,
-                                y: enemy.y + (Math.random() - 0.5) * 20,
-                                radius: 12,
-                                speed: 170 + currentWave * 8,
-                                health: (12 + currentWave * 8) * difficulty,
-                                maxHealth: (12 + currentWave * 8) * difficulty,
-                                damage: Math.max(5, enemy.damage * 0.75),
-                                type: 'paper',
+                        for (let i = 0; i < 3; i++) {
+                            const splitAngle = (i / 3) * Math.PI * 2 + Math.random() * 0.5;
+                            pendingSpawns.push({
+                                x: enemy.x + Math.cos(splitAngle) * 18,
+                                y: enemy.y + Math.sin(splitAngle) * 18,
+                                radius: 10,
+                                speed: 185 + currentWave * 9,
+                                health: (10 + currentWave * 6) * difficulty,
+                                maxHealth: (10 + currentWave * 6) * difficulty,
+                                damage: Math.max(4, enemy.damage * 0.6),
+                                type: 'splitterling',
                                 slowTimer: 0,
                                 attackTimer: Math.random() * 0.4,
                                 ramState: 'approach',
@@ -1354,7 +1652,7 @@
                     
                     // Drop coins (harder enemies = more reward)
                     const coinRanges = {
-                        paper: [1, 2], shredder: [2, 4], splitter: [2, 4],
+                        paper: [1, 2], shredder: [2, 4], splitter: [2, 4], splitterling: [1, 1],
                         explosive: [3, 6], fomo: [3, 6], tank: [6, 10], elite: [8, 14]
                     };
                     const [minC, maxC] = coinRanges[enemy.type] || [1, 3];
@@ -1389,6 +1687,10 @@
                 
                 return true;
             });
+            // Add splitterlings that were spawned during the filter
+            if (pendingSpawns.length > 0) {
+                enemies = enemies.concat(pendingSpawns);
+            }
             
             // Update ranged enemy projectiles
             enemyProjectiles = enemyProjectiles.filter(p => {
@@ -1401,8 +1703,9 @@
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist < player.radius + p.radius) {
                     // Doge Reflex can dodge projectile hits too.
-                    if (!(player.breed === 'grey' && Math.random() < 0.2)) {
+                    if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
                         player.health -= p.damage;
+                        player.iframes = 0.3;
                         if (player.health <= 0) gameOver();
                     }
                     return false;
@@ -1466,7 +1769,8 @@
                 const dx = c.x - player.x;
                 const dy = c.y - player.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                const pickupRange = player.radius + 35 + (55 * player.magnet);
+                const cosmicBonus = player.breed === 'purple' ? 1.5 : 1;
+                const pickupRange = (player.radius + 35 + (55 * player.magnet)) * cosmicBonus;
                 
                 if (!c.magnetized && dist < pickupRange) {
                     c.magnetized = true;
@@ -1505,6 +1809,23 @@
                 return p.life > 0;
             });
             
+            // Update fire zones
+            fireZones = fireZones.filter(z => {
+                z.life -= dt;
+                // Damage enemies in fire zone
+                enemies.forEach(e => {
+                    const d = Math.sqrt((e.x - z.x) * (e.x - z.x) + (e.y - z.y) * (e.y - z.y));
+                    if (d < z.radius) {
+                        e.health -= z.dps * dt;
+                    }
+                });
+                return z.life > 0;
+            });
+            
+            // Screen shake decay
+            if (screenShake > 0.5) screenShake *= 0.9;
+            else screenShake = 0;
+            
             // Update floating damage numbers
             damageTexts = damageTexts.filter(d => {
                 d.y += d.vy * dt;
@@ -1530,8 +1851,14 @@
                     if (coinsOnGround.length > 0) {
                         // Auto-magnetize all remaining coins when enemies are cleared
                         coinsOnGround.forEach(c => c.magnetized = true);
+                    } else if (!waveClearTimer) {
+                        waveClearTimer = 1.5;
                     } else {
-                        openShop();
+                        waveClearTimer -= dt;
+                        if (waveClearTimer <= 0) {
+                            waveClearTimer = null;
+                            openShop();
+                        }
                     }
                 }
             } else if (boss && boss.health <= 0) {
@@ -1553,54 +1880,160 @@
                 boss.y += (dy / dist) * boss.speed * dt;
             }
             
+            // Enrage at 25% health
+            if (!boss.enraged && boss.health < boss.maxHealth * 0.25) {
+                boss.enraged = true;
+                boss.speed = 120;
+                boss.damage = 50;
+                addScreenShake(15);
+                // Spawn a ring of enemies
+                for (let i = 0; i < 12; i++) {
+                    const a = (i / 12) * Math.PI * 2;
+                    enemies.push({
+                        x: boss.x + Math.cos(a) * 200,
+                        y: boss.y + Math.sin(a) * 200,
+                        radius: 18, speed: 160, health: 80 * difficulty, maxHealth: 80 * difficulty,
+                        damage: 15, type: 'shredder', slowTimer: 0, attackTimer: Math.random() * 0.5,
+                        ramState: 'approach', ramWindup: 0, ramDash: 0, ramCooldown: 0, ramDirX: 0, ramDirY: 0
+                    });
+                }
+            }
+            
+            // Sweep attack
+            if (boss.sweepActive) {
+                boss.sweepTimer -= dt;
+                boss.sweepAngle += 3.5 * dt;
+                // Fire projectiles in a sweeping arc
+                if (Math.random() < 15 * dt) {
+                    const a = boss.sweepAngle;
+                    enemyProjectiles.push({
+                        x: boss.x + Math.cos(a) * boss.radius,
+                        y: boss.y + Math.sin(a) * boss.radius,
+                        vx: Math.cos(a) * 280,
+                        vy: Math.sin(a) * 280,
+                        damage: 15,
+                        radius: 6,
+                        life: 2.5
+                    });
+                }
+                if (boss.sweepTimer <= 0) boss.sweepActive = false;
+            }
+            
+            // Slam cooldown
+            if (boss.slamCooldown > 0) boss.slamCooldown -= dt;
+            
             // Attacks
             boss.attackTimer -= dt;
             if (boss.attackTimer <= 0) {
-                // Market Crash (AOE)
-                const attackType = Math.random();
-                if (attackType < 0.33) {
-                    // AOE slam
-                    enemies.forEach(e => {
-                        const edx = e.x - boss.x;
-                        const edy = e.y - boss.y;
-                        const edist = Math.sqrt(edx * edx + edy * edy);
-                        if (edist < 150) {
-                            e.x += (edx / edist) * 100;
-                            e.y += (edy / edist) * 100;
-                        }
-                    });
-                    
+                const healthPercent = boss.health / boss.maxHealth;
+                const attackRoll = Math.random();
+                const attackRate = boss.enraged ? 1.8 : 3;
+                
+                if (attackRoll < 0.25) {
+                    // MARKET CRASH - AOE slam with screen shake
+                    addScreenShake(8);
+                    for (let i = 0; i < 20; i++) {
+                        const a = (i / 20) * Math.PI * 2;
+                        particles.push({
+                            x: boss.x + Math.cos(a) * 30,
+                            y: boss.y + Math.sin(a) * 30,
+                            vx: Math.cos(a) * 200,
+                            vy: Math.sin(a) * 200,
+                            life: 0.4,
+                            color: '#ff4444'
+                        });
+                    }
                     const pdx = player.x - boss.x;
                     const pdy = player.y - boss.y;
                     const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    if (pdist < 150 && !player.diamond) {
-                        player.x += (pdx / pdist) * 100;
-                        player.y += (pdy / pdist) * 100;
-                        player.health -= 20;
+                    if (pdist < 180 && player.iframes <= 0) {
+                        player.health -= 25;
+                        player.iframes = 0.5;
+                        // Knockback
+                        if (!player.diamond) {
+                            player.x += (pdx / pdist) * 120;
+                            player.y += (pdy / pdist) * 120;
+                        }
+                        if (player.health <= 0) gameOver();
                     }
-                } else if (attackType < 0.66) {
-                    // Pump & Dump (charge)
-                    boss.speed = 300;
-                    setTimeout(() => boss.speed = 80, 1000);
-                } else {
-                    // Liquidation (summon circles)
-                    for (let i = 0; i < 3; i++) {
+                    
+                } else if (attackRoll < 0.45) {
+                    // PUMP & DUMP - charge at player
+                    boss.speed = boss.enraged ? 450 : 300;
+                    setTimeout(() => { if (boss) boss.speed = boss.enraged ? 120 : 75; }, 1000);
+                    addScreenShake(4);
+                    
+                } else if (attackRoll < 0.65) {
+                    // LIQUIDATION - danger circles on the ground
+                    const circleCount = boss.enraged ? 5 : 3;
+                    for (let i = 0; i < circleCount; i++) {
                         const angle = Math.random() * Math.PI * 2;
-                        const dist = 100 + Math.random() * 200;
+                        const dist = 80 + Math.random() * 250;
                         const cx = boss.x + Math.cos(angle) * dist;
                         const cy = boss.y + Math.sin(angle) * dist;
-                        
-                        // Damage if player in circle after delay
+                        // Visual warning
+                        fireZones.push({
+                            x: cx, y: cy,
+                            radius: 60,
+                            duration: 1.0,
+                            life: 1.0,
+                            dps: 0 // Just visual warning
+                        });
                         setTimeout(() => {
-                            const pdx = player.x - cx;
-                            const pdy = player.y - cy;
-                            if (Math.sqrt(pdx * pdx + pdy * pdy) < 50) {
-                                player.health -= 30;
+                            if (gameState !== 'playing') return;
+                            addScreenShake(5);
+                            const pdx2 = player.x - cx;
+                            const pdy2 = player.y - cy;
+                            if (Math.sqrt(pdx2 * pdx2 + pdy2 * pdy2) < 60 && player.iframes <= 0) {
+                                player.health -= 35;
+                                player.iframes = 0.4;
+                                if (player.health <= 0) gameOver();
+                            }
+                            // Explosion visual
+                            for (let j = 0; j < 12; j++) {
+                                const pa = Math.random() * Math.PI * 2;
+                                particles.push({
+                                    x: cx, y: cy,
+                                    vx: Math.cos(pa) * 150,
+                                    vy: Math.sin(pa) * 150,
+                                    life: 0.3,
+                                    color: '#ff6666'
+                                });
                             }
                         }, 1000);
                     }
+                    
+                } else if (attackRoll < 0.80) {
+                    // PAPER STORM - sweeping projectile arc
+                    boss.sweepActive = true;
+                    boss.sweepTimer = 2.0;
+                    boss.sweepAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
+                    
+                } else {
+                    // HOSTILE TAKEOVER - teleport near player and slam
+                    const teleAngle = Math.random() * Math.PI * 2;
+                    const teleDist = 150 + Math.random() * 100;
+                    boss.x = player.x + Math.cos(teleAngle) * teleDist;
+                    boss.y = player.y + Math.sin(teleAngle) * teleDist;
+                    // Clamp to arena
+                    boss.x = Math.max(boss.radius, Math.min(ARENA_WIDTH - boss.radius, boss.x));
+                    boss.y = Math.max(boss.radius, Math.min(ARENA_HEIGHT - boss.radius, boss.y));
+                    addScreenShake(6);
+                    // Visual teleport particles
+                    for (let i = 0; i < 15; i++) {
+                        const a = Math.random() * Math.PI * 2;
+                        particles.push({
+                            x: boss.x + Math.cos(a) * 40,
+                            y: boss.y + Math.sin(a) * 40,
+                            vx: Math.cos(a) * 100,
+                            vy: Math.sin(a) * 100,
+                            life: 0.5,
+                            color: '#ffdddd'
+                        });
+                    }
                 }
-                boss.attackTimer = 3;
+                
+                boss.attackTimer = attackRate;
             }
             
             // Outer hands periodically detach and crawl toward player.
@@ -1615,18 +2048,28 @@
             if (!boss.spawnAdds1 && healthPercent <= 0.70) {
                 boss.spawnAdds1 = true;
                 spawnBossHands(16, false);
+                addScreenShake(8);
+            }
+            if (!boss.spawnAdds15 && healthPercent <= 0.50) {
+                boss.spawnAdds15 = true;
+                spawnBossHands(20, true);
+                addScreenShake(10);
+                // Boss gets faster at half health
+                boss.speed = 100;
             }
             if (!boss.spawnAdds2 && healthPercent <= 0.30) {
                 boss.spawnAdds2 = true;
                 spawnBossHands(24, true);
+                addScreenShake(12);
             }
             
             // Collision with player
             const pdx = player.x - boss.x;
             const pdy = player.y - boss.y;
             const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
-            if (pdist < player.radius + boss.radius) {
+            if (pdist < player.radius + boss.radius && player.iframes <= 0) {
                 player.health -= boss.damage * dt;
+                player.iframes = 0.15;
                 if (player.health <= 0) gameOver();
             }
             
@@ -1672,11 +2115,13 @@
             
             const createProjectile = (spreadAngle = 0) => {
                 const finalAngle = angle + spreadAngle;
-                const isMoonLauncher = weapon.type === 'launcher';
-                const speed = isMoonLauncher ? 380 : 600;
+                const speed = weapon.speed || 600;
+                const isExplosiveWeapon = weapon.type === 'launcher' || weapon.type === 'cannon' || weapon.type === 'moon';
                 
                 let pierce = weapon.pierce;
                 if (player.moon) pierce += 2;
+                
+                const radiusMap = { launcher: 10, cannon: 10, moon: 28 };
                 
                 return {
                     x: player.x + Math.cos(finalAngle) * 30,
@@ -1686,15 +2131,26 @@
                     damage: weapon.damage,
                     range: weapon.range,
                     distance: 0,
-                    radius: isMoonLauncher ? 10 : 5,
+                    radius: radiusMap[weapon.type] || 5,
                     color: weapon.color,
                     weaponType: weapon.type,
                     pierce: pierce,
-                    explosive: isMoonLauncher ? Math.round((weapon.explosive || 0) * 1.35) : (weapon.explosive || 0),
-                    expSize: isMoonLauncher ? Math.round((weapon.expSize || 0) * 1.3) : (weapon.expSize || 0),
+                    explosive: isExplosiveWeapon ? Math.round((weapon.explosive || 0) * 1.35) : (weapon.explosive || 0),
+                    expSize: isExplosiveWeapon ? Math.round((weapon.expSize || 0) * 1.3) : (weapon.expSize || 0),
                     knockback: weapon.knockback || 0,
                     slow: weapon.slow || 0,
-                    bounce: weapon.bounce || player.projectileBounce
+                    bounce: weapon.bounce || player.projectileBounce,
+                    angle: finalAngle,
+                    spin: 0,
+                    age: 0,
+                    startX: player.x,
+                    startY: player.y,
+                    spinRate: weapon.spinRate || 0,
+                    accelerates: weapon.accelerates || false,
+                    gravity: weapon.gravity || 0,
+                    homing: weapon.homing || 0,
+                    guided: weapon.guided || false,
+                    damageRamp: weapon.damageRamp || 0
                 };
             };
             
@@ -1901,6 +2357,31 @@
             renderShop();
         }
         
+        function getRankStars(rank) {
+            const stars = ['⚪', '🟢', '🔵', '🟣', '🟡', '🔶'];
+            return (stars[rank] || '⚪').repeat(Math.min(rank, 5));
+        }
+
+        function getPerkIcon(stat) {
+            const icons = {
+                maxHealth: '❤️', speed: '💨', regen: '💚', dodge: '🌀',
+                projectileBounce: '↩️', turret: '🔫', diamond: '💎',
+                moon: '🌙', hodl: '👑', turretMaster: '🤖', apex: '🔥',
+                luck: '🍀', magnet: '🧲', xpGain: '📈'
+            };
+            return icons[stat] || '⭐';
+        }
+
+        function getPerkStatLabel(stat) {
+            const labels = {
+                maxHealth: 'Health', speed: 'Speed', regen: 'Regen', dodge: 'Dodge',
+                projectileBounce: 'Bounce', turret: 'Turret', diamond: 'Diamond Hands',
+                moon: 'Moon Shot', hodl: 'HODL King', turretMaster: 'Turret Master',
+                apex: 'Apex', luck: 'Luck', magnet: 'Magnet', xpGain: 'XP Gain'
+            };
+            return labels[stat] || stat;
+        }
+
         function renderShop() {
             const weaponShop = document.getElementById('weaponShop');
             const perkShop = document.getElementById('perkShop');
@@ -1943,13 +2424,13 @@
                 const isSold = offer.sold;
                 const cannotAfford = coins < price;
                 const div = document.createElement('div');
-                div.className = `shopItem ${isLocked ? 'locked' : ''} ${isSold || cannotAfford ? 'disabled' : ''}`;
+                div.className = `shopItem rank-${perk.rank} ${isLocked ? 'locked' : ''} ${isSold || cannotAfford ? 'disabled' : ''}`;
                 div.innerHTML = `
                     <div class="shopItemHeader">
-                        <div class="name">${perk.name} (Rank ${perk.rank})</div>
+                        <div class="name">${getRankStars(perk.rank)} ${getPerkIcon(perk.stat)} ${getPerkStatLabel(perk.stat)}</div>
                         <button class="lock-btn">${isLocked ? '🔒' : '🔓'}</button>
                     </div>
-                    <div class="desc">${perk.desc || `${perk.stat}: +${perk.value}`}</div>
+                    <div class="desc">${perk.desc || `+${perk.value} ${getPerkStatLabel(perk.stat)}`}</div>
                     <div class="price">${price} 🪙</div>
                 `;
                 div.onclick = () => buyPerk(i);
@@ -1977,13 +2458,28 @@
                 const nextDmg = Math.round(weapon.damage * 1.25);
                 const nextRate = Math.round(weapon.fireRate * 1.12 * 100) / 100;
                 const nextDps = Math.round(nextDmg * nextRate * ((weapon.pellets || 0) > 0 ? weapon.pellets + 1 : 1));
+                const tierPrices = { pistol: 0, rifle: 40, shotgun: 40, minigun: 80, launcher: 80, shredder: 80, piercer: 120, cannon: 120, cointoss: 120, moon: 200 };
+                const baseValue = tierPrices[weapon.type] || 50;
+                const upgradeValue = (weapon.level - 1) * 30;
+                const sellValue = Math.round((baseValue + upgradeValue) * 0.5);
+                const canSell = player.weapons.length > 1;
                 div.innerHTML = `
-                    <div class="name">${weapon.name} ${stars}</div>
+                    <div class="shopItemHeader">
+                        <div class="name">${weapon.name} ${stars}</div>
+                        ${canSell ? `<button class="sell-btn" style="background:rgba(255,80,80,0.3);border:1px solid #ff6b6b;color:#ff6b6b;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;">Sell +${sellValue}🪙</button>` : ''}
+                    </div>
                     <div class="desc">DMG: ${weapon.damage} | Rate: ${weapon.fireRate}/s | DPS: ${dps}</div>
                     <div class="desc">${maxed ? '<span style="color:#ffd700">MAX LEVEL</span>' : `→ DMG: ${nextDmg} | Rate: ${nextRate}/s | DPS: ${nextDps}`}</div>
                     <div class="price">${maxed ? '---' : `${cost} 🪙`}</div>
                 `;
                 if (!maxed) div.onclick = () => upgradeWeapon(i);
+                const sellBtn = div.querySelector('.sell-btn');
+                if (sellBtn) {
+                    sellBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        sellWeapon(i);
+                    };
+                }
                 upgradeShop.appendChild(div);
             });
             
@@ -2037,17 +2533,7 @@
             renderShop();
         }
         
-        // Buy perk
-        function buyPerk(slotIndex) {
-            const offer = shopPerkOffers[slotIndex];
-            if (!offer || offer.sold) return;
-            const { key, perk, price } = offer;
-            if (coins < price) return;
-            
-            coins -= price;
-            playSound('buy');
-            
-            // Apply perk
+        function applyPerk(perk) {
             if (perk.stat === 'maxHealth') {
                 player.maxHealth += perk.value;
                 player.health += perk.value;
@@ -2066,7 +2552,7 @@
             } else if (perk.stat === 'projectileBounce') {
                 player.projectileBounce += perk.value;
             } else if (perk.stat === 'turret') {
-                turrets.push({ x: player.x + 50, y: player.y, timer: 0, life: 10 });
+                // Turret spawns handled separately in combat
             } else if (perk.stat === 'diamond') {
                 player.diamond = true;
                 player.magnet += 0.5;
@@ -2080,9 +2566,6 @@
                 player.health += 100;
             } else if (perk.stat === 'turretMaster') {
                 player.turretMaster = true;
-                turrets.push({ x: player.x + 50, y: player.y, timer: 0, life: 15 });
-                turrets.push({ x: player.x - 50, y: player.y, timer: 0, life: 15 });
-                turrets.push({ x: player.x, y: player.y + 50, timer: 0, life: 15 });
             } else if (perk.stat === 'apex') {
                 player.apex = true;
                 player.maxHealth += 220;
@@ -2092,14 +2575,28 @@
                 player.regen += 2.5;
                 player.magnet += 0.35;
             }
+        }
+
+        // Buy perk
+        function buyPerk(slotIndex) {
+            const offer = shopPerkOffers[slotIndex];
+            if (!offer || offer.sold) return;
+            const { key, perk, price } = offer;
+            if (coins < price) return;
+            
+            coins -= price;
+            playSound('buy');
+            
+            // Apply perk
+            applyPerk(perk);
             
             ownedPerkKeys.add(key);
             player.perks.push(perk);
-            addVisualAddition(perk);
             offer.sold = true;
             lockedPerkSlots.delete(slotIndex);
             updateUI();
             renderShop();
+            updatePerkDisplay();
         }
         
         // Upgrade a weapon
@@ -2118,6 +2615,25 @@
             if (weapon.pierce > 0) weapon.pierce += 1;
             if (weapon.explosive > 0) weapon.explosive = Math.round(weapon.explosive * 1.2);
             
+            updateUI();
+            updateWeaponUI();
+            renderShop();
+        }
+        
+        function sellWeapon(weaponIndex) {
+            if (player.weapons.length <= 1) return; // Can't sell your last weapon
+            const weapon = player.weapons[weaponIndex];
+            if (!weapon) return;
+            
+            // Refund based on tier and upgrade level
+            const tierPrices = { pistol: 0, rifle: 40, shotgun: 40, minigun: 80, launcher: 80, shredder: 80, piercer: 120, cannon: 120, cointoss: 120, moon: 200 };
+            const baseValue = tierPrices[weapon.type] || 50;
+            const upgradeValue = (weapon.level - 1) * 30;
+            const refund = Math.round((baseValue + upgradeValue) * 0.5);
+            
+            coins += refund;
+            playSound('buy');
+            player.weapons.splice(weaponIndex, 1);
             updateUI();
             updateWeaponUI();
             renderShop();
@@ -2202,6 +2718,8 @@
         // Restart game
         function restartGame() {
             document.getElementById('gameOver').classList.remove('visible');
+            carryoverPerks = [];
+            carryoverPerkKeys = new Set();
             resetGame();
             document.getElementById('breedSelect').style.display = 'flex';
         }
@@ -2211,6 +2729,9 @@
             document.getElementById('victory').classList.remove('visible');
             difficulty++;
             if (difficulty > highestDifficulty) highestDifficulty = difficulty;
+            // Carry perks to next difficulty
+            carryoverPerks = [...player.perks];
+            carryoverPerkKeys = new Set(ownedPerkKeys);
             resetGame();
             document.getElementById('breedSelect').style.display = 'flex';
         }
@@ -2218,6 +2739,10 @@
         // Reset game
         function resetGame() {
             currentWave = 1;
+            ARENA_WIDTH = BASE_ARENA_WIDTH;
+            ARENA_HEIGHT = BASE_ARENA_HEIGHT;
+            resizeCanvas();
+            bossIntro = null;
             coins = 0;
             kills = 0;
             projectiles = [];
@@ -2227,6 +2752,7 @@
             coinsOnGround = [];
             damageTexts = [];
             turrets = [];
+            fireZones = [];
             boss = null;
             shopRefreshCost = 50;
             shopIsLucky = false;
@@ -2262,10 +2788,14 @@
                 breed: null,
                 weapons: [],
                 perks: [],
-                visualAdditions: []
+                visualAdditions: [],
+                iframes: 0
             };
             
+            waveClearTimer = null;
+            
             updateWeaponUI();
+            updatePerkDisplay();
         }
         
         // Update UI
@@ -2294,6 +2824,36 @@
             }
         }
         
+        function updatePerkDisplay() {
+            const hud = document.getElementById('perkHud');
+            if (!hud) return;
+            if (player.perks.length === 0) {
+                hud.style.display = 'none';
+                return;
+            }
+            hud.style.display = 'block';
+            
+            // Count duplicate perks
+            const perkCounts = {};
+            player.perks.forEach(p => {
+                const label = getPerkIcon(p.stat) + ' ' + getPerkStatLabel(p.stat);
+                if (!perkCounts[label]) {
+                    perkCounts[label] = { count: 0, rank: p.rank };
+                }
+                perkCounts[label].count++;
+                perkCounts[label].rank = Math.max(perkCounts[label].rank, p.rank);
+            });
+            
+            let html = '<div class="perk-title">⭐ Perks</div>';
+            Object.entries(perkCounts)
+                .sort((a, b) => b[1].rank - a[1].rank)
+                .forEach(([label, data]) => {
+                    const countStr = data.count > 1 ? ` x${data.count}` : '';
+                    html += `<div class="perk-entry rank-${data.rank}">${label}${countStr}</div>`;
+                });
+            hud.innerHTML = html;
+        }
+        
         // Render
         function render() {
             // Clear
@@ -2314,6 +2874,15 @@
                 ctx.moveTo(0, y);
                 ctx.lineTo(ARENA_WIDTH, y);
                 ctx.stroke();
+            }
+            
+            // Screen shake
+            if (screenShake > 0) {
+                ctx.save();
+                ctx.translate(
+                    (Math.random() - 0.5) * screenShake * 2,
+                    (Math.random() - 0.5) * screenShake * 2
+                );
             }
             
             // Draw turrets
@@ -2344,6 +2913,29 @@
                 ctx.fillText('D', c.x, c.y + 3);
             });
             
+            // Draw fire zones
+            fireZones.forEach(z => {
+                const alpha = 0.4 * (z.life / z.duration);
+                const grad = ctx.createRadialGradient(z.x, z.y, 0, z.x, z.y, z.radius);
+                grad.addColorStop(0, `rgba(255, 120, 0, ${alpha})`);
+                grad.addColorStop(0.6, `rgba(255, 60, 0, ${alpha * 0.5})`);
+                grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(z.x, z.y, z.radius, 0, Math.PI * 2);
+                ctx.fill();
+                // Flickering flames
+                const t = Date.now() * 0.003;
+                for (let i = 0; i < 5; i++) {
+                    const a = t + i * 1.3;
+                    const d = Math.random() * z.radius * 0.6;
+                    ctx.fillStyle = `rgba(255, ${150 + Math.random() * 100|0}, 0, ${alpha * 0.8})`;
+                    ctx.beginPath();
+                    ctx.arc(z.x + Math.cos(a) * d, z.y + Math.sin(a) * d, 3 + Math.random() * 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
             // Draw particles
             particles.forEach(p => {
                 ctx.globalAlpha = p.life / 0.5;
@@ -2370,32 +2962,302 @@
             
             // Draw projectiles
             projectiles.forEach(p => {
-                const isMoonLauncher = p.weaponType === 'launcher';
+                const angle = p.angle || Math.atan2(p.vy, p.vx);
                 
-                if (isMoonLauncher) {
-                    // Grey/yellow heavy rocket visual.
-                    ctx.fillStyle = '#555a60';
+                if (p.weaponType === 'launcher') {
+                    // Rocket with flame exhaust
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(angle);
+                    // Flame
+                    const flicker = 0.6 + 0.4 * Math.sin((p.age || 0) * 30);
+                    ctx.fillStyle = `rgba(255, 100, 0, ${0.8 * flicker})`;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius + 1, 0, Math.PI * 2);
+                    ctx.moveTo(-10, -4);
+                    ctx.quadraticCurveTo(-10 - 12 * flicker, 0, -10, 4);
                     ctx.fill();
-                    ctx.fillStyle = '#f2d34f';
+                    ctx.fillStyle = `rgba(255, 255, 0, ${0.7 * flicker})`;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, Math.max(4, p.radius * 0.55), 0, Math.PI * 2);
+                    ctx.moveTo(-10, -2);
+                    ctx.quadraticCurveTo(-10 - 8 * flicker, 0, -10, 2);
+                    ctx.fill();
+                    // Body
+                    ctx.fillStyle = '#e8e8e8';
+                    ctx.beginPath();
+                    ctx.moveTo(-10, -4);
+                    ctx.lineTo(6, -4);
+                    ctx.lineTo(11, 0);
+                    ctx.lineTo(6, 4);
+                    ctx.lineTo(-10, 4);
+                    ctx.closePath();
+                    ctx.fill();
+                    // Red nose
+                    ctx.fillStyle = '#cc0000';
+                    ctx.beginPath();
+                    ctx.moveTo(11, 0);
+                    ctx.lineTo(6, -4);
+                    ctx.lineTo(6, 4);
+                    ctx.fill();
+                    // Fins
+                    ctx.fillStyle = '#cc0000';
+                    ctx.beginPath();
+                    ctx.moveTo(-7, -4); ctx.lineTo(-11, -8); ctx.lineTo(-4, -4);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(-7, 4); ctx.lineTo(-11, 8); ctx.lineTo(-4, 4);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'moon') {
+                    // ACTUAL MOON - comically large celestial body
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    
+                    // Glow aura
+                    const glowGrad = ctx.createRadialGradient(0, 0, p.radius * 0.8, 0, 0, p.radius * 2);
+                    glowGrad.addColorStop(0, 'rgba(255, 255, 200, 0.3)');
+                    glowGrad.addColorStop(1, 'transparent');
+                    ctx.fillStyle = glowGrad;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.radius * 2, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    ctx.strokeStyle = 'rgba(242, 211, 79, 0.55)';
-                    ctx.lineWidth = 4;
+                    // Moon body - gradient from light yellow to grey
+                    const moonGrad = ctx.createRadialGradient(-6, -6, 2, 0, 0, p.radius);
+                    moonGrad.addColorStop(0, '#fffff0');
+                    moonGrad.addColorStop(0.5, '#e8e4c9');
+                    moonGrad.addColorStop(1, '#c0b898');
+                    ctx.fillStyle = moonGrad;
                     ctx.beginPath();
-                    ctx.moveTo(p.x, p.y);
-                    ctx.lineTo(p.x - p.vx * 0.09, p.y - p.vy * 0.09);
+                    ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Craters
+                    ctx.fillStyle = 'rgba(160, 150, 120, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(-8, -5, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(7, 3, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(-3, 8, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(10, -7, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Crater shadows (slightly darker)
+                    ctx.fillStyle = 'rgba(130, 120, 90, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(-7, -4, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(-2, 9, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Highlight crescent (lit side of moon)
+                    ctx.fillStyle = 'rgba(255, 255, 240, 0.25)';
+                    ctx.beginPath();
+                    ctx.arc(-4, -4, p.radius * 0.7, -1.2, 1.2);
+                    ctx.fill();
+                    
+                    // Wobble text "🌙" emoji vibe - draw "MOON" tiny on it
+                    const wobble = Math.sin((p.age || 0) * 3) * 0.1;
+                    ctx.rotate(wobble);
+                    ctx.fillStyle = 'rgba(100, 90, 60, 0.4)';
+                    ctx.font = 'bold 10px Comic Neue';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('MOON', 0, 0);
+                    
+                    ctx.restore();
+                    
+                    // Sparkle trail behind the moon
+                    if (Math.random() < 0.4) {
+                        particles.push({
+                            x: p.x - Math.cos(angle) * p.radius + (Math.random() - 0.5) * 20,
+                            y: p.y - Math.sin(angle) * p.radius + (Math.random() - 0.5) * 20,
+                            vx: (Math.random() - 0.5) * 30,
+                            vy: (Math.random() - 0.5) * 30,
+                            life: 0.4 + Math.random() * 0.3,
+                            color: ['#fffff0', '#ffd700', '#ffe4b5'][Math.floor(Math.random() * 3)]
+                        });
+                    }
+                    
+                } else if (p.weaponType === 'piercer') {
+                    // Spinning diamond crystal with afterimages
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    // Afterimage trail
+                    const trailAlphas = [0.1, 0.15, 0.2];
+                    for (let i = 0; i < 3; i++) {
+                        const trailDist = (i + 1) * 12;
+                        const tx = -Math.cos(angle) * trailDist;
+                        const ty = -Math.sin(angle) * trailDist;
+                        ctx.globalAlpha = trailAlphas[i];
+                        ctx.save();
+                        ctx.translate(tx, ty);
+                        ctx.rotate((p.spin || 0) - (i + 1) * 0.5);
+                        ctx.fillStyle = '#6a5acd';
+                        ctx.beginPath();
+                        ctx.moveTo(0, -10); ctx.lineTo(6, 0); ctx.lineTo(0, 10); ctx.lineTo(-6, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    ctx.globalAlpha = 1;
+                    // Main diamond
+                    ctx.rotate(p.spin || 0);
+                    ctx.fillStyle = '#aa96da';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -12); ctx.lineTo(7, 0); ctx.lineTo(0, 12); ctx.lineTo(-7, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    // Inner shine
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -6); ctx.lineTo(3, 0); ctx.lineTo(0, 6); ctx.lineTo(-3, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'cannon') {
+                    // Heavy cannonball with metallic shading
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    // Shadow underneath
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 4, 10, 5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Metal ball gradient
+                    const grad = ctx.createRadialGradient(-3, -3, 1, 0, 0, 10);
+                    grad.addColorStop(0, '#888');
+                    grad.addColorStop(0.4, '#444');
+                    grad.addColorStop(1, '#111');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Specular highlight
+                    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                    ctx.beginPath();
+                    ctx.ellipse(-3, -3, 4, 2.5, -0.8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'cointoss') {
+                    // Flipping gold coin
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    const flipPhase = Math.cos(p.spin || 0);
+                    const coinWidth = Math.max(Math.abs(flipPhase) * 10, 1.5);
+                    // Sparkle trail
+                    if (Math.random() < 0.3) {
+                        ctx.fillStyle = 'rgba(255,215,0,0.5)';
+                        ctx.beginPath();
+                        ctx.arc((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    // Coin rim
+                    ctx.fillStyle = '#b8860b';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, coinWidth + 1.5, 10, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Coin face
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, coinWidth, 9, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // D symbol when wide enough
+                    if (coinWidth > 4) {
+                        ctx.fillStyle = '#8b6914';
+                        ctx.font = `bold ${Math.floor(coinWidth)}px Arial`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('\u00D0', 0, 1);
+                    }
+                    // Shine
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.beginPath();
+                    ctx.ellipse(-coinWidth * 0.3, -3, coinWidth * 0.2 + 1, 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'rifle') {
+                    // Cyan energy bolt - elongated
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(angle);
+                    // Glow trail
+                    ctx.strokeStyle = 'rgba(78, 205, 196, 0.3)';
+                    ctx.lineWidth = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(-20, 0);
+                    ctx.lineTo(0, 0);
                     ctx.stroke();
+                    // Core bolt
+                    ctx.fillStyle = '#4ecdc4';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 8, 2.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Bright center
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.ellipse(2, 0, 4, 1.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'pistol') {
+                    // Small brass bullet
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(angle);
+                    // Trail flash
+                    ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+                    ctx.fillRect(-12, -1.5, 8, 3);
+                    // Bullet
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 6, 2.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Bright tip
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(4, 0, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                } else if (p.weaponType === 'shredder') {
+                    // Tiny silver throwing star
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.spin || p.age * 25 || 0));
+                    ctx.fillStyle = '#c8cdd4';
+                    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    for (let i = 0; i < 4; i++) {
+                        const a = i * Math.PI / 2;
+                        ctx.lineTo(Math.cos(a) * 7, Math.sin(a) * 7);
+                        ctx.lineTo(Math.cos(a + Math.PI/4) * 2.5, Math.sin(a + Math.PI/4) * 2.5);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    // Tiny center
+                    ctx.fillStyle = '#888';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
                 } else {
+                    // Default (shotgun pellets, etc)
                     ctx.fillStyle = p.color;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                     ctx.fill();
-                    
-                    // Trail effect
                     ctx.strokeStyle = p.color;
                     ctx.lineWidth = 2;
                     ctx.beginPath();
@@ -2427,91 +3289,231 @@
                 const drawX = e.x + shakeOffset;
                 const drawY = e.y;
                 
-                // Paper hand appearance
-                ctx.fillStyle =
-                    e.type === 'elite' ? '#c0c0c0' :
-                    (e.type === 'explosive' ? '#ff9f68' :
-                    (e.type === 'tank' ? '#7b8ea8' :
-                    (e.type === 'splitter' ? '#e0ff8f' : '#ffffff')));
-                ctx.beginPath();
-                ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Fingers
-                for (let i = 0; i < 5; i++) {
-                    const angle = (i / 4) * Math.PI - Math.PI / 2;
-                    const fx = drawX + Math.cos(angle) * (e.radius + 5);
-                    const fy = drawY + Math.sin(angle) * (e.radius + 5);
-                    ctx.fillStyle =
-                        e.type === 'elite' ? '#a0a0a0' :
-                        (e.type === 'explosive' ? '#ff7f50' :
-                        (e.type === 'tank' ? '#5c6f89' :
-                        (e.type === 'splitter' ? '#b8d968' : '#e0e0e0')));
+                if (e.type === 'fomo') {
+                    // Custom fomo ranged enemy drawing
+                    // Purple body
+                    ctx.fillStyle = '#9b59b6';
                     ctx.beginPath();
-                    ctx.arc(fx, fy, 6, 0, Math.PI * 2);
+                    ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
                     ctx.fill();
-                }
-                
-                // Red arrow (paper hand symbol)
-                ctx.fillStyle =
-                    e.type === 'explosive' ? '#ffea00' :
-                    (e.type === 'tank' ? '#00c8ff' :
-                    (e.type === 'splitter' ? '#6c8f00' : '#ff0000'));
-                ctx.beginPath();
-                ctx.moveTo(drawX, drawY - 5);
-                ctx.lineTo(drawX - 8, drawY + 5);
-                ctx.lineTo(drawX + 8, drawY + 5);
-                ctx.fill();
-                
-                if (e.type === 'explosive') {
-                    // Distinct explosive marker and telegraph ring.
-                    ctx.fillStyle = '#7a0000';
-                    ctx.font = 'bold 14px Comic Neue';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('!', drawX, drawY + 5);
                     
-                    const ringRadius = e.radius + 10 + Math.sin(Date.now() * 0.02) * 2;
-                    ctx.strokeStyle = explosiveWindup ? '#ff2d2d' : '#ff8c42';
-                    ctx.lineWidth = explosiveWindup ? 4 : 2;
+                    // 3 long claw fingers spread wide
+                    for (let i = 0; i < 3; i++) {
+                        const angle = (i / 2) * Math.PI - Math.PI / 2;
+                        const clawLen = e.radius + 12;
+                        const fx = drawX + Math.cos(angle) * clawLen;
+                        const fy = drawY + Math.sin(angle) * clawLen;
+                        // Draw elongated claw shape
+                        ctx.fillStyle = '#8e44ad';
+                        ctx.save();
+                        ctx.translate(fx, fy);
+                        ctx.rotate(angle);
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, 4, 9, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Claw tip
+                        ctx.fillStyle = '#6c3483';
+                        ctx.beginPath();
+                        ctx.moveTo(0, -10);
+                        ctx.lineTo(-3, -4);
+                        ctx.lineTo(3, -4);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    
+                    // Targeting reticle in center
+                    ctx.strokeStyle = '#e8daef';
+                    ctx.lineWidth = 1.5;
                     ctx.beginPath();
-                    ctx.arc(drawX, drawY, ringRadius, 0, Math.PI * 2);
+                    ctx.arc(drawX, drawY, 6, 0, Math.PI * 2);
                     ctx.stroke();
-                }
-                
-                if (e.type === 'tank') {
-                    // Armor plate look to read as "tank".
-                    ctx.strokeStyle = '#b7d8ff';
-                    ctx.lineWidth = 3;
                     ctx.beginPath();
-                    ctx.arc(drawX, drawY, e.radius - 4, 0, Math.PI * 2);
+                    ctx.moveTo(drawX - 9, drawY);
+                    ctx.lineTo(drawX + 9, drawY);
+                    ctx.moveTo(drawX, drawY - 9);
+                    ctx.lineTo(drawX, drawY + 9);
                     ctx.stroke();
-                }
-                
-                if (e.type === 'splitter') {
-                    // Splitter seam to hint at split-on-death.
-                    ctx.strokeStyle = '#6a8a1a';
+                    
+                    // Pulsing purple aura
+                    const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.15;
+                    ctx.strokeStyle = 'rgba(155, 89, 182, 0.4)';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
-                    ctx.moveTo(drawX - e.radius * 0.6, drawY - e.radius * 0.6);
-                    ctx.lineTo(drawX + e.radius * 0.6, drawY + e.radius * 0.6);
+                    ctx.arc(drawX, drawY, (e.radius + 8) * pulse, 0, Math.PI * 2);
                     ctx.stroke();
-                }
-                
-                // Health bar
-                const barWidth = 30;
-                const barHeight = 4;
-                ctx.fillStyle = '#ff0000';
-                ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth, barHeight);
-                ctx.fillStyle = '#00ff00';
-                ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth * (e.health / e.maxHealth), barHeight);
-                
-                // Slow effect
-                if (e.slowTimer > 0) {
-                    ctx.strokeStyle = '#00ffff';
-                    ctx.lineWidth = 2;
+                    
+                    // Health bar
+                    const barWidth = 30;
+                    const barHeight = 4;
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth, barHeight);
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth * (e.health / e.maxHealth), barHeight);
+                    
+                    // Slow effect
+                    if (e.slowTimer > 0) {
+                        ctx.strokeStyle = '#00ffff';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, e.radius + 5, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                } else {
+                    // Paper hand appearance
+                    ctx.fillStyle =
+                        e.type === 'elite' ? '#c0c0c0' :
+                        (e.type === 'explosive' ? '#ff9f68' :
+                        (e.type === 'tank' ? '#7b8ea8' :
+                    (e.type === 'splitter' ? '#f5e6c8' :
+                    (e.type === 'splitterling' ? '#ede0cc' : '#ffffff'))));
                     ctx.beginPath();
-                    ctx.arc(drawX, drawY, e.radius + 5, 0, Math.PI * 2);
-                    ctx.stroke();
+                    ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Fingers
+                    const fingerRadius = e.type === 'splitterling' ? 4 : 6;
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i / 4) * Math.PI - Math.PI / 2;
+                        const fx = drawX + Math.cos(angle) * (e.radius + 5);
+                        const fy = drawY + Math.sin(angle) * (e.radius + 5);
+                        ctx.fillStyle =
+                            e.type === 'elite' ? '#a0a0a0' :
+                            (e.type === 'explosive' ? '#ff7f50' :
+                            (e.type === 'tank' ? '#5c6f89' :
+                            (e.type === 'splitter' ? '#ddd0b8' :
+                            (e.type === 'splitterling' ? '#d5c8b0' : '#e0e0e0'))));
+                        ctx.beginPath();
+                        ctx.arc(fx, fy, fingerRadius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // Red arrow (paper hand symbol)
+                    ctx.fillStyle =
+                        e.type === 'explosive' ? '#ffea00' :
+                        (e.type === 'tank' ? '#00c8ff' :
+                        (e.type === 'splitter' ? '#8b0000' :
+                        (e.type === 'splitterling' ? '#aa0000' : '#ff0000')));
+                    ctx.beginPath();
+                    ctx.moveTo(drawX, drawY - 5);
+                    ctx.lineTo(drawX - 8, drawY + 5);
+                    ctx.lineTo(drawX + 8, drawY + 5);
+                    ctx.fill();
+                    
+                    if (e.type === 'explosive') {
+                        // Distinct explosive marker and telegraph ring.
+                        ctx.fillStyle = '#7a0000';
+                        ctx.font = 'bold 14px Comic Neue';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('!', drawX, drawY + 5);
+                        
+                        const ringRadius = e.radius + 10 + Math.sin(Date.now() * 0.02) * 2;
+                        ctx.strokeStyle = explosiveWindup ? '#ff2d2d' : '#ff8c42';
+                        ctx.lineWidth = explosiveWindup ? 4 : 2;
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, ringRadius, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    
+                    if (e.type === 'tank') {
+                        // Armor plate look to read as "tank".
+                        ctx.strokeStyle = '#b7d8ff';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, e.radius - 4, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    
+                    if (e.type === 'splitter') {
+                        // Crumple cracks - this paper hand is about to tear apart
+                        ctx.strokeStyle = 'rgba(139, 90, 43, 0.5)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(drawX - e.radius * 0.7, drawY - e.radius * 0.2);
+                        ctx.lineTo(drawX + e.radius * 0.7, drawY + e.radius * 0.3);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(drawX - e.radius * 0.3, drawY - e.radius * 0.6);
+                        ctx.lineTo(drawX + e.radius * 0.2, drawY + e.radius * 0.1);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(drawX + e.radius * 0.1, drawY - e.radius * 0.1);
+                        ctx.lineTo(drawX + e.radius * 0.5, drawY + e.radius * 0.6);
+                        ctx.stroke();
+                        // Pulsing "about to tear" dashed outline
+                        const tearPulse = 0.5 + Math.sin(Date.now() * 0.004) * 0.3;
+                        ctx.strokeStyle = `rgba(180, 140, 80, ${tearPulse})`;
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([3, 4]);
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, e.radius - 2, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                    
+                    if (e.type === 'splitterling') {
+                        // Torn edge - small paper scrap
+                        ctx.strokeStyle = 'rgba(160, 120, 70, 0.4)';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(drawX - e.radius * 0.5, drawY - e.radius * 0.3);
+                        ctx.lineTo(drawX + e.radius * 0.4, drawY + e.radius * 0.2);
+                        ctx.stroke();
+                    }
+                    
+                    if (e.type === 'shredder') {
+                        // Jagged claw marks across the hand
+                        ctx.strokeStyle = '#aa0000';
+                        ctx.lineWidth = 2;
+                        for (let s = 0; s < 3; s++) {
+                            const sx = drawX - 6 + s * 6;
+                            ctx.beginPath();
+                            ctx.moveTo(sx, drawY - e.radius * 0.5);
+                            ctx.lineTo(sx + 2, drawY);
+                            ctx.lineTo(sx, drawY + e.radius * 0.5);
+                            ctx.stroke();
+                        }
+                    }
+                    
+                    // Health bar
+                    const barWidth = 30;
+                    const barHeight = 4;
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth, barHeight);
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth * (e.health / e.maxHealth), barHeight);
+                    
+                    // Slow effect
+                    if (e.slowTimer > 0) {
+                        ctx.strokeStyle = '#00ffff';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(drawX, drawY, e.radius + 5, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                }
+            });
+            
+            // Off-screen enemy indicators
+            const indicatorMargin = 30;
+            enemies.forEach(e => {
+                const onScreen = e.x > 0 && e.x < canvas.width && e.y > 0 && e.y < canvas.height;
+                if (!onScreen) {
+                    const angle = Math.atan2(e.y - player.y, e.x - player.x);
+                    const edgeX = Math.max(indicatorMargin, Math.min(canvas.width - indicatorMargin, player.x + Math.cos(angle) * 280));
+                    const edgeY = Math.max(indicatorMargin, Math.min(canvas.height - indicatorMargin, player.y + Math.sin(angle) * 280));
+                    ctx.save();
+                    ctx.translate(edgeX, edgeY);
+                    ctx.rotate(angle);
+                    ctx.fillStyle = e.type === 'splitter' ? '#f5e6c8' : (e.type === 'fomo' ? '#9b59b6' : (e.type === 'tank' ? '#7b8ea8' : (e.type === 'explosive' ? '#ff9f68' : '#ff4444')));
+                    ctx.globalAlpha = 0.7;
+                    ctx.beginPath();
+                    ctx.moveTo(10, 0);
+                    ctx.lineTo(-5, -6);
+                    ctx.lineTo(-5, 6);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    ctx.restore();
                 }
             });
             
@@ -2596,6 +3598,11 @@
                 ctx.fillText('THE PAPER ABOMINATION', boss.x, boss.y - boss.radius - 34);
             }
             
+            // Flash during iframes
+            if (player.iframes > 0 && Math.floor(player.iframes * 20) % 2 === 0) {
+                ctx.globalAlpha = 0.3;
+            }
+            
             // Draw player
             if (gameState === 'playing' || gameState === 'shop') {
                 // Draw weapon(s) on doge (pointing toward mouse)
@@ -2657,30 +3664,7 @@
                     });
                 }
                 
-                // Visual additions (perks)
-                player.visualAdditions.forEach((addition, i) => {
-                    const angle = (i / player.visualAdditions.length) * Math.PI * 2;
-                    const dist = 25;
-                    const ax = player.x + Math.cos(angle) * dist;
-                    const ay = player.y + Math.sin(angle) * dist;
-                    
-                    if (addition.includes('diamond')) {
-                        ctx.fillStyle = '#00ffff';
-                        ctx.fillRect(ax - 8, ay - 8, 16, 16);
-                    } else if (addition.includes('rocket')) {
-                        ctx.fillStyle = '#ff6b6b';
-                        ctx.fillRect(ax - 5, ay - 10, 10, 20);
-                    } else if (addition.includes('aura')) {
-                        ctx.strokeStyle = '#ffd700';
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.arc(player.x, player.y, 35, 0, Math.PI * 2);
-                        ctx.stroke();
-                    } else {
-                        ctx.fillStyle = '#ffd700';
-                        ctx.fillRect(ax - 5, ay - 5, 10, 10);
-                    }
-                });
+                // Visual additions removed - perks shown in HUD
                 const x = player.x;
                 const y = player.y;
                 const r = player.radius;
@@ -2885,6 +3869,74 @@
 
 
             }
+            ctx.globalAlpha = 1;
+            
+            // Boss intro cinematic
+            if (gameState === 'bossIntro' && bossIntro) {
+                const progress = Math.min(1, bossIntro.timer / bossIntro.duration);
+                
+                // Pulsing arena border
+                const pulse = 0.5 + Math.sin(bossIntro.timer * 6) * 0.3;
+                ctx.strokeStyle = `rgba(139, 0, 0, ${pulse})`;
+                ctx.lineWidth = 4 + progress * 4;
+                ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+                
+                // Dark vignette closing in then opening
+                const vignetteAlpha = 0.4 * (1 - progress);
+                if (vignetteAlpha > 0.01) {
+                    const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, canvas.width * 0.7);
+                    grad.addColorStop(0, 'transparent');
+                    grad.addColorStop(1, `rgba(0, 0, 0, ${vignetteAlpha})`);
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                
+                // Text
+                const textAlpha = Math.min(1, bossIntro.timer * 2);
+                ctx.globalAlpha = textAlpha;
+                ctx.font = 'bold 36px Comic Neue';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText('THE ARENA EXPANDS...', canvas.width/2 + 2, canvas.height/2 - 40 + 2);
+                ctx.fillStyle = '#8b0000';
+                ctx.fillText('THE ARENA EXPANDS...', canvas.width/2, canvas.height/2 - 40);
+                
+                if (progress > 0.5) {
+                    const bossTextAlpha = (progress - 0.5) * 2;
+                    ctx.globalAlpha = bossTextAlpha;
+                    ctx.font = 'bold 52px Comic Neue';
+                    ctx.fillStyle = '#000';
+                    ctx.fillText('THE PAPER ABOMINATION', canvas.width/2 + 2, canvas.height/2 + 20 + 2);
+                    ctx.fillStyle = '#ff4444';
+                    ctx.fillText('THE PAPER ABOMINATION', canvas.width/2, canvas.height/2 + 20);
+                    
+                    ctx.font = 'bold 20px Comic Neue';
+                    ctx.fillStyle = '#ffb3b3';
+                    ctx.fillText('PREPARE YOURSELF', canvas.width/2, canvas.height/2 + 55);
+                }
+                ctx.globalAlpha = 1;
+            }
+            
+            // Wave clear banner
+            if (waveClearTimer && waveClearTimer > 0) {
+                const t = 1.5 - waveClearTimer;
+                const scale = Math.min(1, t * 4);
+                const alpha = waveClearTimer < 0.5 ? waveClearTimer * 2 : 1;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.font = `bold ${Math.round(48 * scale)}px Comic Neue`;
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText('WAVE CLEAR!', canvas.width / 2 + 2, canvas.height / 2 + 2);
+                ctx.fillStyle = '#ffd700';
+                ctx.fillText('WAVE CLEAR!', canvas.width / 2, canvas.height / 2);
+                ctx.font = 'bold 24px Comic Neue';
+                ctx.fillStyle = '#4ecdc4';
+                ctx.fillText(`+${coins} coins earned`, canvas.width / 2, canvas.height / 2 + 40);
+                ctx.restore();
+            }
+            
+            if (screenShake > 0) ctx.restore();
         }
         
         // Game loop
