@@ -776,6 +776,7 @@
             <div class="victory-stats">⚔️ <span id="victoryKills">0</span> enemies defeated</div>
             <div class="victory-stats">📈 Difficulty <span id="victoryDiff">1</span> cleared!</div>
             <div id="unlocksContainer"></div>
+            <div id="dogeTweet" style="display:none;margin:12px 0;max-width:400px;text-align:center;"></div>
             <div class="mutation-preview" id="mutationPreview"></div>
             <button onclick="startNewRun()">⚡ Difficulty <span id="nextDiff">2</span> — HODL HARDER</button>
         </div>
@@ -1081,12 +1082,13 @@
             rifle: { name: 'Very Rifle', damage: 38, fireRate: 3.5, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#4ecdc4', speed: 900, falloff: 0.75 },
             shotgun: { name: 'Wow Shotgun', damage: 18, fireRate: 1.5, range: 200, knockback: 3, explosive: 0, expSize: 0, pierce: 0, slow: 0, pellets: 4, spread: 0.2, color: '#ff6b6b' },
             minigun: { name: 'So Minigun', damage: 20, fireRate: 10, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, movePenalty: 0.5, color: '#95e1d3' },
-            launcher: { name: 'Moon Launcher', damage: 60, fireRate: 1, range: 400, knockback: 5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181', homing: 0.03, speed: 300, fireZone: true, fireZoneDuration: 2.5, fireZoneDPS: 20 },
-            piercer: { name: 'Diamond Piercer', damage: 45, fireRate: 2.5, range: 700, knockback: 0, explosive: 0, expSize: 0, pierce: 5, slow: 0, color: '#aa96da', speed: 300, accelerates: true, damageRamp: 15, spinRate: 12 },
+            launcher: { name: 'Amaze Rocket', damage: 60, fireRate: 1, range: 400, knockback: 5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181', homing: 0.03, speed: 300, fireZone: true, fireZoneDuration: 2.5, fireZoneDPS: 20 },
+            piercer: { name: 'Excite Piercer', damage: 45, fireRate: 2.5, range: 700, knockback: 0, explosive: 0, expSize: 0, pierce: 5, slow: 0, color: '#aa96da', speed: 300, accelerates: true, damageRamp: 15, spinRate: 12 },
             shredder: { name: 'Such Shuriken', damage: 12, fireRate: 11, range: 170, knockback: 0.2, explosive: 0, expSize: 0, pierce: 1, slow: 0.15, movePenalty: 0.05, color: '#d6dde8', spinRate: 25 },
             cannon: { name: 'HODL Cannon', damage: 100, fireRate: 0.8, range: 500, knockback: 15, explosive: 35, expSize: 50, pierce: 0, slow: 0, color: '#ffffd2', gravity: 400, speed: 400 },
-            cointoss: { name: 'Doge Coin Toss', damage: 120, fireRate: 5, range: 350, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0.3, bounce: 2, color: '#ffd700', speed: 450, spinRate: 15, arc: true },
-            moon: { name: 'To The Moon', damage: 250, fireRate: 0.3, range: 800, knockback: 8, explosive: 50, expSize: 140, pierce: 0, slow: 0, guided: true, color: '#ffffcc', speed: 150, homingStrength: 0.04, spinRate: 0 }
+            cointoss: { name: 'Doge Coin Toss', damage: 45, fireRate: 5, range: 350, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0.3, bounce: 2, color: '#ffd700', speed: 450, spinRate: 15, arc: true },
+            moon: { name: 'Moon Launcher', damage: 400, fireRate: 0.45, range: 800, knockback: 12, explosive: 70, expSize: 180, pierce: 0, slow: 0, guided: true, color: '#ffffcc', speed: 170, homingStrength: 0.05, spinRate: 0 },
+            boomerang: { name: 'Many Boomerang', damage: 55, fireRate: 1.8, range: 250, knockback: 1, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#e67e22', speed: 350, spinRate: 20, returns: true }
         };
         
         // Perks
@@ -1106,6 +1108,7 @@
             regen3: { name: 'Crypto Regen', rank: 3, stat: 'regen', value: 5.5, price: 100 },
             dodge3: { name: 'Crypto Dodge', rank: 3, stat: 'dodge', value: 0.2, price: 100 },
             bounce3: { name: 'Crypto Bounce', rank: 3, stat: 'projectileBounce', value: 2, price: 100 },
+            ricochet3: { name: 'Crypto Ricochet', rank: 3, stat: 'ricochet', value: 1, price: 120, desc: 'Bullets seek nearest enemy after hit' },
             
             health4: { name: 'Whale Health', rank: 4, stat: 'maxHealth', value: 150, price: 180 },
             speed4: { name: 'Whale Speed', rank: 4, stat: 'speed', value: 0.35, price: 180 },
@@ -1273,6 +1276,7 @@
             damage: 1,
             xpGain: 1,
             projectileBounce: 0,
+            ricochet: false,
             critChance: 0.05,
             critDamage: 1.5,
             turret: 0,
@@ -1578,12 +1582,20 @@
                     if (player.breed === 'black' && breeds.black.perk === 'hodlStrike') {
                         fireRate *= 0.9;
                     }
+                    // Minigun spin-up: starts at 30% fire rate, ramps to 100% over 1.2 seconds
+                    if (weapon.type === 'minigun') {
+                        weapon.spinUp = Math.min(1.0, (weapon.spinUp || 0) + dt / 1.2);
+                        fireRate *= (0.3 + 0.7 * weapon.spinUp);
+                    }
                     const fireInterval = 1000 / fireRate;
                     if (now - weapon.lastShot > fireInterval) {
                         shoot(weapon);
                         weapon.lastShot = now;
                     }
                 });
+            } else {
+                // Reset minigun spin-up when not shooting
+                player.weapons.forEach(w => { if (w.type === 'minigun') w.spinUp = 0; });
             }
             
             // Update projectiles
@@ -1656,6 +1668,33 @@
                 // Coin toss: slight arc/gravity
                 if (p.weaponType === 'cointoss') {
                     p.vy += 120 * dt;
+                }
+                
+                // Boomerang: slow down, stop, then fly back to player
+                if (p.weaponType === 'boomerang') {
+                    const halfRange = p.range * 0.5;
+                    if (!p.returning && p.distance > halfRange) {
+                        p.returning = true;
+                    }
+                    if (p.returning) {
+                        // Redirect toward player
+                        const toPlayerX = player.x - p.x;
+                        const toPlayerY = player.y - p.y;
+                        const toDist = Math.sqrt(toPlayerX * toPlayerX + toPlayerY * toPlayerY);
+                        if (toDist < 25) {
+                            p.pierce = -1; // despawn when caught
+                        } else {
+                            const retSpeed = 400;
+                            p.vx = (toPlayerX / toDist) * retSpeed;
+                            p.vy = (toPlayerY / toDist) * retSpeed;
+                            p.distance -= retSpeed * dt; // keep alive during return
+                        }
+                    } else {
+                        // Slow down as it flies out
+                        const decel = 0.97;
+                        p.vx *= decel;
+                        p.vy *= decel;
+                    }
                 }
                 
                 p.x += p.vx * dt;
@@ -1966,6 +2005,24 @@
                         // Piercer ramps damage on each pierce
                         if (p.weaponType === 'piercer' && p.damageRamp) {
                             p.damage += p.damageRamp;
+                        }
+                        
+                        // Ricochet perk: redirect projectile toward nearest OTHER enemy
+                        if (player.ricochet && p.pierce >= 0) {
+                            let rNearest = null;
+                            let rDist = 200;
+                            enemies.forEach(re => {
+                                if (re === enemy) return;
+                                const rd = Math.sqrt((re.x - p.x) ** 2 + (re.y - p.y) ** 2);
+                                if (rd < rDist) { rDist = rd; rNearest = re; }
+                            });
+                            if (rNearest) {
+                                const rAngle = Math.atan2(rNearest.y - p.y, rNearest.x - p.x);
+                                const rSpd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                                p.vx = Math.cos(rAngle) * rSpd;
+                                p.vy = Math.sin(rAngle) * rSpd;
+                                p.angle = rAngle;
+                            }
                         }
                         
                         if (p.pierce < 0) {
@@ -2620,7 +2677,9 @@
                     gravity: weapon.gravity || 0,
                     homing: weapon.homing || 0,
                     guided: weapon.guided || false,
-                    damageRamp: weapon.damageRamp || 0
+                    damageRamp: weapon.damageRamp || 0,
+                    returns: weapon.returns || false,
+                    returning: false
                 };
             };
             
@@ -3048,6 +3107,8 @@
                 player.xpGain += perk.value;
             } else if (perk.stat === 'projectileBounce') {
                 player.projectileBounce += perk.value;
+            } else if (perk.stat === 'ricochet') {
+                player.ricochet = true;
             } else if (perk.stat === 'turret') {
                 // Turret spawns handled separately in combat
             } else if (perk.stat === 'diamond') {
@@ -3231,6 +3292,19 @@
                 preview.style.display = 'none';
             }
             
+            // Generate doge meme tweet from weapon loadout
+            const dogeWords = player.weapons.map(w => w.name.split(' ')[0].toLowerCase());
+            const dogeTweet = dogeWords.join(' ');
+            const tweetDiv = document.getElementById('dogeTweet');
+            if (tweetDiv) {
+                tweetDiv.innerHTML = `
+                    <div style="color:#aaa;font-size:14px;margin-bottom:6px;">🐕 wow you beat the boss! here is your unique doge tweet:</div>
+                    <div style="color:#ffd700;font-size:24px;font-style:italic;padding:10px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:8px;letter-spacing:2px;">"${dogeTweet}"</div>
+                    <div style="color:#888;font-size:12px;margin-top:4px;">— doge wisdom, difficulty ${difficulty}</div>
+                `;
+                tweetDiv.style.display = 'block';
+            }
+            
             document.getElementById('victory').classList.add('visible');
         }
         
@@ -3300,6 +3374,7 @@
                 damage: 1,
                 xpGain: 1,
                 projectileBounce: 0,
+                ricochet: false,
                 critChance: 0.05,
                 critDamage: 1.5,
                 turret: 0,
@@ -3725,6 +3800,36 @@
                     ctx.fill();
                     ctx.restore();
                     
+                } else if (p.weaponType === 'boomerang') {
+                    // Spinning boomerang — curved wooden shape
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.spin || 0);
+                    // Boomerang body (curved V shape)
+                    ctx.strokeStyle = '#8B4513';
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(-10, 4);
+                    ctx.quadraticCurveTo(0, -8, 10, -2);
+                    ctx.stroke();
+                    // Wood grain highlight
+                    ctx.strokeStyle = '#D2691E';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-8, 3);
+                    ctx.quadraticCurveTo(0, -5, 8, -1);
+                    ctx.stroke();
+                    // Return indicator when coming back
+                    if (p.returning) {
+                        ctx.strokeStyle = 'rgba(230, 126, 34, 0.5)';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 12, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                    
                 } else if (p.weaponType === 'rifle') {
                     // Cyan energy bolt - elongated
                     ctx.save();
@@ -3750,22 +3855,45 @@
                     ctx.restore();
                     
                 } else if (p.weaponType === 'pistol') {
-                    // Small brass bullet
+                    // Proper bullet casing + tip
                     ctx.save();
                     ctx.translate(p.x, p.y);
                     ctx.rotate(angle);
-                    // Trail flash
-                    ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
-                    ctx.fillRect(-12, -1.5, 8, 3);
-                    // Bullet
-                    ctx.fillStyle = '#ffd700';
+                    // Muzzle flash trail (fades quickly)
+                    const flashAge = Math.min(1, (p.age || 0) * 8);
+                    if (flashAge < 1) {
+                        ctx.fillStyle = `rgba(255, 200, 50, ${0.4 * (1 - flashAge)})`;
+                        ctx.beginPath();
+                        ctx.moveTo(-8, -3);
+                        ctx.lineTo(-14 - (1 - flashAge) * 6, 0);
+                        ctx.lineTo(-8, 3);
+                        ctx.fill();
+                    }
+                    // Brass casing (back half)
+                    ctx.fillStyle = '#c5a33e';
                     ctx.beginPath();
-                    ctx.ellipse(0, 0, 6, 2.5, 0, 0, Math.PI * 2);
+                    ctx.moveTo(-6, -2.5);
+                    ctx.lineTo(0, -2.5);
+                    ctx.lineTo(0, 2.5);
+                    ctx.lineTo(-6, 2.5);
+                    ctx.closePath();
                     ctx.fill();
-                    // Bright tip
-                    ctx.fillStyle = '#fff';
+                    // Flat base of casing
+                    ctx.fillStyle = '#9e832e';
+                    ctx.fillRect(-6.5, -2.5, 1.5, 5);
+                    // Copper/lead tip (front half — pointed)
+                    ctx.fillStyle = '#d4885e';
                     ctx.beginPath();
-                    ctx.arc(4, 0, 1.5, 0, Math.PI * 2);
+                    ctx.moveTo(0, -2.2);
+                    ctx.lineTo(7, -0.8);
+                    ctx.quadraticCurveTo(9, 0, 7, 0.8);
+                    ctx.lineTo(0, 2.2);
+                    ctx.closePath();
+                    ctx.fill();
+                    // Specular highlight on tip
+                    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                    ctx.beginPath();
+                    ctx.ellipse(3, -0.8, 3, 0.8, 0, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
                     
