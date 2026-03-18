@@ -611,6 +611,7 @@
             <h1>⏸️ PAUSED</h1>
             <p>Press ESC to resume</p>
             <div id="pauseBuildInfo" style="margin:15px 0;padding:15px;background:rgba(0,0,0,0.5);border-radius:10px;border:2px solid #ffd700;max-width:400px;text-align:left;font-size:14px;color:#ddd;"></div>
+            <button onclick="togglePause()" style="background:#ffd700;color:#000;border:none;padding:15px 40px;border-radius:8px;font-size:20px;font-weight:bold;cursor:pointer;margin-bottom:10px;">▶️ Resume</button>
             <button id="soundToggle" onclick="toggleSound()">🔊 Sound: ON</button>
         </div>
         
@@ -958,6 +959,139 @@
             apex5: { name: '🔥 APEX HODLER 🔥', rank: 5, stat: 'apex', value: 1, price: 650, desc: '+220 HP, +40% damage, +20% speed, +2.5 regen, +35% magnet' }
         };
         
+        
+        // =====================================================
+        // MATHEMATICAL PROGRESSION ENGINE
+        // =====================================================
+        
+        const PHI = 1.618033988749895; // Golden ratio
+        
+        // Sigmoid function: S-curve from 0 to 1
+        function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+        
+        // Sigmoid derivative: bell curve (peaks at x=0)
+        function sigmoidBell(x) { const s = sigmoid(x); return s * (1 - s); }
+        
+        // Logistic map: x_next = r * x * (1 - x)
+        // r < 3: stable, r > 3.57: chaos
+        function logisticMap(x, r) { return r * x * (1 - x); }
+        
+        // Harmonic diminishing returns: base / (1 + count)
+        // 1st purchase: full value, 2nd: half, 3rd: third...
+        function harmonicValue(baseValue, purchaseCount) {
+            return baseValue / (1 + purchaseCount);
+        }
+        
+        // Golden ratio cost scaling: base * PHI^count
+        function goldenCost(baseCost, purchaseCount) {
+            return Math.round(baseCost * Math.pow(PHI, purchaseCount));
+        }
+        
+        // Prime factorization — returns {prime: power} map
+        function primeFactorize(n) {
+            const factors = {};
+            if (n < 2) return factors;
+            for (let d = 2; d * d <= n; d++) {
+                while (n % d === 0) {
+                    factors[d] = (factors[d] || 0) + 1;
+                    n /= d;
+                }
+            }
+            if (n > 1) factors[n] = (factors[n] || 0) + 1;
+            return factors;
+        }
+        
+        // Spawn timing bell curve: few → burst → few
+        // t = 0..1 (progress through wave), returns spawn rate multiplier 0..1
+        function spawnBellCurve(t) {
+            const x = (t - 0.5) * 12; // map 0..1 to -6..+6
+            return sigmoidBell(x) * 4; // normalize peak to ~1
+        }
+        
+        // =====================================================
+        // MUTATION SYSTEM (Prime Factorization)
+        // =====================================================
+        
+        const mutationDefs = {
+            2:  { name: '🐀 Swarm',       desc: '+25% enemy count',          color: '#ff6b6b',
+                  apply: (power) => ({ spawnMult: 1 + 0.25 * power }) },
+            3:  { name: '🛡️ Armored',     desc: 'Enemies take less damage',  color: '#4ecdc4',
+                  apply: (power) => ({ damageReduction: 0.12 * power }) },
+            5:  { name: '💥 Volatile',     desc: 'Death zones on kill',       color: '#ffa500',
+                  apply: (power) => ({ deathZone: true, deathZoneRadius: 30 + 10 * power, deathZoneDamage: 8 * power }) },
+            7:  { name: '🐺 Pack Hunter',  desc: 'Group damage bonus',        color: '#9b59b6',
+                  apply: (power) => ({ packBonus: 0.15 * power }) },
+            11: { name: '♻️ Regenerating', desc: 'Enemies regen HP',          color: '#2ecc71',
+                  apply: (power) => ({ enemyRegen: 3 * power }) },
+            13: { name: '👻 Phasing',      desc: 'Enemies blink',             color: '#3498db',
+                  apply: (power) => ({ phaseChance: 0.008 * power }) },
+        };
+        
+        let activeMutations = []; // [{prime, power, name, desc, color, effects}]
+        
+        function calculateMutations(diff) {
+            if (diff < 2) return [];
+            const factors = primeFactorize(diff);
+            const mutations = [];
+            for (const [prime, power] of Object.entries(factors)) {
+                const p = parseInt(prime);
+                if (mutationDefs[p]) {
+                    const def = mutationDefs[p];
+                    mutations.push({
+                        prime: p,
+                        power: power,
+                        name: def.name,
+                        desc: def.desc + (power > 1 ? ` (x${power})` : ''),
+                        color: def.color,
+                        effects: def.apply(power)
+                    });
+                }
+            }
+            return mutations;
+        }
+        
+        // Get combined mutation effects as a single object
+        function getMutationEffects() {
+            const combined = { spawnMult: 1, damageReduction: 0, deathZone: false,
+                deathZoneRadius: 0, deathZoneDamage: 0, packBonus: 0,
+                enemyRegen: 0, phaseChance: 0 };
+            activeMutations.forEach(m => {
+                const e = m.effects;
+                if (e.spawnMult) combined.spawnMult *= e.spawnMult;
+                if (e.damageReduction) combined.damageReduction += e.damageReduction;
+                if (e.deathZone) { combined.deathZone = true; combined.deathZoneRadius = Math.max(combined.deathZoneRadius, e.deathZoneRadius); combined.deathZoneDamage += e.deathZoneDamage; }
+                if (e.packBonus) combined.packBonus += e.packBonus;
+                if (e.enemyRegen) combined.enemyRegen += e.enemyRegen;
+                if (e.phaseChance) combined.phaseChance += e.phaseChance;
+            });
+            combined.damageReduction = Math.min(0.65, combined.damageReduction); // hard cap 65%
+            return combined;
+        }
+        
+        // =====================================================
+        // REPEATABLE PERKS (Golden Ratio + Harmonic Series)
+        // =====================================================
+        
+        const repeatablePerks = {
+            stackHealth:  { name: '💪 Bulk Up',       stat: 'maxHealth', baseValue: 30, basePrice: 80,  icon: '❤️' },
+            stackDamage:  { name: '⚔️ Sharpen',       stat: 'damage',    baseValue: 0.08, basePrice: 100, icon: '⚔️' },
+            stackSpeed:   { name: '💨 Quicken',       stat: 'speed',     baseValue: 0.06, basePrice: 70,  icon: '💨' },
+            stackRegen:   { name: '🩹 Mend',          stat: 'regen',     baseValue: 1.5,  basePrice: 90,  icon: '🩹' },
+            stackDodge:   { name: '🌀 Sidestep',      stat: 'dodge',     baseValue: 0.04, basePrice: 85,  icon: '🌀' },
+            stackMagnet:  { name: '🧲 Magnetize',     stat: 'magnet',    baseValue: 0.15, basePrice: 60,  icon: '🧲' },
+        };
+        
+        let repeatablePerkCounts = {}; // tracks how many times each has been bought
+        
+        function resetRepeatablePerkCounts() {
+            repeatablePerkCounts = {};
+            Object.keys(repeatablePerks).forEach(k => repeatablePerkCounts[k] = 0);
+        }
+        resetRepeatablePerkCounts();
+        
+        // Spawn chaos state (logistic map seed)
+        let chaosX = 0.4; // initial seed for logistic map
+
         // Unlocks
         let unlockedWeapons = ['pistol', 'rifle', 'shotgun', 'cointoss'];
         let unlockedBreeds = ['yellow', 'black', 'grey', 'red', 'purple'];
@@ -1046,6 +1180,9 @@
                 updatePerkDisplay();
             }
             
+            // Calculate active mutations for this difficulty
+            activeMutations = calculateMutations(difficulty);
+            
             document.getElementById('breedSelect').style.display = 'none';
             startWave();
         }
@@ -1074,8 +1211,11 @@
                 // Normal wave
                 waveDuration = 30 + (currentWave * 10);
                 waveTimer = waveDuration;
-                enemiesToSpawn = 10 + (currentWave * 8);
+                const baseEnemies = 10 + (currentWave * 8);
+                const mutEffects = getMutationEffects();
+                enemiesToSpawn = Math.round(baseEnemies * mutEffects.spawnMult);
                 spawnTimer = 0;
+                chaosX = 0.4; // reset chaos seed each wave for consistency
             }
             
             updateUI();
@@ -1128,10 +1268,10 @@
             const enemy = {
                 x, y,
                 radius: type === 'elite' ? 25 : (type === 'explosive' ? 24 : (type === 'tank' ? 34 : (type === 'splitter' ? 22 : 20))),
-                speed: (100 + currentWave * 10) * (type === 'fomo' ? 0.7 : (type === 'explosive' ? 0.72 : (type === 'tank' ? 0.4 : (type === 'splitter' ? 0.92 : 1)))),
+                speed: (100 + currentWave * 10) * (type === 'fomo' ? 0.7 : (type === 'explosive' ? 0.72 : (type === 'tank' ? 0.4 : (type === 'splitter' ? 0.92 : 1)))) * (1 + Math.log(difficulty) * 0.08),
                 health: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 7.0 : (type === 'splitter' ? 1.8 : 1))),
                 maxHealth: (20 + currentWave * 15) * difficulty * (type === 'elite' ? 3 : (type === 'tank' ? 7.0 : (type === 'splitter' ? 1.8 : 1))),
-                damage: (10 + currentWave * 2) * (type === 'tank' ? 1.6 : 1),
+                damage: (10 + currentWave * 2) * (type === 'tank' ? 1.6 : 1) * (1 + Math.log(difficulty) * 0.12),
                 knockbackResist: type === 'tank' ? 0.8 : 0,
                 type: type,
                 slowTimer: 0,
@@ -1141,8 +1281,17 @@
                 ramDash: 0,
                 ramCooldown: 0,
                 ramDirX: 0,
-                ramDirY: 0
+                ramDirY: 0,
+                damageReduction: 0,
+                regenRate: 0,
+                phaseTimer: 0
             };
+            
+            // Apply active mutations to this enemy
+            const me = getMutationEffects();
+            enemy.damageReduction = me.damageReduction;
+            enemy.regenRate = me.enemyRegen;
+            if (me.phaseChance > 0) enemy.phaseTimer = 2 + Math.random() * 5;
             
             enemies.push(enemy);
         }
@@ -1385,6 +1534,42 @@
                     enemy.slowTimer -= dt;
                 }
                 
+                // Mutation: Enemy regen
+                if (enemy.regenRate > 0) {
+                    enemy.health = Math.min(enemy.maxHealth, enemy.health + enemy.regenRate * dt);
+                }
+                
+                // Mutation: Phasing (occasional short-range teleport)
+                if (enemy.phaseTimer !== undefined && enemy.phaseTimer > 0) {
+                    enemy.phaseTimer -= dt;
+                    if (enemy.phaseTimer <= 0) {
+                        const phaseAngle = Math.random() * Math.PI * 2;
+                        const phaseDist = 40 + Math.random() * 60;
+                        enemy.x += Math.cos(phaseAngle) * phaseDist;
+                        enemy.y += Math.sin(phaseAngle) * phaseDist;
+                        // Keep in bounds
+                        enemy.x = Math.max(0, Math.min(ARENA_WIDTH, enemy.x));
+                        enemy.y = Math.max(0, Math.min(ARENA_HEIGHT, enemy.y));
+                        enemy.phaseTimer = 3 + Math.random() * 5;
+                    }
+                }
+                
+                // Mutation: Pack Hunter (damage bonus when near allies)
+                const mutFx = getMutationEffects();
+                if (mutFx.packBonus > 0) {
+                    let nearbyCount = 0;
+                    for (const other of enemies) {
+                        if (other === enemy) continue;
+                        const packDx = other.x - enemy.x;
+                        const packDy = other.y - enemy.y;
+                        if (packDx * packDx + packDy * packDy < 10000) nearbyCount++; // within 100px
+                        if (nearbyCount >= 3) break;
+                    }
+                    enemy._packMult = 1 + Math.min(nearbyCount, 3) * mutFx.packBonus;
+                } else {
+                    enemy._packMult = 1;
+                }
+                
                 const isRanged = enemy.type === 'fomo';
                 const isExplosive = enemy.type === 'explosive';
                 const meleeRange = player.radius + enemy.radius + 6;
@@ -1468,6 +1653,22 @@
                     }
                 }
                 
+                // Push enemies out if they clip inside the player
+                const minDist = player.radius + enemy.radius;
+                if (dist < minDist && !isRanged && !(isExplosive && enemy.ramState === 'dash')) {
+                    const pushDist = minDist - dist;
+                    const pushStr = Math.min(pushDist, 200 * dt);
+                    enemy.x -= ex * pushStr;
+                    enemy.y -= ey * pushStr;
+                }
+
+                // Knockback on melee contact — enemies bounce off after hitting
+                if (!isRanged && !isExplosive && dist <= meleeRange + 2 && enemy.attackTimer <= 0.05 && enemy.attackTimer > -0.5) {
+                    const kbStr = 60;
+                    enemy.x -= ex * kbStr * dt;
+                    enemy.y -= ey * kbStr * dt;
+                }
+
                 // Enemy attacks (melee or ranged)
                 enemy.attackTimer -= dt;
                 if (isRanged) {
@@ -1486,7 +1687,7 @@
                 } else if (!isExplosive && dist <= meleeRange && enemy.attackTimer <= 0) {
                     // Doge Reflex dodge check still applies for Grey Doge.
                     if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
-                        const meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1);
+                        const meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1) * (enemy._packMult || 1);
                         player.health -= meleeDamage;
                         player.iframes = 0.4;
                         playSound('hurt');
@@ -1508,6 +1709,9 @@
                     if (pdist < enemy.radius + p.radius) {
                         // Hit
                         let damage = p.damage * player.damage;
+                        
+                        // Armored mutation: damage reduction
+                        if (enemy.damageReduction > 0) damage *= (1 - enemy.damageReduction);
                         
                         // Crit check (luck boosts crit chance)
                         const effectiveCritChance = Math.min(0.6, player.critChance + Math.max(0, player.luck - 1) * 0.02);
@@ -1648,6 +1852,19 @@
                                 ramDirY: 0
                             });
                         }
+                    }
+                    
+                    // Volatile mutation: create death zone where enemy died
+                    const deathMut = getMutationEffects();
+                    if (deathMut.deathZone && enemy.type !== 'splitterling') {
+                        fireZones.push({
+                            x: enemy.x, y: enemy.y,
+                            radius: deathMut.deathZoneRadius,
+                            dps: deathMut.deathZoneDamage * 3,
+                            life: 2.0,
+                            duration: 2.0,
+                            hitsPlayer: true
+                        });
                     }
                     
                     // Drop coins (harder enemies = more reward)
@@ -1819,6 +2036,14 @@
                         e.health -= z.dps * dt;
                     }
                 });
+                // Volatile mutation: fire zones that hit the player
+                if (z.hitsPlayer && player.iframes <= 0) {
+                    const pd = Math.sqrt((player.x - z.x) * (player.x - z.x) + (player.y - z.y) * (player.y - z.y));
+                    if (pd < z.radius + player.radius) {
+                        player.health -= z.dps * 0.5 * dt;
+                        if (player.health <= 0) gameOver();
+                    }
+                }
                 return z.life > 0;
             });
             
@@ -1838,13 +2063,26 @@
                 waveTimer -= dt;
                 spawnTimer -= dt;
                 
-                if (spawnTimer <= 0 && enemiesToSpawn > 0) {
-                    const spawnCount = Math.min(3, enemiesToSpawn);
-                    for (let i = 0; i < spawnCount; i++) {
-                        spawnEnemy();
-                    }
-                    enemiesToSpawn -= spawnCount;
-                    spawnTimer = 2;
+            if (spawnTimer <= 0 && enemiesToSpawn > 0) {
+                        // Sigmoid bell curve spawn timing: few → burst → few
+                        const totalEnemies = 10 + (currentWave * 8);
+                        const spawnProgress = 1 - (enemiesToSpawn / Math.max(1, totalEnemies));
+                        const bellRate = spawnBellCurve(spawnProgress);
+                        
+                        // Logistic map chaos: predictable at low diff, chaotic at high
+                        const chaosR = Math.min(3.95, 2.5 + difficulty * 0.18);
+                        chaosX = logisticMap(Math.max(0.01, Math.min(0.99, chaosX)), chaosR);
+                        const chaosFactor = 0.6 + chaosX * 0.8; // range 0.6 to 1.4
+                        
+                        // Spawn count varies with bell curve (1 at edges, up to 5 at peak)
+                        const spawnCount = Math.min(enemiesToSpawn, Math.max(1, Math.round(1 + bellRate * 4 * chaosFactor)));
+                        for (let i = 0; i < spawnCount; i++) {
+                            spawnEnemy();
+                        }
+                        enemiesToSpawn -= spawnCount;
+                        // Interval: long at edges (3s), short at peak (0.6s), chaos-perturbed
+                        const baseInterval = Math.max(0.6, 3.0 - bellRate * 2.4);
+                        spawnTimer = baseInterval * chaosFactor;
                 }
                 
                 if (enemies.length === 0 && enemiesToSpawn === 0) {
@@ -2291,7 +2529,34 @@
                     !selectedPerkKeys.has(key) &&
                     !selectedPerkStats.has(perk.stat)
                 );
-                if (candidates.length === 0) break;
+                
+                // If no unique perks left, offer repeatable perks (Golden Ratio + Harmonic Series)
+                if (candidates.length === 0) {
+                    const repKeys = Object.keys(repeatablePerks).filter(k => !selectedPerkKeys.has(k));
+                    if (repKeys.length === 0) break;
+                    const repKey = repKeys[Math.floor(Math.random() * repKeys.length)];
+                    const rep = repeatablePerks[repKey];
+                    const count = repeatablePerkCounts[repKey] || 0;
+                    const price = goldenCost(rep.basePrice, count);
+                    const value = harmonicValue(rep.baseValue, count);
+                    const displayValue = rep.stat === 'maxHealth' ? `+${Math.round(value)}` :
+                        rep.stat === 'damage' ? `+${Math.round(value * 100)}%` :
+                        rep.stat === 'speed' ? `+${Math.round(value * 100)}%` :
+                        rep.stat === 'regen' ? `+${value.toFixed(1)}/s` :
+                        rep.stat === 'dodge' ? `+${Math.round(value * 100)}%` :
+                        `+${Math.round(value * 100)}%`;
+                    selectedPerkKeys.add(repKey);
+                    nextPerkOffers[i] = {
+                        key: repKey,
+                        perk: { name: `${rep.icon} ${rep.name} ${count > 0 ? 'x' + (count + 1) : ''}`,
+                                rank: 6, stat: rep.stat, value: value, price: price,
+                                desc: `${displayValue} ${rep.stat} (∞ repeatable)`,
+                                repeatable: true },
+                        price: Math.round(price * (shopIsLucky ? 0.9 : 1)),
+                        sold: false
+                    };
+                    continue;
+                }
                 
                 const picked = chooseWeighted(candidates, ([, perk]) => {
                     let weight = 1;
@@ -2590,7 +2855,12 @@
             // Apply perk
             applyPerk(perk);
             
-            ownedPerkKeys.add(key);
+            // Repeatable perks: track count, DON'T add to ownedPerkKeys (so they reappear)
+            if (perk.repeatable) {
+                repeatablePerkCounts[key] = (repeatablePerkCounts[key] || 0) + 1;
+            } else {
+                ownedPerkKeys.add(key);
+            }
             player.perks.push(perk);
             offer.sold = true;
             lockedPerkSlots.delete(slotIndex);
@@ -2729,10 +2999,12 @@
             document.getElementById('victory').classList.remove('visible');
             difficulty++;
             if (difficulty > highestDifficulty) highestDifficulty = difficulty;
-            // Carry perks to next difficulty
+            // Carry perks and repeatable perk counts to next difficulty
             carryoverPerks = [...player.perks];
             carryoverPerkKeys = new Set(ownedPerkKeys);
+            const savedRepeatCounts = {...repeatablePerkCounts};
             resetGame();
+            repeatablePerkCounts = savedRepeatCounts;
             document.getElementById('breedSelect').style.display = 'flex';
         }
         
@@ -2762,6 +3034,8 @@
             lockedPerkSlots.clear();
             ownedPerkKeys = new Set();
             highRankPityCounter = 0;
+            activeMutations = [];
+            resetRepeatablePerkCounts();
             
             player = {
                 x: ARENA_WIDTH / 2,
@@ -2805,6 +3079,23 @@
             document.getElementById('killText').textContent = kills;
             document.getElementById('waveText').textContent = currentWave;
             document.getElementById('diffText').textContent = difficulty;
+            
+            // Show active mutations in HUD
+            let mutDiv = document.getElementById('mutationHud');
+            if (!mutDiv) {
+                mutDiv = document.createElement('div');
+                mutDiv.id = 'mutationHud';
+                mutDiv.style.cssText = 'position:absolute;top:8px;right:8px;text-align:right;font-size:12px;pointer-events:none;z-index:50;';
+                document.getElementById('gameContainer').appendChild(mutDiv);
+            }
+            if (activeMutations.length > 0) {
+                mutDiv.innerHTML = activeMutations.map(m =>
+                    `<div style="color:${m.color};margin-bottom:2px;text-shadow:1px 1px 2px #000;">${m.name}${m.power > 1 ? ' x' + m.power : ''}</div>`
+                ).join('');
+                mutDiv.style.display = 'block';
+            } else {
+                mutDiv.style.display = 'none';
+            }
         }
 
 
