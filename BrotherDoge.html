@@ -922,6 +922,15 @@
                     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
                     osc.start(t); osc.stop(t + 0.15);
                     break;
+                case 'dodge':
+                    // Quick ascending "whoosh" — bright and satisfying
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, t);
+                    osc.frequency.exponentialRampToValueAtTime(1200, t + 0.08);
+                    gain.gain.setValueAtTime(0.06, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                    osc.start(t); osc.stop(t + 0.12);
+                    break;
                 case 'waveComplete':
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(500, t);
@@ -1174,10 +1183,12 @@
         function waveSpawnCurve(t, waveNum) {
             const n = Math.max(1, waveNum);
             // |sin(n * π * t)| gives exactly n humps over t=0..1
-            // Raise to power 0.7 to widen the peaks slightly (more fun time, less dead time)
-            const raw = Math.pow(Math.abs(Math.sin(n * Math.PI * t)), 0.7);
-            // Add a small floor so there's always a trickle (1-2 enemies) in valleys
-            const floor = 0.08;
+            const sinVal = Math.abs(Math.sin(n * Math.PI * t));
+            // Raise to power 3 to make peaks SHARP and valleys WIDE
+            // This creates distinct burst → long pause → burst rhythm
+            const raw = Math.pow(sinVal, 3);
+            // Tiny floor so valleys trickle 1 enemy occasionally
+            const floor = 0.05;
             return floor + raw * (1 - floor);
         }
         
@@ -1729,6 +1740,10 @@
             // Update enemies
             let pendingSpawns = [];
             enemies = enemies.filter(enemy => {
+                // Reset per-frame knockback cap (prevents multi-pellet stacking)
+                enemy._frameKB = 0;
+                enemy._frameKBx = 0;
+                enemy._frameKBy = 0;
                 // Movement
                 let ex = player.x - enemy.x;
                 let ey = player.y - enemy.y;
@@ -1894,13 +1909,21 @@
                         enemy.attackTimer = Math.max(0.6, 1.4 - currentWave * 0.04);
                     }
                 } else if (!isExplosive && dist <= meleeRange && enemy.attackTimer <= 0) {
-                    // Doge Reflex dodge check still applies for Grey Doge.
-                    if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
-                        const meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1) * (enemy._packMult || 1);
-                        player.health -= meleeDamage;
-                        player.iframes = 0.4;
-                        playSound('hurt');
-                        if (player.health <= 0) gameOver();
+                    // Dodge check: player.dodge stat + Grey Doge's innate 20% Doge Reflex
+                    const dodgeChance = player.dodge + (player.breed === 'grey' ? 0.2 : 0);
+                    if (player.iframes <= 0) {
+                        if (Math.random() < dodgeChance) {
+                            // DODGED! Show visual feedback
+                            spawnDamageText(player.x, player.y - 20, 'DODGE!', '#00ffff', false);
+                            playSound('dodge');
+                            player.iframes = 0.2; // brief i-frames after dodge too
+                        } else {
+                            const meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1) * (enemy._packMult || 1);
+                            player.health -= meleeDamage;
+                            player.iframes = 0.4;
+                            playSound('hurt');
+                            if (player.health <= 0) gameOver();
+                        }
                     }
                     // Splitter self-destructs on contact, triggering the split
                     if (enemy.type === 'splitter') {
@@ -1995,10 +2018,24 @@
                         }
                         
                         // Knockback (always pushes enemies back from YOUR weapons)
+                        // Cap per-frame: only the strongest hit applies (prevents shotgun pellet stacking)
                         if (p.knockback > 0) {
                             const kbMult = 1 - (enemy.knockbackResist || 0);
-                            enemy.x += p.vx * p.knockback * 0.1 * kbMult;
-                            enemy.y += p.vy * p.knockback * 0.1 * kbMult;
+                            const kbX = p.vx * p.knockback * 0.1 * kbMult;
+                            const kbY = p.vy * p.knockback * 0.1 * kbMult;
+                            const kbStrength = Math.sqrt(kbX * kbX + kbY * kbY);
+                            if (!enemy._frameKB || kbStrength > enemy._frameKB) {
+                                // Undo previous weaker knockback, apply stronger one
+                                if (enemy._frameKB) {
+                                    enemy.x -= enemy._frameKBx;
+                                    enemy.y -= enemy._frameKBy;
+                                }
+                                enemy.x += kbX;
+                                enemy.y += kbY;
+                                enemy._frameKB = kbStrength;
+                                enemy._frameKBx = kbX;
+                                enemy._frameKBy = kbY;
+                            }
                         }
                         
                         // Slow
@@ -2146,11 +2183,19 @@
                 const dy = p.y - player.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist < player.radius + p.radius) {
-                    // Doge Reflex can dodge projectile hits too.
-                    if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
-                        player.health -= p.damage;
-                        player.iframes = 0.3;
-                        if (player.health <= 0) gameOver();
+                    // Dodge check: player.dodge stat + Grey Doge's innate 20% Doge Reflex
+                    const dodgeChance = player.dodge + (player.breed === 'grey' ? 0.2 : 0);
+                    if (player.iframes <= 0) {
+                        if (Math.random() < dodgeChance) {
+                            spawnDamageText(player.x, player.y - 20, 'DODGE!', '#00ffff', false);
+                            playSound('dodge');
+                            player.iframes = 0.2;
+                        } else {
+                            player.health -= p.damage;
+                            player.iframes = 0.3;
+                            playSound('hurt');
+                            if (player.health <= 0) gameOver();
+                        }
                     }
                     return false;
                 }
@@ -2629,15 +2674,16 @@
         
         // Spawn floating damage number
         function spawnDamageText(x, y, amount, color, isCrit) {
+            const isText = typeof amount === 'string';
             damageTexts.push({
                 x: x + (Math.random() - 0.5) * 20,
                 y: y - 10,
-                amount: Math.round(amount),
+                amount: isText ? amount : Math.round(amount),
                 color: color || '#fff',
-                isCrit: isCrit || false,
-                life: isCrit ? 1.0 : 0.8,
-                maxLife: isCrit ? 1.0 : 0.8,
-                vy: isCrit ? -80 : -60
+                isCrit: isCrit || isText, // text labels get the bigger treatment
+                life: (isCrit || isText) ? 1.0 : 0.8,
+                maxLife: (isCrit || isText) ? 1.0 : 0.8,
+                vy: (isCrit || isText) ? -80 : -60
             });
         }
         
@@ -3572,7 +3618,8 @@
                 const alpha = d.life / d.maxLife;
                 const baseSize = d.isCrit ? 22 : 14;
                 const size = baseSize + (1 - alpha) * 6;
-                const text = d.isCrit ? `CRIT ${d.amount}` : `${d.amount}`;
+                const isLabel = typeof d.amount === 'string';
+                const text = isLabel ? d.amount : (d.isCrit ? `CRIT ${d.amount}` : `${d.amount}`);
                 ctx.globalAlpha = alpha;
                 ctx.font = `bold ${Math.round(size)}px Comic Neue`;
                 ctx.textAlign = 'center';
