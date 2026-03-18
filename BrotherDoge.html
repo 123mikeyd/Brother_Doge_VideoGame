@@ -1165,11 +1165,20 @@
             return factors;
         }
         
-        // Spawn timing bell curve: few → burst → few
-        // t = 0..1 (progress through wave), returns spawn rate multiplier 0..1
-        function spawnBellCurve(t) {
-            const x = (t - 0.5) * 12; // map 0..1 to -6..+6
-            return sigmoidBell(x) * 4; // normalize peak to ~1
+        // Wave function spawn curve: wave N gets N humps
+        // t = 0..1 (progress through wave), waveNum = current wave number
+        // Returns spawn rate multiplier 0..1
+        // Wave 1: one big hump (classic bell curve feel)
+        // Wave 2: two humps with a valley in between
+        // Wave 5: five surges with breather moments between them
+        function waveSpawnCurve(t, waveNum) {
+            const n = Math.max(1, waveNum);
+            // |sin(n * π * t)| gives exactly n humps over t=0..1
+            // Raise to power 0.7 to widen the peaks slightly (more fun time, less dead time)
+            const raw = Math.pow(Math.abs(Math.sin(n * Math.PI * t)), 0.7);
+            // Add a small floor so there's always a trickle (1-2 enemies) in valleys
+            const floor = 0.08;
+            return floor + raw * (1 - floor);
         }
         
         // =====================================================
@@ -2282,24 +2291,23 @@
                 spawnTimer -= dt;
                 
             if (spawnTimer <= 0 && enemiesToSpawn > 0) {
-                        // Sigmoid bell curve spawn timing: few → burst → few
-                        const totalEnemies = 10 + (currentWave * 8);
-                        const spawnProgress = 1 - (enemiesToSpawn / Math.max(1, totalEnemies));
-                        const bellRate = spawnBellCurve(spawnProgress);
+                        // Wave function spawn curve: wave N gets N surges
+                        const spawnProgress = 1 - (waveTimer / Math.max(1, waveDuration));
+                        const waveRate = waveSpawnCurve(spawnProgress, currentWave);
                         
                         // Logistic map chaos: predictable at low diff, chaotic at high
                         const chaosR = Math.min(3.95, 2.5 + difficulty * 0.18);
                         chaosX = logisticMap(Math.max(0.01, Math.min(0.99, chaosX)), chaosR);
                         const chaosFactor = 0.6 + chaosX * 0.8; // range 0.6 to 1.4
                         
-                        // Spawn count varies with bell curve (1 at edges, up to 5 at peak)
-                        const spawnCount = Math.min(enemiesToSpawn, Math.max(1, Math.round(1 + bellRate * 4 * chaosFactor)));
+                        // Spawn count: 1 in valleys, up to 5 at surge peaks
+                        const spawnCount = Math.min(enemiesToSpawn, Math.max(1, Math.round(1 + waveRate * 4 * chaosFactor)));
                         for (let i = 0; i < spawnCount; i++) {
                             spawnEnemy();
                         }
                         enemiesToSpawn -= spawnCount;
-                        // Interval: long at edges (3s), short at peak (0.6s), chaos-perturbed
-                        const baseInterval = Math.max(0.6, 3.0 - bellRate * 2.4);
+                        // Interval: long in valleys (3s), short at peaks (0.5s), chaos-perturbed
+                        const baseInterval = Math.max(0.5, 3.0 - waveRate * 2.5);
                         spawnTimer = baseInterval * chaosFactor;
                 }
                 
