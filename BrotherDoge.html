@@ -358,13 +358,30 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: radial-gradient(ellipse at center, rgba(60,0,0,0.95) 0%, rgba(0,0,0,0.98) 70%);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: #ff6b6b;
             pointer-events: all;
+            animation: deathFadeIn 0.8s ease-out;
+        }
+        
+        @keyframes deathFadeIn {
+            0% { opacity: 0; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes deathPulse {
+            0%, 100% { text-shadow: 0 0 20px rgba(180,0,0,0.8), 0 0 40px rgba(120,0,0,0.4), 0 4px 8px rgba(0,0,0,0.9); }
+            50% { text-shadow: 0 0 30px rgba(200,0,0,1), 0 0 60px rgba(150,0,0,0.6), 0 4px 8px rgba(0,0,0,0.9); }
+        }
+        
+        @keyframes drip {
+            0% { transform: translateY(-5px); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
         }
         
         #gameOver.visible {
@@ -372,20 +389,53 @@
         }
         
         #gameOver h1 {
-            font-size: 72px;
+            font-size: 80px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: #8b0000;
+            background: linear-gradient(180deg, #cc0000 0%, #8b0000 40%, #4a0000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.9)) drop-shadow(0 0 20px rgba(180,0,0,0.5));
+            animation: deathPulse 2s ease-in-out infinite;
+            letter-spacing: 4px;
+        }
+        
+        #gameOver .death-subtitle {
+            font-size: 18px;
+            color: #661111;
+            letter-spacing: 6px;
+            text-transform: uppercase;
             margin-bottom: 20px;
+            animation: drip 1s ease-out 0.3s both;
+        }
+        
+        #gameOver .death-stats {
+            color: #aa3333;
+            font-size: 20px;
+            margin: 6px 0;
+            animation: drip 1s ease-out 0.6s both;
         }
         
         #gameOver button {
-            background: #ffd700;
-            color: #000;
-            border: none;
-            padding: 20px 40px;
-            font-size: 24px;
-            border-radius: 10px;
+            background: linear-gradient(180deg, #661111, #440000);
+            color: #ff6b6b;
+            border: 2px solid #882222;
+            padding: 18px 40px;
+            font-size: 22px;
+            border-radius: 8px;
             cursor: pointer;
             font-family: inherit;
-            margin-top: 20px;
+            margin-top: 25px;
+            animation: drip 1s ease-out 0.9s both;
+            transition: all 0.2s;
+        }
+        
+        #gameOver button:hover {
+            background: linear-gradient(180deg, #882222, #661111);
+            border-color: #cc4444;
+            color: #fff;
         }
         
         #victory {
@@ -394,13 +444,30 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: radial-gradient(ellipse at center, rgba(30,30,0,0.92) 0%, rgba(0,0,0,0.96) 70%);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #4ecdc4;
+            color: #ffd700;
             pointer-events: all;
+            animation: victoryFadeIn 1.2s ease-out;
+        }
+        
+        @keyframes victoryFadeIn {
+            0% { opacity: 0; }
+            30% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes victoryGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255,215,0,0.6), 0 0 40px rgba(255,170,0,0.3); filter: brightness(1); }
+            50% { text-shadow: 0 0 40px rgba(255,215,0,0.9), 0 0 80px rgba(255,170,0,0.5); filter: brightness(1.2); }
+        }
+        
+        @keyframes riseUp {
+            0% { transform: translateY(30px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
         }
         
         #victory.visible {
@@ -408,14 +475,69 @@
         }
         
         #victory h1 {
-            font-size: 72px;
-            margin-bottom: 20px;
+            font-size: 80px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: #ffd700;
+            background: linear-gradient(180deg, #fff8dc 0%, #ffd700 40%, #ff8c00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.8));
+            animation: victoryGlow 2s ease-in-out infinite, riseUp 1s ease-out 0.3s both;
+            letter-spacing: 3px;
+        }
+        
+        #victory .victory-subtitle {
+            font-size: 22px;
+            color: #ffeaa7;
+            margin-bottom: 15px;
+            animation: riseUp 1s ease-out 0.6s both;
+        }
+        
+        #victory .victory-stats {
+            color: #f0c040;
+            font-size: 18px;
+            margin: 4px 0;
+            animation: riseUp 1s ease-out 0.8s both;
+        }
+        
+        #victory .mutation-preview {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 8px;
+            font-size: 14px;
+            animation: riseUp 1s ease-out 1.0s both;
         }
         
         .unlocks {
-            color: #ffd700;
+            color: #4ecdc4;
             font-size: 20px;
-            margin: 10px 0;
+            margin: 8px 0;
+            animation: riseUp 1s ease-out 0.9s both;
+        }
+        
+        #victory button {
+            background: linear-gradient(180deg, #ffd700, #ff8c00);
+            color: #000;
+            border: 2px solid #ffd700;
+            padding: 18px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 20px;
+            animation: riseUp 1s ease-out 1.2s both;
+            transition: all 0.2s;
+        }
+        
+        #victory button:hover {
+            background: linear-gradient(180deg, #ffed4a, #ffd700);
+            border-color: #fff;
+            transform: scale(1.05);
         }
         
         #pauseOverlay {
@@ -640,17 +762,22 @@
         </div>
         
         <div id="gameOver">
-            <h1>💀 PAPER HANDS 💀</h1>
-            <p style="color: #fff; font-size: 24px;">You survived <span id="finalWave">0</span> waves</p>
-            <p style="color: #ffd700; font-size: 20px;">💀 <span id="finalKills">0</span> paper hands destroyed</p>
-            <button onclick="restartGame()">🔄 Try Again</button>
+            <h1>PAPER HANDS</h1>
+            <div class="death-subtitle">such loss &bull; very rekt &bull; much sadge</div>
+            <div class="death-stats">📉 Survived <span id="finalWave">0</span> waves</div>
+            <div class="death-stats">💀 <span id="finalKills">0</span> enemies destroyed</div>
+            <div class="death-stats" id="deathDifficulty"></div>
+            <button onclick="restartGame()">💔 Try Again</button>
         </div>
         
         <div id="victory">
-            <h1>🚀 TO THE MOON! 🚀</h1>
-            <p style="color: #fff; font-size: 24px;">You defeated The Whale!</p>
+            <h1>🚀 TO THE MOON 🚀</h1>
+            <div class="victory-subtitle">The Whale has been vanquished!</div>
+            <div class="victory-stats">⚔️ <span id="victoryKills">0</span> enemies defeated</div>
+            <div class="victory-stats">📈 Difficulty <span id="victoryDiff">1</span> cleared!</div>
             <div id="unlocksContainer"></div>
-            <button onclick="startNewRun()">🎮 New Run (Difficulty <span id="nextDiff">2</span>)</button>
+            <div class="mutation-preview" id="mutationPreview"></div>
+            <button onclick="startNewRun()">⚡ Difficulty <span id="nextDiff">2</span> — HODL HARDER</button>
         </div>
     </div>
 
@@ -819,6 +946,40 @@
                     gain.gain.setValueAtTime(0.06, t);
                     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
                     osc.start(t); osc.stop(t + 0.15);
+                    break;
+                case 'bossExplode':
+                    // Massive rumbling explosion — deep sweep + distortion
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, t);
+                    osc.frequency.exponentialRampToValueAtTime(15, t + 1.2);
+                    gain.gain.setValueAtTime(0.18, t);
+                    gain.gain.setValueAtTime(0.15, t + 0.3);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+                    osc.start(t); osc.stop(t + 1.2);
+                    break;
+                case 'victoryFanfare':
+                    // Triumphant ascending notes
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523, t);       // C5
+                    osc.frequency.setValueAtTime(659, t + 0.15); // E5
+                    osc.frequency.setValueAtTime(784, t + 0.3);  // G5
+                    osc.frequency.setValueAtTime(1047, t + 0.5); // C6
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.setValueAtTime(0.12, t + 0.3);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+                    osc.start(t); osc.stop(t + 0.9);
+                    break;
+                case 'sadDeath':
+                    // Slow descending minor — sadge
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, t);        // A4
+                    osc.frequency.setValueAtTime(349, t + 0.25); // F4
+                    osc.frequency.setValueAtTime(294, t + 0.5);  // D4
+                    osc.frequency.exponentialRampToValueAtTime(100, t + 1.0);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.setValueAtTime(0.08, t + 0.5);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
+                    osc.start(t); osc.stop(t + 1.0);
                     break;
             }
         }
@@ -2099,8 +2260,79 @@
                         }
                     }
                 }
-            } else if (boss && boss.health <= 0) {
-                victory();
+            } else if (boss && boss.health <= 0 && !boss.dying) {
+                // Boss death sequence — don't show victory instantly
+                boss.dying = true;
+                boss.deathTimer = 3.0;
+                playSound('bossExplode');
+                screenShake = 20;
+                
+                // Massive explosion particles from boss
+                for (let i = 0; i < 40; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const spd = 100 + Math.random() * 300;
+                    particles.push({
+                        x: boss.x, y: boss.y,
+                        vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
+                        life: 1.5 + Math.random() * 1.5,
+                        color: ['#ffd700', '#ff8c00', '#ff4444', '#ffffff', '#ffaa00'][Math.floor(Math.random() * 5)]
+                    });
+                }
+            } else if (boss && boss.dying) {
+                boss.deathTimer -= dt;
+                
+                // Ongoing explosions during death sequence
+                if (Math.random() < 0.3) {
+                    const boomX = boss.x + (Math.random() - 0.5) * boss.radius * 2;
+                    const boomY = boss.y + (Math.random() - 0.5) * boss.radius * 2;
+                    for (let i = 0; i < 6; i++) {
+                        const a = Math.random() * Math.PI * 2;
+                        const spd = 50 + Math.random() * 150;
+                        particles.push({
+                            x: boomX, y: boomY,
+                            vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
+                            life: 0.5 + Math.random() * 0.8,
+                            color: ['#ffd700', '#ff4444', '#ff8c00'][Math.floor(Math.random() * 3)]
+                        });
+                    }
+                    if (screenShake < 8) screenShake = 8;
+                }
+                
+                // Kill remaining enemies one by one with explosions
+                if (enemies.length > 0 && Math.random() < 0.15) {
+                    const victim = enemies.splice(Math.floor(Math.random() * enemies.length), 1)[0];
+                    for (let i = 0; i < 6; i++) {
+                        const a = Math.random() * Math.PI * 2;
+                        particles.push({
+                            x: victim.x, y: victim.y,
+                            vx: Math.cos(a) * (80 + Math.random() * 120),
+                            vy: Math.sin(a) * (80 + Math.random() * 120),
+                            life: 0.4 + Math.random() * 0.4,
+                            color: '#ffffff'
+                        });
+                    }
+                }
+                
+                // Shrink boss as it dies
+                boss.radius = Math.max(10, boss.radius - 30 * dt);
+                
+                // When timer expires, clear everything and show victory
+                if (boss.deathTimer <= 0) {
+                    // Kill any remaining enemies with a final burst
+                    enemies.forEach(e => {
+                        for (let i = 0; i < 4; i++) {
+                            const a = Math.random() * Math.PI * 2;
+                            particles.push({
+                                x: e.x, y: e.y,
+                                vx: Math.cos(a) * 100, vy: Math.sin(a) * 100,
+                                life: 0.3, color: '#ffd700'
+                            });
+                        }
+                    });
+                    enemies = [];
+                    boss = null;
+                    victory();
+                }
             }
             
             updateUI();
@@ -2957,15 +3189,17 @@
         // Game over
         function gameOver() {
             gameState = 'gameOver';
-            playSound('gameOver');
+            playSound('sadDeath');
             document.getElementById('finalWave').textContent = currentWave;
             document.getElementById('finalKills').textContent = kills;
+            document.getElementById('deathDifficulty').textContent = `Difficulty ${difficulty}`;
             document.getElementById('gameOver').classList.add('visible');
         }
         
         // Victory
         function victory() {
             gameState = 'victory';
+            playSound('victoryFanfare');
             
             // Determine unlocks: each clear grants one random locked weapon.
             const unlocks = [];
@@ -2981,7 +3215,22 @@
             const container = document.getElementById('unlocksContainer');
             container.innerHTML = unlocks.map(u => `<div class="unlocks">${u}</div>`).join('');
             
+            // Show current stats
+            document.getElementById('victoryKills').textContent = kills;
+            document.getElementById('victoryDiff').textContent = difficulty;
             document.getElementById('nextDiff').textContent = difficulty + 1;
+            
+            // Preview mutations for next difficulty
+            const nextMutations = calculateMutations(difficulty + 1);
+            const preview = document.getElementById('mutationPreview');
+            if (nextMutations.length > 0) {
+                preview.innerHTML = `<div style="color:#ffd700;margin-bottom:6px;">⚠️ Difficulty ${difficulty + 1} Mutations:</div>` +
+                    nextMutations.map(m => `<span style="color:${m.color};">${m.name}${m.power > 1 ? ' x'+m.power : ''}</span>`).join(' &bull; ');
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+            
             document.getElementById('victory').classList.add('visible');
         }
         
