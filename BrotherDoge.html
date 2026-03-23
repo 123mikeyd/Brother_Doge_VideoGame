@@ -595,42 +595,70 @@
         #perkHud {
             position: absolute;
             top: 90px;
-            left: 20px;
-            background: rgba(0,0,0,0.6);
-            padding: 8px 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255,215,0,0.3);
-            color: #ddd;
-            font-size: 11px;
-            max-height: 300px;
-            overflow-y: auto;
+            left: 10px;
             pointer-events: none;
-            min-width: 120px;
+            min-width: 80px;
+            max-width: 200px;
         }
         
-        #perkHud .perk-title {
+        .perk-sticker {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+            transition: transform 0.3s;
+        }
+        
+        /* Clean layout (few perks) */
+        #perkHud.clean .perk-sticker {
+            display: block;
+            margin: 3px 0;
+        }
+        
+        /* Collage mode (many perks) — overlapping sticker board */
+        #perkHud.collage .perk-sticker {
+            display: inline-block;
+            margin: -2px -4px;
+            transform-origin: center;
+        }
+        
+        .perk-sticker.rank-1 {
+            background: linear-gradient(135deg, #555, #444);
+            border: 2px solid #888;
+            color: #ddd;
+        }
+        .perk-sticker.rank-2 {
+            background: linear-gradient(135deg, #1a5c5c, #0d3b3b);
+            border: 2px solid #4ecdc4;
+            color: #4ecdc4;
+        }
+        .perk-sticker.rank-3 {
+            background: linear-gradient(135deg, #2a3a8c, #1a2466);
+            border: 2px solid #5b7cff;
+            color: #8eaaff;
+        }
+        .perk-sticker.rank-4 {
+            background: linear-gradient(135deg, #5c2a8c, #3a1166);
+            border: 2px solid #a855f7;
+            color: #d4a0ff;
+        }
+        .perk-sticker.rank-5 {
+            background: linear-gradient(135deg, #8c6a00, #664d00);
+            border: 2px solid #ffd700;
             color: #ffd700;
             font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 4px;
+            animation: stickerGlow 2s ease-in-out infinite;
         }
         
-        #perkHud .perk-entry {
-            padding: 2px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            white-space: nowrap;
-        }
-        
-        #perkHud .perk-entry.rank-5 {
-            color: #ffd700;
-        }
-        
-        #perkHud .perk-entry.rank-4 {
-            color: #a855f7;
-        }
-        
-        #perkHud .perk-entry.rank-3 {
-            color: #5b7cff;
+        @keyframes stickerGlow {
+            0%, 100% { box-shadow: 1px 2px 4px rgba(0,0,0,0.5), 0 0 6px rgba(255,215,0,0.3); }
+            50% { box-shadow: 1px 2px 4px rgba(0,0,0,0.5), 0 0 14px rgba(255,215,0,0.6); }
         }
     </style>
 </head>
@@ -771,10 +799,12 @@
         </div>
         
         <div id="victory">
-            <h1>🚀 TO THE MOON 🚀</h1>
-            <div class="victory-subtitle">The Whale has been vanquished!</div>
+            <h1>📉 YOU SURVIVED THE BEAR CYCLE 📈</h1>
+            <div class="victory-subtitle">Are you ready for another round?</div>
             <div class="victory-stats">⚔️ <span id="victoryKills">0</span> enemies defeated</div>
             <div class="victory-stats">📈 Difficulty <span id="victoryDiff">1</span> cleared!</div>
+            <div class="victory-stats" id="victorySavedCoins" style="display:none;"></div>
+            <div class="victory-stats" id="victorySavedWeapon" style="display:none;"></div>
             <div id="unlocksContainer"></div>
             <div id="dogeTweet" style="display:none;margin:12px 0;max-width:400px;text-align:center;"></div>
             <div class="mutation-preview" id="mutationPreview"></div>
@@ -802,6 +832,8 @@
         let highRankPityCounter = 0;
         let gameLoopId;
         let lastTime = 0;
+        let coinStreakCount = 0;
+        let coinStreakTimer = 0;
         
         // Arena dimensions (dynamic - expands for boss fight)
         let ARENA_WIDTH = 800;
@@ -898,12 +930,24 @@
                     osc.start(t); osc.stop(t + 0.12);
                     break;
                 case 'coin':
+                    // Pitch rises subtly with consecutive pickups (caps at +400hz)
+                    coinStreakCount++;
+                    coinStreakTimer = 0.4;
+                    const pitchBoost = Math.min(400, coinStreakCount * 30);
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(1200, t);
-                    osc.frequency.setValueAtTime(1500, t + 0.04);
+                    osc.frequency.setValueAtTime(1200 + pitchBoost, t);
+                    osc.frequency.setValueAtTime(1500 + pitchBoost, t + 0.04);
                     gain.gain.setValueAtTime(0.05, t);
                     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
                     osc.start(t); osc.stop(t + 0.08);
+                    break;
+                case 'boomerangCatch':
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, t);
+                    osc.frequency.setValueAtTime(1100, t + 0.05);
+                    gain.gain.setValueAtTime(0.04, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+                    osc.start(t); osc.stop(t + 0.07);
                     break;
                 case 'explosion':
                     // Use noise-like effect with rapid frequency sweep
@@ -1035,9 +1079,28 @@
             document.getElementById('soundToggle').textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
         }
         
+        // Secret code: type "degen" on breed select to unlock Degen Mode
+        let secretBuffer = '';
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') { togglePause(); return; }
             keys[e.key.toLowerCase()] = true;
+            // Easter egg: type "degen" during breed select
+            if (gameState === 'breedSelect') {
+                secretBuffer += e.key.toLowerCase();
+                if (secretBuffer.length > 10) secretBuffer = secretBuffer.slice(-10);
+                if (secretBuffer.endsWith('degen')) {
+                    player.degen = true;
+                    player.damage += 0.4;
+                    // Visual confirmation
+                    const breedDiv = document.getElementById('breedSelect');
+                    const flash = document.createElement('div');
+                    flash.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#ff0040;font-size:28px;font-weight:bold;z-index:999;animation:riseUp 1.5s ease-out forwards;pointer-events:none;text-shadow:0 0 20px #ff0040;';
+                    flash.textContent = '🎰 DEGEN MODE ACTIVATED — +40% DMG / -15% HP 🎰';
+                    breedDiv.appendChild(flash);
+                    setTimeout(() => flash.remove(), 2000);
+                    secretBuffer = '';
+                }
+            }
         });
         
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
@@ -1124,6 +1187,54 @@
             regen4: { name: 'Whale Regen', rank: 4, stat: 'regen', value: 9.0, price: 180 },
             dodge4: { name: 'Whale Dodge', rank: 4, stat: 'dodge', value: 0.32, price: 180 },
             turret4: { name: 'Whale Turret', rank: 4, stat: 'turret', value: 1, price: 250, desc: 'Spawn auto-turret' },
+            
+            // Rank 1 extras
+            luck1: { name: 'Paper Luck', rank: 1, stat: 'luck', value: 0.15, price: 25 },
+            crit1: { name: 'Paper Crit', rank: 1, stat: 'critChance', value: 0.04, price: 30 },
+            magnet1: { name: 'Paper Magnet', rank: 1, stat: 'magnet', value: 0.2, price: 25 },
+            
+            // Rank 2 extras
+            luck2: { name: 'HODL Luck', rank: 2, stat: 'luck', value: 0.3, price: 60 },
+            crit2: { name: 'HODL Crit', rank: 2, stat: 'critChance', value: 0.08, price: 65 },
+            magnet2: { name: 'HODL Magnet', rank: 2, stat: 'magnet', value: 0.4, price: 55 },
+            
+            // Rank 3 extras
+            luck3: { name: 'Crypto Luck', rank: 3, stat: 'luck', value: 0.5, price: 110 },
+            crit3: { name: 'Crypto Crit', rank: 3, stat: 'critChance', value: 0.12, price: 120 },
+            critDmg3: { name: 'Crypto Crit Dmg', rank: 3, stat: 'critDamage', value: 0.35, price: 110 },
+            magnet3: { name: 'Crypto Magnet', rank: 3, stat: 'magnet', value: 0.7, price: 100 },
+            damage3: { name: 'Crypto Damage', rank: 3, stat: 'damage', value: 0.2, price: 120 },
+            
+            // Rank 4 extras
+            luck4: { name: 'Whale Luck', rank: 4, stat: 'luck', value: 0.8, price: 200 },
+            crit4: { name: 'Whale Crit', rank: 4, stat: 'critChance', value: 0.18, price: 200 },
+            damage4: { name: 'Whale Damage', rank: 4, stat: 'damage', value: 0.35, price: 220 },
+            
+            // Fire Rate (Pump It)
+            pump2: { name: 'HODL Pump', rank: 2, stat: 'fireRateBonus', value: 0.10, price: 65 },
+            pump3: { name: 'Crypto Pump', rank: 3, stat: 'fireRateBonus', value: 0.18, price: 120 },
+            pump4: { name: 'Whale Pump', rank: 4, stat: 'fireRateBonus', value: 0.30, price: 200 },
+            
+            // Lifesteal (Rug Pull)
+            rug3: { name: 'Crypto Rug Pull', rank: 3, stat: 'lifesteal', value: 0.03, price: 130, desc: 'Heal 3% of damage dealt' },
+            rug4: { name: 'Whale Rug Pull', rank: 4, stat: 'lifesteal', value: 0.05, price: 210, desc: 'Heal 5% of damage dealt' },
+            
+            // Thorns (Gas Fee)
+            gas2: { name: 'HODL Gas Fee', rank: 2, stat: 'thorns', value: 8, price: 55, desc: 'Enemies take 8 damage on hit' },
+            gas3: { name: 'Crypto Gas Fee', rank: 3, stat: 'thorns', value: 15, price: 110, desc: 'Enemies take 15 damage on hit' },
+            
+            // Armor
+            armor1: { name: 'Paper Armor', rank: 1, stat: 'armor', value: 2, price: 30 },
+            armor3: { name: 'Crypto Armor', rank: 3, stat: 'armor', value: 5, price: 100 },
+            
+            // Economy
+            yield2: { name: 'HODL Yield', rank: 2, stat: 'coinGen', value: 1, price: 55, desc: '+1 coin every 3 seconds' },
+            whitelist3: { name: 'Crypto Whitelist', rank: 3, stat: 'shopDiscount', value: 0.10, price: 130, desc: '10% off shop prices' },
+            
+            // Risk/Reward
+            leverage4: { name: 'Whale Leverage', rank: 4, stat: 'leverage', value: 1, price: 200, desc: '+60% dmg above 80% HP, -20% below 40%' },
+            paperCurse2: { name: 'HODL Paper Curse', rank: 2, stat: 'paperCurse', value: 1, price: 10, desc: '-10% max HP, +50 coins NOW' },
+            fomo4: { name: 'Whale FOMO Shield', rank: 4, stat: 'fomoShield', value: 1, price: 220, desc: 'Shield at low HP (60s cooldown)' },
             
             diamond: { name: '💎 DIAMOND HANDS 💎', rank: 5, stat: 'diamond', value: 1, price: 600, desc: '+50% Magnet Radius, +30% Damage, Knockback Immunity' },
             moon5: { name: '🌙 MOON SHOT', rank: 5, stat: 'moon', value: 1, price: 600, desc: 'Pierce +2, +50% Crit Damage' },
@@ -1281,6 +1392,10 @@
         let unlockedBreeds = ['yellow', 'black', 'grey', 'red', 'purple'];
         let highestDifficulty = 1;
         
+        // Carryover from victory (coins + weapon)
+        let pendingCarryCoins = 0;
+        let pendingCarryWeapon = null;
+        
         // Player
         let player = {
             x: ARENA_WIDTH / 2,
@@ -1353,8 +1468,27 @@
             player.dodge = breedData.stats.dodge - 1;
             player.regen = breedData.stats.regen;
             
-            // Give starter weapon
-            player.weapons = [{ ...weaponTypes.pistol, type: 'pistol', lastShot: 0, level: 1 }];
+            // Degen Mode: -15% max HP (secret easter egg)
+            if (player.degen) {
+                player.maxHealth = Math.floor(player.maxHealth * 0.85);
+                player.health = player.maxHealth;
+            }
+            
+            // Give starter weapon — use carryover weapon if available, else pistol
+            if (pendingCarryWeapon) {
+                player.weapons = [{ ...pendingCarryWeapon }];
+                pendingCarryWeapon = null;
+            } else {
+                player.weapons = [{ ...weaponTypes.pistol, type: 'pistol', lastShot: 0, level: 1 }];
+            }
+            
+            // Apply carryover coins
+            if (pendingCarryCoins > 0) {
+                coins = pendingCarryCoins;
+                document.getElementById('coinText').textContent = coins;
+                pendingCarryCoins = 0;
+            }
+            
             updateWeaponUI();
             
             // Reapply carried-over perks from previous runs
@@ -1572,6 +1706,12 @@
             player.x = Math.max(player.radius, Math.min(ARENA_WIDTH - player.radius, player.x));
             player.y = Math.max(player.radius, Math.min(ARENA_HEIGHT - player.radius, player.y));
             
+            // Coin streak pitch decay
+            if (coinStreakTimer > 0) {
+                coinStreakTimer -= dt;
+                if (coinStreakTimer <= 0) coinStreakCount = 0;
+            }
+            
             // Health regen
             if (player.regen > 0 && player.health < player.maxHealth) {
                 let regen = player.regen;
@@ -1583,6 +1723,25 @@
             
             // Invincibility frames
             if (player.iframes > 0) player.iframes -= dt;
+            
+            // Passive coin generation (Yield Farming)
+            if (player.coinGen > 0) {
+                player.coinGenTimer += dt;
+                if (player.coinGenTimer >= 3) {
+                    player.coinGenTimer -= 3;
+                    coins += player.coinGen;
+                }
+            }
+            
+            // FOMO Shield: activate when dropping below 25% HP
+            if (player.fomoShield && player.fomoShieldHP <= 0 && player.fomoShieldCooldown <= 0) {
+                if (player.health < player.maxHealth * 0.25 && player.health > 0) {
+                    player.fomoShieldHP = 50;
+                    player.fomoShieldCooldown = 60;
+                    spawnDamageText(player.x, player.y - 50, '🛡️ FOMO!', '#00bfff', false);
+                }
+            }
+            if (player.fomoShieldCooldown > 0) player.fomoShieldCooldown -= dt;
             
             // Cosmic Pull - Purple Doge pulls coins and slows nearby enemies
             if (player.breed === 'purple') {
@@ -1601,6 +1760,10 @@
                     let fireRate = weapon.fireRate;
                     if (player.breed === 'black' && breeds.black.perk === 'hodlStrike') {
                         fireRate *= 0.9;
+                    }
+                    // Pump It perk: fire rate bonus
+                    if (player.fireRateBonus > 0) {
+                        fireRate *= (1 + player.fireRateBonus);
                     }
                     // Minigun spin-up: starts at 30% fire rate, ramps to 100% over 1.2 seconds
                     if (weapon.type === 'minigun') {
@@ -1703,6 +1866,7 @@
                         const toDist = Math.sqrt(toPlayerX * toPlayerX + toPlayerY * toPlayerY);
                         if (toDist < 25) {
                             p.pierce = -1; // despawn when caught
+                            playSound('boomerangCatch');
                         } else {
                             const retSpeed = 400;
                             p.vx = (toPlayerX / toDist) * retSpeed;
@@ -1918,10 +2082,24 @@
                             playSound('dodge');
                             player.iframes = 0.2; // brief i-frames after dodge too
                         } else {
-                            const meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1) * (enemy._packMult || 1);
+                            let meleeDamage = enemy.damage * (enemy.type === 'shredder' ? 0.7 : 1) * (enemy._packMult || 1);
+                            // Armor: flat damage reduction
+                            if (player.armor > 0) meleeDamage = Math.max(1, meleeDamage - player.armor);
+                            // FOMO Shield: absorb damage when low HP
+                            if (player.fomoShield && player.fomoShieldHP > 0) {
+                                const absorbed = Math.min(meleeDamage, player.fomoShieldHP);
+                                player.fomoShieldHP -= absorbed;
+                                meleeDamage -= absorbed;
+                                spawnDamageText(player.x, player.y - 40, '🛡️', '#00bfff', false);
+                            }
                             player.health -= meleeDamage;
                             player.iframes = 0.4;
                             playSound('hurt');
+                            // Thorns: damage enemy back
+                            if (player.thorns > 0) {
+                                enemy.health -= player.thorns;
+                                spawnDamageText(enemy.x, enemy.y - 15, `⛽${player.thorns}`, '#ff8800', false);
+                            }
                             if (player.health <= 0) gameOver();
                         }
                     }
@@ -1941,6 +2119,13 @@
                     if (pdist < enemy.radius + p.radius) {
                         // Hit
                         let damage = p.damage * player.damage;
+                        
+                        // Leverage perk: +60% above 80% HP, -20% below 40%
+                        if (player.leverage) {
+                            const hpRatio = player.health / player.maxHealth;
+                            if (hpRatio > 0.8) damage *= 1.6;
+                            else if (hpRatio < 0.4) damage *= 0.8;
+                        }
                         
                         // Armored mutation: damage reduction
                         if (enemy.damageReduction > 0) damage *= (1 - enemy.damageReduction);
@@ -2046,6 +2231,13 @@
                         enemy.health -= damage;
                         spawnDamageText(enemy.x, enemy.y, damage, isCrit ? '#ffff00' : p.color, isCrit);
                         playSound(isCrit ? 'crit' : 'hit');
+                        
+                        // Lifesteal (Rug Pull): heal % of damage dealt
+                        if (player.lifesteal > 0) {
+                            const healAmt = damage * player.lifesteal;
+                            player.health = Math.min(player.maxHealth, player.health + healAmt);
+                        }
+                        
                         p.pierce--;
                         
                         // Piercer ramps damage on each pierce
@@ -2787,13 +2979,15 @@
             const tier = getWeaponTier(weaponType);
             const normalized = 70 + currentWave * 12 + tier * 22;
             const luckyDiscount = shopIsLucky ? 0.88 : 1;
-            return Math.max(40, Math.round(normalized * luckyDiscount));
+            const whitelistDiscount = 1 - (player.shopDiscount || 0);
+            return Math.max(40, Math.round(normalized * luckyDiscount * whitelistDiscount));
         }
         
         function normalizePerkPrice(perk) {
             const waveNorm = Math.min(1.2, 0.9 + currentWave * 0.03);
             const luckyDiscount = shopIsLucky ? 0.9 : 1;
-            return Math.max(20, Math.round(perk.price * waveNorm * luckyDiscount));
+            const whitelistDiscount = 1 - (player.shopDiscount || 0);
+            return Math.max(20, Math.round(perk.price * waveNorm * luckyDiscount * whitelistDiscount));
         }
         
         function updateShopTitleAndRefreshButton() {
@@ -2830,10 +3024,13 @@
             // Fill weapon slots with luck-tier weighting.
             for (let i = 0; i < weaponSlots; i++) {
                 if (nextWeaponOffers[i]) continue;
-                const candidates = unlockedWeapons.filter(w =>
-                    !player.weapons.some(pw => pw.type === w) &&
-                    !selectedWeaponTypes.has(w)
-                );
+                const candidates = unlockedWeapons.filter(w => {
+                    if (player.weapons.some(pw => pw.type === w)) return false;
+                    if (selectedWeaponTypes.has(w)) return false;
+                    // After difficulty 3, don't offer the pistol (outgrown it)
+                    if (w === 'pistol' && difficulty > 3) return false;
+                    return true;
+                });
                 if (candidates.length === 0) break;
                 
                 const weaponType = chooseWeighted(candidates, (w) => {
@@ -2977,7 +3174,11 @@
                 maxHealth: '❤️', speed: '💨', regen: '💚', dodge: '🌀',
                 projectileBounce: '↩️', turret: '🔫', diamond: '💎',
                 moon: '🌙', hodl: '👑', turretMaster: '🤖', apex: '🔥',
-                luck: '🍀', magnet: '🧲', xpGain: '📈'
+                luck: '🍀', magnet: '🧲', xpGain: '📈', ricochet: '🔀',
+                critChance: '🎯', critDamage: '💥', damage: '⚔️',
+                fireRateBonus: '📈', lifesteal: '🩸', thorns: '⛽',
+                armor: '🛡️', coinGen: '🌾', shopDiscount: '🏷️',
+                leverage: '📊', paperCurse: '📃', fomoShield: '🛡️'
             };
             return icons[stat] || '⭐';
         }
@@ -2987,7 +3188,12 @@
                 maxHealth: 'Health', speed: 'Speed', regen: 'Regen', dodge: 'Dodge',
                 projectileBounce: 'Bounce', turret: 'Turret', diamond: 'Diamond Hands',
                 moon: 'Moon Shot', hodl: 'HODL King', turretMaster: 'Turret Master',
-                apex: 'Apex', luck: 'Luck', magnet: 'Magnet', xpGain: 'XP Gain'
+                apex: 'Apex', luck: 'Luck', magnet: 'Magnet', xpGain: 'XP Gain',
+                ricochet: 'Ricochet', critChance: 'Crit', critDamage: 'Crit Dmg',
+                damage: 'Damage', fireRateBonus: 'Pump It', lifesteal: 'Rug Pull',
+                thorns: 'Gas Fee', armor: 'Armor', coinGen: 'Yield',
+                shopDiscount: 'Whitelist', leverage: 'Leverage',
+                paperCurse: 'Paper Curse', fomoShield: 'FOMO Shield'
             };
             return labels[stat] || stat;
         }
@@ -3161,6 +3367,37 @@
                 player.xpGain += perk.value;
             } else if (perk.stat === 'projectileBounce') {
                 player.projectileBounce += perk.value;
+            } else if (perk.stat === 'critChance') {
+                player.critChance += perk.value;
+            } else if (perk.stat === 'critDamage') {
+                player.critDamage += perk.value;
+            } else if (perk.stat === 'damage') {
+                player.damage += perk.value;
+            } else if (perk.stat === 'fireRateBonus') {
+                player.fireRateBonus += perk.value;
+            } else if (perk.stat === 'lifesteal') {
+                player.lifesteal += perk.value;
+            } else if (perk.stat === 'thorns') {
+                player.thorns += perk.value;
+            } else if (perk.stat === 'armor') {
+                player.armor += perk.value;
+            } else if (perk.stat === 'coinGen') {
+                player.coinGen += perk.value;
+            } else if (perk.stat === 'shopDiscount') {
+                player.shopDiscount += perk.value;
+            } else if (perk.stat === 'leverage') {
+                player.leverage = true;
+            } else if (perk.stat === 'fomoShield') {
+                player.fomoShield = true;
+            } else if (perk.stat === 'paperCurse') {
+                // Immediate trade: lose 10% max HP, gain 50 coins NOW
+                const hpLoss = Math.floor(player.maxHealth * 0.1);
+                player.maxHealth -= hpLoss;
+                if (player.health > player.maxHealth) player.health = player.maxHealth;
+                coins += 50;
+                document.getElementById('coinText').textContent = coins;
+                spawnDamageText(player.x, player.y - 30, '+50🪙', '#ffd700', false);
+                spawnDamageText(player.x, player.y - 10, `-${hpLoss}❤️`, '#ff4444', false);
             } else if (perk.stat === 'ricochet') {
                 player.ricochet = true;
             } else if (perk.stat === 'turret') {
@@ -3316,6 +3553,25 @@
             gameState = 'victory';
             playSound('victoryFanfare');
             
+            // Calculate saved coins: 10% rounded up
+            const savedCoins = Math.ceil(coins * 0.1);
+            
+            // Find weakest weapon (lowest tier, then lowest level)
+            let savedWeapon = null;
+            if (player.weapons.length > 0) {
+                savedWeapon = player.weapons.reduce((weakest, w) => {
+                    const wTier = getWeaponTier(w.type);
+                    const weakTier = getWeaponTier(weakest.type);
+                    if (wTier < weakTier) return w;
+                    if (wTier === weakTier && w.level < weakest.level) return w;
+                    return weakest;
+                });
+            }
+            
+            // Store for startNewRun
+            pendingCarryCoins = savedCoins;
+            pendingCarryWeapon = savedWeapon ? { ...weaponTypes[savedWeapon.type], type: savedWeapon.type, lastShot: 0, level: 1 } : null;
+            
             // Determine unlocks: each clear grants one random locked weapon.
             const unlocks = [];
             const unlockableWeapons = Object.keys(weaponTypes).filter(w => !unlockedWeapons.includes(w));
@@ -3329,6 +3585,24 @@
             
             const container = document.getElementById('unlocksContainer');
             container.innerHTML = unlocks.map(u => `<div class="unlocks">${u}</div>`).join('');
+            
+            // Show saved coins
+            const savedCoinsDiv = document.getElementById('victorySavedCoins');
+            if (savedCoins > 0) {
+                savedCoinsDiv.textContent = `💰 ${savedCoins} coins saved (10% HODL bonus)`;
+                savedCoinsDiv.style.display = 'block';
+            } else {
+                savedCoinsDiv.style.display = 'none';
+            }
+            
+            // Show saved weapon
+            const savedWeaponDiv = document.getElementById('victorySavedWeapon');
+            if (savedWeapon) {
+                savedWeaponDiv.textContent = `🔫 ${weaponTypes[savedWeapon.type].name} carries over (reset to ⭐)`;
+                savedWeaponDiv.style.display = 'block';
+            } else {
+                savedWeaponDiv.style.display = 'none';
+            }
             
             // Show current stats
             document.getElementById('victoryKills').textContent = kills;
@@ -3367,6 +3641,9 @@
             document.getElementById('gameOver').classList.remove('visible');
             carryoverPerks = [];
             carryoverPerkKeys = new Set();
+            pendingCarryCoins = 0;
+            pendingCarryWeapon = null;
+            difficulty = 1;
             resetGame();
             document.getElementById('breedSelect').style.display = 'flex';
         }
@@ -3437,6 +3714,18 @@
                 hodl: false,
                 turretMaster: false,
                 apex: false,
+                fireRateBonus: 0,
+                lifesteal: 0,
+                thorns: 0,
+                armor: 0,
+                shopDiscount: 0,
+                coinGen: 0,
+                coinGenTimer: 0,
+                leverage: false,
+                fomoShield: false,
+                fomoShieldHP: 0,
+                fomoShieldCooldown: 0,
+                degen: false,
                 breed: null,
                 weapons: [],
                 perks: [],
@@ -3513,13 +3802,34 @@
                 perkCounts[label].rank = Math.max(perkCounts[label].rank, p.rank);
             });
             
-            let html = '<div class="perk-title">⭐ Perks</div>';
-            Object.entries(perkCounts)
-                .sort((a, b) => b[1].rank - a[1].rank)
-                .forEach(([label, data]) => {
-                    const countStr = data.count > 1 ? ` x${data.count}` : '';
-                    html += `<div class="perk-entry rank-${data.rank}">${label}${countStr}</div>`;
-                });
+            const totalPerks = player.perks.length;
+            // Collage mode when lots of perks (scales with difficulty)
+            const collageThreshold = 8;
+            const isCollage = totalPerks >= collageThreshold;
+            
+            hud.className = isCollage ? 'hud collage' : 'hud clean';
+            
+            let html = '';
+            const entries = Object.entries(perkCounts).sort((a, b) => b[1].rank - a[1].rank);
+            
+            entries.forEach(([label, data], i) => {
+                const countStr = data.count > 1 ? ` x${data.count}` : '';
+                let style = '';
+                
+                if (isCollage) {
+                    // Random slight rotation and offset for poster board feel
+                    // Use deterministic "random" based on index so it doesn't jitter
+                    const seed = (i * 7 + data.rank * 13) % 30;
+                    const rotation = (seed - 15) * 1.2; // -18 to +18 degrees
+                    const yOffset = Math.sin(seed * 0.8) * 3;
+                    const scale = 0.9 + (data.rank / 5) * 0.2; // higher rank = slightly bigger
+                    const zIndex = data.rank * 10 + (entries.length - i); // higher rank on top
+                    style = `transform: rotate(${rotation}deg) scale(${scale}) translateY(${yOffset}px); z-index: ${zIndex};`;
+                }
+                
+                html += `<div class="perk-sticker rank-${data.rank}" style="${style}">${label}${countStr}</div>`;
+            });
+            
             hud.innerHTML = html;
         }
         
