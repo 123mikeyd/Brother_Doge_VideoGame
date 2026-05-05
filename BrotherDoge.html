@@ -901,10 +901,10 @@
             <div id="waveDisplay" class="hud">WAVE <span id="waveText">1</span></div>
             <div id="difficultyDisplay" class="hud">Difficulty: <span id="diffText">1</span></div>
             <div id="weaponSlots" class="hud">
-                <div class="weapon-slot" id="slot0">much</div>
-                <div class="weapon-slot" id="slot1">wow</div>
-                <div class="weapon-slot" id="slot2">doge</div>
-                <div class="weapon-slot" id="slot3">very</div>
+                <div class="weapon-slot" id="slot0">slot 1</div>
+                <div class="weapon-slot" id="slot1">slot 2</div>
+                <div class="weapon-slot" id="slot2">slot 3</div>
+                <div class="weapon-slot" id="slot3">slot 4</div>
             </div>
             <div id="perkHud" class="hud" style="display:none;"></div>
         </div>
@@ -1108,7 +1108,7 @@
         let runDamageDealt = 0;
         let runEnemyKillsByType = {};
         let progress = null;
-        const dogeSlotNames = ['much', 'wow', 'doge', 'very'];
+        const emptyWeaponSlotLabels = ['slot 1', 'slot 2', 'slot 3', 'slot 4'];
         const touchMove = { active: false, id: null, sx: 0, sy: 0, x: 0, y: 0 };
         const touchAim = { active: false, id: null, x: 0, y: 0 };
         const gamepadState = { x: 0, y: 0, aimX: 0, aimY: 0, shoot: false };
@@ -4437,8 +4437,8 @@ Seed: ${currentSeed || 'random'}`;
                 preview.style.display = 'none';
             }
 
-            // Generate doge meme tweet from weapon loadout
-            const dogeWords = player.weapons.map(w => w.name.split(' ')[0].toLowerCase());
+            // Generate doge meme tweet from weapon loadout in slot order
+            const dogeWords = getDogeTweetWords();
             const dogeTweet = dogeWords.join(' ');
             const tweetDiv = document.getElementById('dogeTweet');
             if (tweetDiv) {
@@ -4594,17 +4594,29 @@ Seed: ${currentSeed || 'random'}`;
         }
 
 
+        function getWeaponDogeWord(weapon) {
+            if (!weapon) return '';
+            const source = weapon.dogeWord || weapon.name || (weaponTypes[weapon.type] && weaponTypes[weapon.type].name) || '';
+            return source.split(' ')[0].toLowerCase();
+        }
+
+        function getDogeTweetWords() {
+            return player.weapons.map(getWeaponDogeWord).filter(Boolean);
+        }
+
         // Update weapon UI
         function updateWeaponUI() {
             for (let i = 0; i < 4; i++) {
                 const slot = document.getElementById(`slot${i}`);
                 if (i < player.weapons.length) {
                     const w = player.weapons[i];
-                    slot.textContent = dogeSlotNames[i] + (w.level > 1 ? ' +' + (w.level-1) : '');
+                    slot.textContent = getWeaponDogeWord(w) + (w.level > 1 ? ' +' + (w.level-1) : '');
+                    slot.title = w.name;
                     slot.classList.add('filled');
                     slot.classList.remove('active');
                 } else {
-                    slot.textContent = dogeSlotNames[i];
+                    slot.textContent = emptyWeaponSlotLabels[i];
+                    slot.title = 'Buy a weapon to add its Doge word here';
                     slot.classList.remove('filled', 'active');
                 }
             }
@@ -4667,56 +4679,69 @@ Seed: ${currentSeed || 'random'}`;
             return x - Math.floor(x);
         }
 
+        let arenaBackgroundCache = null;
+        let arenaBackgroundCacheKey = '';
+
         function drawArenaBackground() {
-            const grad = ctx.createRadialGradient(ARENA_WIDTH/2, ARENA_HEIGHT/2, 40, ARENA_WIDTH/2, ARENA_HEIGHT/2, Math.max(ARENA_WIDTH, ARENA_HEIGHT));
-            grad.addColorStop(0, '#191948');
-            grad.addColorStop(0.55, '#0f1027');
-            grad.addColorStop(1, '#070713');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+            const cacheKey = `${ARENA_WIDTH}x${ARENA_HEIGHT}:wave${currentWave}`;
+            if (!arenaBackgroundCache || arenaBackgroundCacheKey !== cacheKey) {
+                arenaBackgroundCache = document.createElement('canvas');
+                arenaBackgroundCache.width = ARENA_WIDTH;
+                arenaBackgroundCache.height = ARENA_HEIGHT;
+                arenaBackgroundCacheKey = cacheKey;
+                const bg = arenaBackgroundCache.getContext('2d');
 
-            // subtle market chart lines
-            ctx.save();
-            ctx.globalAlpha = 0.18;
-            ctx.strokeStyle = '#ffd700';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (let x = 0; x <= ARENA_WIDTH; x += 80) {
-                const y = ARENA_HEIGHT * 0.65 + Math.sin(x * 0.018 + currentWave) * 38 + Math.cos(x * 0.009) * 24;
-                x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-            ctx.globalAlpha = 0.10;
-            for (let i = 0; i < 38; i++) {
-                const x = stableNoise(i + 3) * ARENA_WIDTH;
-                const y = stableNoise(i + 99) * ARENA_HEIGHT;
-                ctx.fillStyle = i % 5 === 0 ? '#ffd700' : '#4ecdc4';
-                ctx.fillRect(x, y, 2, 2);
-            }
-            // decorative paw prints / paper scraps
-            ctx.globalAlpha = 0.12;
-            ctx.fillStyle = '#fff8dc';
-            for (let i = 0; i < 14; i++) {
-                const x = stableNoise(i * 7 + 1) * ARENA_WIDTH;
-                const y = stableNoise(i * 11 + 2) * ARENA_HEIGHT;
-                ctx.save(); ctx.translate(x,y); ctx.rotate(stableNoise(i)*Math.PI);
-                ctx.fillRect(-8,-3,16,6); ctx.fillRect(-2,-8,4,16);
-                ctx.restore();
-            }
-            ctx.restore();
+                const grad = bg.createRadialGradient(ARENA_WIDTH/2, ARENA_HEIGHT/2, 40, ARENA_WIDTH/2, ARENA_HEIGHT/2, Math.max(ARENA_WIDTH, ARENA_HEIGHT));
+                grad.addColorStop(0, '#191948');
+                grad.addColorStop(0.55, '#0f1027');
+                grad.addColorStop(1, '#070713');
+                bg.fillStyle = grad;
+                bg.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
 
-            // grid on top
-            ctx.strokeStyle = '#1d2250';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < ARENA_WIDTH; x += 50) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ARENA_HEIGHT); ctx.stroke();
+                // subtle market chart lines — cached so it is not rebuilt every frame
+                bg.save();
+                bg.globalAlpha = 0.18;
+                bg.strokeStyle = '#ffd700';
+                bg.lineWidth = 2;
+                bg.beginPath();
+                for (let x = 0; x <= ARENA_WIDTH; x += 80) {
+                    const y = ARENA_HEIGHT * 0.65 + Math.sin(x * 0.018 + currentWave) * 38 + Math.cos(x * 0.009) * 24;
+                    x === 0 ? bg.moveTo(x, y) : bg.lineTo(x, y);
+                }
+                bg.stroke();
+                bg.globalAlpha = 0.10;
+                for (let i = 0; i < 38; i++) {
+                    const x = stableNoise(i + 3) * ARENA_WIDTH;
+                    const y = stableNoise(i + 99) * ARENA_HEIGHT;
+                    bg.fillStyle = i % 5 === 0 ? '#ffd700' : '#4ecdc4';
+                    bg.fillRect(x, y, 2, 2);
+                }
+                // decorative paw prints / paper scraps
+                bg.globalAlpha = 0.12;
+                bg.fillStyle = '#fff8dc';
+                for (let i = 0; i < 14; i++) {
+                    const x = stableNoise(i * 7 + 1) * ARENA_WIDTH;
+                    const y = stableNoise(i * 11 + 2) * ARENA_HEIGHT;
+                    bg.save(); bg.translate(x,y); bg.rotate(stableNoise(i)*Math.PI);
+                    bg.fillRect(-8,-3,16,6); bg.fillRect(-2,-8,4,16);
+                    bg.restore();
+                }
+                bg.restore();
+
+                // grid on top
+                bg.strokeStyle = '#1d2250';
+                bg.lineWidth = 1;
+                for (let x = 0; x < ARENA_WIDTH; x += 50) {
+                    bg.beginPath(); bg.moveTo(x, 0); bg.lineTo(x, ARENA_HEIGHT); bg.stroke();
+                }
+                for (let y = 0; y < ARENA_HEIGHT; y += 50) {
+                    bg.beginPath(); bg.moveTo(0, y); bg.lineTo(ARENA_WIDTH, y); bg.stroke();
+                }
+                bg.strokeStyle = 'rgba(255,215,0,0.4)';
+                bg.lineWidth = 3;
+                bg.strokeRect(2, 2, ARENA_WIDTH - 4, ARENA_HEIGHT - 4);
             }
-            for (let y = 0; y < ARENA_HEIGHT; y += 50) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ARENA_WIDTH, y); ctx.stroke();
-            }
-            ctx.strokeStyle = 'rgba(255,215,0,0.4)';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(2, 2, ARENA_WIDTH - 4, ARENA_HEIGHT - 4);
+            ctx.drawImage(arenaBackgroundCache, 0, 0);
         }
 
         function drawTouchControls() {
