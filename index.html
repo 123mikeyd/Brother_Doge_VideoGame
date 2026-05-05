@@ -1330,30 +1330,78 @@
             }
         }
 
+        const musicScales = {
+            bullish: [0, 3, 5, 7, 10, 12],
+            heroic: [0, 2, 4, 7, 9, 12],
+            tense: [0, 2, 3, 6, 7, 10, 12],
+            boss: [0, 1, 3, 6, 7, 10, 12]
+        };
+
+        const waveThemes = [
+            { name:'Opening Bell', root:196, scale:'heroic', bpm:104, melody:[0,2,4,7,4,2,5,7,9,7,4,2,0,4,7,12], bass:[0,0,7,5], wave:'triangle' },
+            { name:'Green Candle Gallop', root:220, scale:'bullish', bpm:112, melody:[0,3,5,7,10,7,5,3,0,5,7,12,10,7,5,3], bass:[0,5,7,3], wave:'square' },
+            { name:'Diamond Paws', root:233.08, scale:'heroic', bpm:116, melody:[0,4,7,9,12,9,7,4,2,4,7,11,12,7,4,2], bass:[0,7,9,4], wave:'triangle' },
+            { name:'Such Momentum', root:246.94, scale:'bullish', bpm:122, melody:[0,3,7,10,12,10,7,5,3,5,7,10,14,12,10,7], bass:[0,3,7,10], wave:'square' },
+            { name:'Moon Bag March', root:261.63, scale:'heroic', bpm:126, melody:[0,2,4,7,9,12,9,7,4,7,9,14,12,9,7,4], bass:[0,7,4,9], wave:'triangle' },
+            { name:'FOMO Sprint', root:277.18, scale:'bullish', bpm:132, melody:[0,5,7,10,12,15,12,10,7,10,12,17,15,12,10,7], bass:[0,7,10,5], wave:'square' },
+            { name:'Whale Pump', root:293.66, scale:'heroic', bpm:136, melody:[0,4,7,12,11,9,7,4,2,7,9,12,16,14,12,9], bass:[0,4,9,7], wave:'triangle' },
+            { name:'Very Breakout', root:311.13, scale:'bullish', bpm:140, melody:[0,3,7,10,15,12,10,7,5,7,10,15,17,15,12,10], bass:[0,10,7,5], wave:'square' },
+            { name:'ATH Run', root:329.63, scale:'heroic', bpm:146, melody:[0,2,4,7,12,14,16,19,16,14,12,9,7,12,14,16], bass:[0,7,12,9], wave:'triangle' }
+        ];
+
+        const specialThemes = {
+            menu: { name:'Pause Fountain', root:392, scale:'heroic', bpm:76, melody:[0,4,7,12,7,4,2,0], bass:[0,5], wave:'sine', volume:0.012 },
+            boss: { name:'Red Candle Dread', root:146.83, scale:'boss', bpm:156, melody:[12,10,7,6,3,1,0,-2,0,3,1,0,-5,-2,0,1], bass:[0,-5,0,1], wave:'sawtooth', volume:0.024 },
+            victory: { name:'HODL Victory', root:261.63, scale:'heroic', bpm:118, melody:[0,4,7,12,16,12,9,7,12,16,19,24], bass:[0,7,9,12], wave:'triangle', volume:0.024 },
+            death: { name:'Paper Hands Lament', root:220, scale:'tense', bpm:70, melody:[12,10,7,3,1,0,-2,-5], bass:[0,-5], wave:'triangle', volume:0.016 }
+        };
+
+        function getWaveTheme() {
+            return waveThemes[Math.max(0, Math.min(waveThemes.length - 1, currentWave - 1))];
+        }
+
+        function noteFromTheme(theme, degree) {
+            const scale = musicScales[theme.scale] || musicScales.heroic;
+            const octave = Math.floor(degree / scale.length);
+            const idx = ((degree % scale.length) + scale.length) % scale.length;
+            return theme.root * Math.pow(2, (scale[idx] + octave * 12) / 12);
+        }
+
+        function playMusicVoice(freq, start, duration, type, volume, pan = 0) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, start);
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume), start + 0.018);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+            osc.connect(gain);
+            if (panner) { panner.pan.value = pan; gain.connect(panner); panner.connect(audioCtx.destination); }
+            else gain.connect(audioCtx.destination);
+            osc.start(start);
+            osc.stop(start + duration + 0.03);
+        }
+
         function setMusicMode(mode) {
             if (!settings.music || !audioCtx) return;
             if (musicTimer) clearInterval(musicTimer);
-            const patterns = {
-                menu: [392, 494, 587, 494],
-                wave: [220, 330, 440, 660],
-                boss: [110, 147, 196, 147],
-                victory: [523, 659, 784, 1047],
-                death: [330, 294, 247, 196]
-            };
-            const notes = patterns[mode] || patterns.wave;
-            let idx = 0;
+            const theme = mode === 'wave' ? getWaveTheme() : (specialThemes[mode] || getWaveTheme());
+            const beatMs = Math.max(110, Math.round(60000 / theme.bpm));
+            let step = 0;
             musicTimer = setInterval(() => {
-                if (!settings.music || !audioCtx || gameState === 'breedSelect' && mode !== 'menu') return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = mode === 'boss' ? 'sawtooth' : 'triangle';
-                osc.frequency.value = notes[idx % notes.length];
-                gain.gain.setValueAtTime(0.018, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.28);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-                idx++;
-            }, mode === 'boss' ? 260 : 420);
+                if (!settings.music || !audioCtx || (gameState === 'breedSelect' && mode !== 'menu')) return;
+                const now = audioCtx.currentTime;
+                const melodyDegree = theme.melody[step % theme.melody.length];
+                const bassDegree = theme.bass[Math.floor(step / 4) % theme.bass.length] - 12;
+                const accent = step % 8 === 0 ? 1.25 : 1;
+                const dur = mode === 'menu' || mode === 'death' ? 0.34 : 0.18;
+                playMusicVoice(noteFromTheme(theme, melodyDegree), now, dur, theme.wave || 'triangle', (theme.volume || 0.016) * accent, (step % 4 - 1.5) * 0.08);
+                if (step % 4 === 0) playMusicVoice(noteFromTheme(theme, bassDegree), now, mode === 'boss' ? 0.22 : 0.3, mode === 'boss' ? 'sawtooth' : 'sine', (theme.volume || 0.016) * 0.8, -0.2);
+                if ((mode === 'wave' || mode === 'boss') && step % 8 === 4) playMusicVoice(noteFromTheme(theme, melodyDegree + 2), now + 0.04, 0.12, 'triangle', (theme.volume || 0.016) * 0.42, 0.25);
+                step++;
+            }, beatMs / 2);
         }
 
         function stopMusic() {
@@ -1364,7 +1412,7 @@
         function toggleMusic() {
             settings.music = !settings.music;
             saveProgress();
-            if (settings.music) { initAudio(); setMusicMode(gameState === 'breedSelect' ? 'menu' : (boss ? 'boss' : 'wave')); }
+            if (settings.music) { initAudio(); setMusicMode(gameState === 'breedSelect' ? 'menu' : (boss || currentWave === 10 ? 'boss' : 'wave')); }
             else stopMusic();
             renderSettingsPanel();
         }
@@ -2192,7 +2240,7 @@
                 chaosX = 0.4; // reset chaos seed each wave for consistency
             }
 
-            setMusicMode('wave');
+            setMusicMode(currentWave === 10 ? 'boss' : 'wave');
             updateUI();
         }
 
@@ -4682,46 +4730,159 @@ Seed: ${currentSeed || 'random'}`;
         let arenaBackgroundCache = null;
         let arenaBackgroundCacheKey = '';
 
+        const marketBackgroundThemes = [
+            { name:'Opening Bell', glow:'#4ecdc4', grid:'#1d2250', accent:'#ffd700' },
+            { name:'Green Candle Gallop', glow:'#56f5a4', grid:'#1f3157', accent:'#c8ff6a' },
+            { name:'Diamond Paws', glow:'#7bdff2', grid:'#17355b', accent:'#ffd700' },
+            { name:'Such Momentum', glow:'#67ff8e', grid:'#22345b', accent:'#f7e36d' },
+            { name:'Moon Bag March', glow:'#9f86ff', grid:'#2c245c', accent:'#ffe66d' },
+            { name:'FOMO Sprint', glow:'#4ecdc4', grid:'#243c66', accent:'#ffcf40' },
+            { name:'Whale Pump', glow:'#8affc1', grid:'#1f3954', accent:'#ffd700' },
+            { name:'Very Breakout', glow:'#5effd6', grid:'#153a4f', accent:'#ffee88' },
+            { name:'ATH Run', glow:'#c8ff6a', grid:'#223a48', accent:'#ffd700' },
+            { name:'Red Candle Dread', glow:'#ff5b5b', grid:'#3a1d2a', accent:'#ff4040' }
+        ];
+
+        function getMarketBackgroundTheme() {
+            return marketBackgroundThemes[Math.max(0, Math.min(marketBackgroundThemes.length - 1, currentWave - 1))];
+        }
+
+        function buildMarketSeries(totalCandles, includeCrash) {
+            const candles = [];
+            let price = 120 + currentWave * 7 + difficulty * 4;
+            for (let i = 0; i < totalCandles; i++) {
+                const crashZone = includeCrash && i > totalCandles * 0.72;
+                const n = stableNoise(i * 17 + currentWave * 31 + difficulty * 5);
+                const wave = Math.sin(i * 0.55 + currentWave) * 3;
+                const drift = crashZone ? -8 - n * 10 : 3.7 + currentWave * 0.45 + n * 5;
+                const open = price;
+                let close = price + drift + wave;
+                if (!crashZone && i % 7 === 4) close -= 4 + n * 5; // tiny pullbacks in a bullish move
+                const high = Math.max(open, close) + 6 + stableNoise(i + 101) * 12;
+                const low = Math.min(open, close) - 6 - stableNoise(i + 207) * 10;
+                candles.push({ open, close, high, low, crash: crashZone });
+                price = close;
+            }
+            return candles;
+        }
+
+        function drawCandlestickChart(bg, w, h, includeCrash) {
+            const theme = getMarketBackgroundTheme();
+            const padX = 46;
+            const padTop = 88;
+            const padBottom = 82;
+            const chartW = w - padX * 2;
+            const chartH = h - padTop - padBottom;
+            const totalCandles = includeCrash ? 34 : 25;
+            const candles = buildMarketSeries(totalCandles, includeCrash);
+            const minP = Math.min(...candles.map(c => c.low));
+            const maxP = Math.max(...candles.map(c => c.high));
+            const yFor = p => padTop + (maxP - p) / Math.max(1, maxP - minP) * chartH;
+            const candleGap = chartW / totalCandles;
+            const candleW = Math.max(6, Math.min(16, candleGap * 0.52));
+
+            // Chart panel
+            bg.save();
+            bg.fillStyle = 'rgba(0,0,0,0.18)';
+            bg.fillRect(padX - 12, padTop - 18, chartW + 24, chartH + 34);
+            bg.strokeStyle = 'rgba(255,255,255,0.08)';
+            bg.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padTop + chartH * i / 4;
+                bg.beginPath(); bg.moveTo(padX - 10, y); bg.lineTo(padX + chartW + 10, y); bg.stroke();
+            }
+
+            // Rising trend channel visible during normal waves.
+            bg.globalAlpha = 0.22;
+            bg.strokeStyle = theme.accent;
+            bg.lineWidth = 3;
+            bg.beginPath();
+            for (let i = 0; i < Math.floor(totalCandles * (includeCrash ? 0.72 : 1)); i++) {
+                const x = padX + i * candleGap + candleGap * 0.5;
+                const y = yFor(candles[i].close);
+                i === 0 ? bg.moveTo(x, y) : bg.lineTo(x, y);
+            }
+            bg.stroke();
+            bg.globalAlpha = 1;
+
+            candles.forEach((c, i) => {
+                const x = padX + i * candleGap + candleGap * 0.5;
+                const yOpen = yFor(c.open);
+                const yClose = yFor(c.close);
+                const yHigh = yFor(c.high);
+                const yLow = yFor(c.low);
+                const green = c.close >= c.open;
+                const color = green ? '#37f27d' : '#ff4d4d';
+                const bodyTop = Math.min(yOpen, yClose);
+                const bodyH = Math.max(4, Math.abs(yClose - yOpen));
+                bg.strokeStyle = color;
+                bg.globalAlpha = c.crash ? 0.52 : 0.34;
+                bg.lineWidth = c.crash ? 3 : 2;
+                bg.beginPath(); bg.moveTo(x, yHigh); bg.lineTo(x, yLow); bg.stroke();
+                bg.fillStyle = color;
+                bg.globalAlpha = c.crash ? 0.56 : 0.38;
+                bg.fillRect(x - candleW / 2, bodyTop, candleW, bodyH);
+            });
+            bg.globalAlpha = 1;
+
+            if (includeCrash) {
+                bg.fillStyle = 'rgba(255,55,55,0.10)';
+                bg.fillRect(padX + chartW * 0.72, padTop - 18, chartW * 0.28 + 12, chartH + 34);
+                bg.strokeStyle = 'rgba(255,80,80,0.38)';
+                bg.lineWidth = 2;
+                bg.beginPath(); bg.moveTo(padX + chartW * 0.72, padTop - 18); bg.lineTo(padX + chartW * 0.72, padTop + chartH + 16); bg.stroke();
+                bg.fillStyle = 'rgba(255,120,120,0.55)';
+                bg.font = 'bold 18px Comic Neue';
+                bg.textAlign = 'right';
+                bg.fillText('BEAR CYCLE', padX + chartW - 8, padTop + 22);
+            } else {
+                bg.fillStyle = 'rgba(80,255,150,0.44)';
+                bg.font = 'bold 16px Comic Neue';
+                bg.textAlign = 'right';
+                bg.fillText('UP ONLY?', padX + chartW - 8, padTop + 22);
+            }
+            bg.restore();
+        }
+
         function drawArenaBackground() {
-            const cacheKey = `${ARENA_WIDTH}x${ARENA_HEIGHT}:wave${currentWave}`;
+            const includeCrash = ARENA_WIDTH > BASE_ARENA_WIDTH + 80 || currentWave >= 10 || boss || gameState === 'bossIntro';
+            const cacheKey = `${Math.round(ARENA_WIDTH)}x${Math.round(ARENA_HEIGHT)}:wave${currentWave}:diff${difficulty}:crash${includeCrash}`;
             if (!arenaBackgroundCache || arenaBackgroundCacheKey !== cacheKey) {
+                const w = Math.round(ARENA_WIDTH);
+                const h = Math.round(ARENA_HEIGHT);
+                const theme = getMarketBackgroundTheme();
                 arenaBackgroundCache = document.createElement('canvas');
-                arenaBackgroundCache.width = ARENA_WIDTH;
-                arenaBackgroundCache.height = ARENA_HEIGHT;
+                arenaBackgroundCache.width = w;
+                arenaBackgroundCache.height = h;
                 arenaBackgroundCacheKey = cacheKey;
                 const bg = arenaBackgroundCache.getContext('2d');
 
-                const grad = bg.createRadialGradient(ARENA_WIDTH/2, ARENA_HEIGHT/2, 40, ARENA_WIDTH/2, ARENA_HEIGHT/2, Math.max(ARENA_WIDTH, ARENA_HEIGHT));
-                grad.addColorStop(0, '#191948');
-                grad.addColorStop(0.55, '#0f1027');
+                const grad = bg.createRadialGradient(w/2, h/2, 40, w/2, h/2, Math.max(w, h));
+                grad.addColorStop(0, '#18244a');
+                grad.addColorStop(0.55, '#0f1429');
                 grad.addColorStop(1, '#070713');
                 bg.fillStyle = grad;
-                bg.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+                bg.fillRect(0, 0, w, h);
 
-                // subtle market chart lines — cached so it is not rebuilt every frame
                 bg.save();
-                bg.globalAlpha = 0.18;
-                bg.strokeStyle = '#ffd700';
-                bg.lineWidth = 2;
-                bg.beginPath();
-                for (let x = 0; x <= ARENA_WIDTH; x += 80) {
-                    const y = ARENA_HEIGHT * 0.65 + Math.sin(x * 0.018 + currentWave) * 38 + Math.cos(x * 0.009) * 24;
-                    x === 0 ? bg.moveTo(x, y) : bg.lineTo(x, y);
-                }
-                bg.stroke();
-                bg.globalAlpha = 0.10;
-                for (let i = 0; i < 38; i++) {
-                    const x = stableNoise(i + 3) * ARENA_WIDTH;
-                    const y = stableNoise(i + 99) * ARENA_HEIGHT;
-                    bg.fillStyle = i % 5 === 0 ? '#ffd700' : '#4ecdc4';
+                bg.globalAlpha = 0.16;
+                bg.fillStyle = theme.glow;
+                for (let i = 0; i < 42; i++) {
+                    const x = stableNoise(i + 3) * w;
+                    const y = stableNoise(i + 99) * h;
                     bg.fillRect(x, y, 2, 2);
                 }
+                bg.restore();
+
+                drawCandlestickChart(bg, w, h, includeCrash);
+
                 // decorative paw prints / paper scraps
-                bg.globalAlpha = 0.12;
+                bg.save();
+                bg.globalAlpha = 0.10;
                 bg.fillStyle = '#fff8dc';
                 for (let i = 0; i < 14; i++) {
-                    const x = stableNoise(i * 7 + 1) * ARENA_WIDTH;
-                    const y = stableNoise(i * 11 + 2) * ARENA_HEIGHT;
+                    const x = stableNoise(i * 7 + 1) * w;
+                    const y = stableNoise(i * 11 + 2) * h;
                     bg.save(); bg.translate(x,y); bg.rotate(stableNoise(i)*Math.PI);
                     bg.fillRect(-8,-3,16,6); bg.fillRect(-2,-8,4,16);
                     bg.restore();
@@ -4729,17 +4890,17 @@ Seed: ${currentSeed || 'random'}`;
                 bg.restore();
 
                 // grid on top
-                bg.strokeStyle = '#1d2250';
+                bg.strokeStyle = theme.grid;
                 bg.lineWidth = 1;
-                for (let x = 0; x < ARENA_WIDTH; x += 50) {
-                    bg.beginPath(); bg.moveTo(x, 0); bg.lineTo(x, ARENA_HEIGHT); bg.stroke();
+                for (let x = 0; x < w; x += 50) {
+                    bg.beginPath(); bg.moveTo(x, 0); bg.lineTo(x, h); bg.stroke();
                 }
-                for (let y = 0; y < ARENA_HEIGHT; y += 50) {
-                    bg.beginPath(); bg.moveTo(0, y); bg.lineTo(ARENA_WIDTH, y); bg.stroke();
+                for (let y = 0; y < h; y += 50) {
+                    bg.beginPath(); bg.moveTo(0, y); bg.lineTo(w, y); bg.stroke();
                 }
-                bg.strokeStyle = 'rgba(255,215,0,0.4)';
+                bg.strokeStyle = includeCrash ? 'rgba(255,80,80,0.45)' : 'rgba(255,215,0,0.4)';
                 bg.lineWidth = 3;
-                bg.strokeRect(2, 2, ARENA_WIDTH - 4, ARENA_HEIGHT - 4);
+                bg.strokeRect(2, 2, w - 4, h - 4);
             }
             ctx.drawImage(arenaBackgroundCache, 0, 0);
         }
