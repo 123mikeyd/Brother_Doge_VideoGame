@@ -19,6 +19,7 @@ If GitHub Pages is not live yet, open `index.html` or `BrotherDoge.html` locally
 - Added run summaries after death and victory.
 - Added boss health bar and clearer boss danger telegraphs.
 - Added `index.html` so the game is playable from GitHub Pages.
+- Fixed mobile arena scaling so phones see the whole battlefield instead of a cropped corner.
 
 ## Features
 

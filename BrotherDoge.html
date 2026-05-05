@@ -20,21 +20,30 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            width: 100vw;
             height: 100vh;
+            height: 100dvh;
+            touch-action: none;
         }
         
         #gameContainer {
             position: relative;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
         
         #gameCanvas {
             background: #0f0f1e;
             box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            display: block;
+            max-width: 100vw;
+            max-height: 100dvh;
+            image-rendering: auto;
         }
         
         #ui {
@@ -695,6 +704,30 @@
             0%, 100% { box-shadow: 1px 2px 4px rgba(0,0,0,0.5), 0 0 6px rgba(255,215,0,0.3); }
             50% { box-shadow: 1px 2px 4px rgba(0,0,0,0.5), 0 0 14px rgba(255,215,0,0.6); }
         }
+        
+        @media (max-width: 700px), (max-height: 500px) {
+            .hud { font-size: 11px; text-shadow: 1px 1px 0 #000; }
+            #healthBar { top: 6px; left: 6px; padding: 5px; border-radius: 6px; }
+            #coinDisplay { top: 6px; right: 6px; padding: 5px; font-size: 13px; border-radius: 6px; }
+            #killDisplay { top: 36px; right: 6px; padding: 5px; font-size: 12px; border-radius: 6px; }
+            #waveDisplay { top: 6px; padding: 5px 12px; font-size: 14px; border-radius: 6px; }
+            #difficultyDisplay { top: 36px; font-size: 11px; }
+            #weaponSlots { bottom: 6px; gap: 4px; padding: 5px; border-radius: 6px; }
+            .weapon-slot { width: 42px; height: 34px; font-size: 10px; }
+            #perkHud { left: 6px; bottom: 52px; max-width: 45%; }
+            .perk-sticker { font-size: 9px; padding: 3px 5px; }
+            #breedSelect h1 { font-size: 26px; margin-bottom: 12px; }
+            .breedOptions { gap: 8px; }
+            .breedCard { width: 150px; padding: 10px; }
+            .breedCard h3 { font-size: 18px; }
+            .breedCard .stats, .breedCard .perk { font-size: 11px; }
+            #shopTitle { font-size: 28px; }
+            #shopContent { gap: 8px; transform: scale(0.86); max-width: 116vw; }
+            .shopSection { min-width: 160px; padding: 10px; }
+            .shopSection h3 { font-size: 16px; }
+            .shopItem { padding: 7px; font-size: 11px; }
+            .run-summary { min-width: 280px; max-width: 92vw; font-size: 12px; padding: 9px; }
+        }
     </style>
 </head>
 <body>
@@ -1088,10 +1121,21 @@
             }
         }
         
-        // Resize canvas
+        // Resize canvas: keep the full arena coordinate system, then scale the displayed canvas
+        // down with CSS so phones see the whole battlefield instead of a cropped corner.
         function resizeCanvas() {
-            canvas.width = Math.min(window.innerWidth, ARENA_WIDTH);
-            canvas.height = Math.min(window.innerHeight, ARENA_HEIGHT);
+            canvas.width = ARENA_WIDTH;
+            canvas.height = ARENA_HEIGHT;
+            const viewW = window.innerWidth || document.documentElement.clientWidth || ARENA_WIDTH;
+            const viewH = window.innerHeight || document.documentElement.clientHeight || ARENA_HEIGHT;
+            const scale = Math.min(viewW / ARENA_WIDTH, viewH / ARENA_HEIGHT, 1);
+            const displayW = Math.max(1, Math.floor(ARENA_WIDTH * scale));
+            const displayH = Math.max(1, Math.floor(ARENA_HEIGHT * scale));
+            canvas.style.width = displayW + 'px';
+            canvas.style.height = displayH + 'px';
+            const container = document.getElementById('gameContainer');
+            container.style.width = displayW + 'px';
+            container.style.height = displayH + 'px';
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
@@ -1157,10 +1201,18 @@
         
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
         
-        canvas.addEventListener('mousemove', (e) => {
+        function clientToArena(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
-            mouse.x = e.clientX - rect.left;
-            mouse.y = e.clientY - rect.top;
+            return {
+                x: (clientX - rect.left) * (canvas.width / Math.max(1, rect.width)),
+                y: (clientY - rect.top) * (canvas.height / Math.max(1, rect.height))
+            };
+        }
+        
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = clientToArena(e.clientX, e.clientY);
+            mouse.x = pos.x;
+            mouse.y = pos.y;
         });
         
         canvas.addEventListener('mousedown', () => mouse.down = true);
@@ -1192,10 +1244,10 @@
         
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
             for (const t of e.changedTouches) {
-                const x = t.clientX - rect.left;
-                const y = t.clientY - rect.top;
+                const pos = clientToArena(t.clientX, t.clientY);
+                const x = pos.x;
+                const y = pos.y;
                 if (x < canvas.width * 0.45 && !touchMove.active) {
                     Object.assign(touchMove, { active: true, id: t.identifier, sx: x, sy: y, x, y });
                 } else if (!touchAim.active) {
@@ -1206,10 +1258,10 @@
         }, { passive: false });
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
             for (const t of e.changedTouches) {
-                const x = t.clientX - rect.left;
-                const y = t.clientY - rect.top;
+                const pos = clientToArena(t.clientX, t.clientY);
+                const x = pos.x;
+                const y = pos.y;
                 if (t.identifier === touchMove.id) { touchMove.x = x; touchMove.y = y; }
                 if (t.identifier === touchAim.id) { touchAim.x = x; touchAim.y = y; }
             }
