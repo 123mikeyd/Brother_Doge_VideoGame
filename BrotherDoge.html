@@ -6,13 +6,13 @@
     <title>HODL OR DIE - Doge Survival Shooter</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             background: #1a1a2e;
             font-family: 'Comic Neue', cursive;
@@ -25,7 +25,7 @@
             height: 100dvh;
             touch-action: none;
         }
-        
+
         #gameContainer {
             position: relative;
             width: 100vw;
@@ -36,7 +36,7 @@
             align-items: center;
             overflow: hidden;
         }
-        
+
         #gameCanvas {
             background: #0f0f1e;
             box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
@@ -45,7 +45,7 @@
             max-height: 100dvh;
             image-rendering: auto;
         }
-        
+
         #ui {
             position: absolute;
             top: 0;
@@ -54,7 +54,7 @@
             height: 100%;
             pointer-events: none;
         }
-        
+
         .hud {
             position: absolute;
             color: #ffd700;
@@ -62,7 +62,7 @@
             font-weight: bold;
             text-shadow: 2px 2px 0 #000;
         }
-        
+
         #healthBar {
             top: 20px;
             left: 20px;
@@ -71,7 +71,7 @@
             border-radius: 10px;
             border: 2px solid #c2c90efa;
         }
-        
+
         #coinDisplay {
             top: 20px;
             right: 20px;
@@ -81,7 +81,7 @@
             border: 2px solid #ffd700;
             font-size: 24px;
         }
-        
+
         #killDisplay {
             top: 70px;
             right: 20px;
@@ -91,7 +91,7 @@
             border: 2px solid #ff6b6b;
             font-size: 20px;
         }
-        
+
         #waveDisplay {
             top: 20px;
             left: 50%;
@@ -102,7 +102,7 @@
             border: 2px solid #ffd700;
             font-size: 24px;
         }
-        
+
         #weaponSlots {
             bottom: 20px;
             left: 50%;
@@ -114,7 +114,7 @@
             border-radius: 10px;
             border: 2px solid #ffd700;
         }
-        
+
         .weapon-slot {
             width: 60px;
             height: 60px;
@@ -128,66 +128,106 @@
             color: #fff;
             background: rgba(255,255,255,0.1);
         }
-        
+
         .weapon-slot.active {
             border-color: #ffd700;
             background: rgba(255,215,0,0.2);
         }
-        
+
         .weapon-slot.filled {
             background: rgba(100,200,100,0.3);
         }
-        
+
         #shopOverlay {
             position: absolute;
-            top: 0;
-            left: 0;
+            inset: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10, 10, 30, 0.88);
+            max-height: 100dvh;
+            background: rgba(10, 10, 30, 0.92);
             display: none;
             pointer-events: all;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             color: #ffd700;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
         }
-        
+
         #shopOverlay.visible {
             display: flex;
         }
-        
+
         #shopTitle {
             font-size: 48px;
             margin-bottom: 20px;
             text-shadow: 3px 3px 0 #ff6b6b;
         }
-        
+
         #shopTitle.lucky {
             color: #9dff7a;
             text-shadow: 3px 3px 0 #2d6a2d;
         }
-        
+
         #shopContent {
             display: flex;
-            gap: 30px;
-            margin-bottom: 20px;
+            gap: 24px;
+            margin-bottom: 16px;
+            max-width: min(1240px, 96vw);
         }
-        
+
+        #shopTabs {
+            display: none;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 0 0 10px;
+        }
+
+        #shopTabs button, .mini-btn {
+            background: rgba(255,255,255,0.1);
+            color: #ffd700;
+            border: 1px solid rgba(255,215,0,0.55);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #shopTabs button.active, .mini-btn.active {
+            background: #ffd700;
+            color: #000;
+        }
+
+        #shopActions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .shopSection {
-            background: rgba(0,0,0,0.8);
-            padding: 20px;
+            background: rgba(0,0,0,0.82);
+            padding: 18px;
             border-radius: 15px;
             border: 3px solid #ffd700;
-            min-width: 250px;
+            min-width: 240px;
+            max-height: 68dvh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
-        
+
         .shopSection h3 {
             text-align: center;
             margin-bottom: 15px;
             font-size: 24px;
         }
-        
+
         .shopStatsLine {
             display: flex;
             justify-content: space-between;
@@ -197,11 +237,11 @@
             font-size: 14px;
             color: #f2f2f2;
         }
-        
+
         .shopStatsLine span:first-child {
             color: #bbb;
         }
-        
+
         .shopItem {
             background: rgba(255,255,255,0.1);
             margin: 10px 0;
@@ -211,42 +251,42 @@
             transition: all 0.3s;
             border: 2px solid transparent;
         }
-        
+
         .shopItem:hover {
             background: rgba(255,215,0,0.2);
             border-color: #ffd700;
             transform: scale(1.05);
         }
-        
+
         .shopItem.disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-        
+
         .shopItem .name {
             font-weight: bold;
             font-size: 16px;
         }
-        
+
         .shopItem .desc {
             font-size: 12px;
             color: #aaa;
             margin-top: 5px;
         }
-        
+
         .shopItem .price {
             color: #ffd700;
             font-size: 18px;
             margin-top: 5px;
         }
-        
+
         .shopItemHeader {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 8px;
         }
-        
+
         .lock-btn {
             border: 1px solid #666;
             background: rgba(255,255,255,0.1);
@@ -256,18 +296,18 @@
             font-size: 12px;
             cursor: pointer;
         }
-        
+
         .shopItem.locked {
             border-color: #4ecdc4;
             box-shadow: 0 0 8px rgba(78,205,196,0.4);
         }
-        
+
         .shopItem.rank-1 { border-left: 3px solid #888; }
         .shopItem.rank-2 { border-left: 3px solid #4ecdc4; }
         .shopItem.rank-3 { border-left: 3px solid #5b7cff; }
         .shopItem.rank-4 { border-left: 3px solid #a855f7; }
         .shopItem.rank-5 { border-left: 3px solid #ffd700; background: rgba(255,215,0,0.08); }
-        
+
         #refreshShop {
             background: #ff6b6b;
             color: white;
@@ -279,11 +319,11 @@
             font-family: inherit;
             margin-top: 10px;
         }
-        
+
         #refreshShop:hover {
             background: #ff5252;
         }
-        
+
         #continueBtn {
             background: #4ecdc4;
             color: white;
@@ -295,17 +335,17 @@
             font-family: inherit;
             margin-top: 20px;
         }
-        
+
         #continueBtn:hover {
             background: #45b7aa;
         }
-        
+
         #breedSelect {
             position: absolute;
-            top: 0;
-            left: 0;
+            inset: 0;
             width: 100%;
             height: 100%;
+            max-height: 100dvh;
             background: rgba(10, 10, 30, 0.95);
             display: flex;
             flex-direction: column;
@@ -313,46 +353,53 @@
             justify-content: center;
             color: #ffd700;
             pointer-events: all;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
         }
-        
+
         #breedSelect h1 {
             font-size: 64px;
             margin-bottom: 30px;
             text-shadow: 3px 3px 0 #ff6b6b;
         }
-        
+
         .breedOptions {
-            display: flex;
-            gap: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+            gap: 18px;
+            width: min(1120px, 96vw);
         }
-        
+
         .breedCard {
-            background: rgba(0,0,0,0.8);
-            padding: 30px;
+            background: rgba(0,0,0,0.82);
+            padding: 18px;
             border-radius: 15px;
             border: 3px solid #ffd700;
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
-            width: 250px;
+            width: auto;
+            min-width: 0;
         }
-        
+
         .breedCard:hover {
             transform: scale(1.1);
             border-color: #4ecdc4;
         }
-        
+
         .breedCard h3 {
             font-size: 28px;
             margin-bottom: 15px;
         }
-        
+
         .breedCard .stats {
             text-align: left;
             font-size: 14px;
             line-height: 1.8;
         }
-        
+
         .breedCard .perk {
             margin-top: 15px;
             padding: 10px;
@@ -360,7 +407,7 @@
             border-radius: 8px;
             font-size: 12px;
         }
-        
+
         #gameOver {
             position: absolute;
             top: 0;
@@ -376,27 +423,27 @@
             pointer-events: all;
             animation: deathFadeIn 0.8s ease-out;
         }
-        
+
         @keyframes deathFadeIn {
             0% { opacity: 0; transform: scale(1.1); }
             100% { opacity: 1; transform: scale(1); }
         }
-        
+
         @keyframes deathPulse {
             0%, 100% { text-shadow: 0 0 20px rgba(180,0,0,0.8), 0 0 40px rgba(120,0,0,0.4), 0 4px 8px rgba(0,0,0,0.9); }
             50% { text-shadow: 0 0 30px rgba(200,0,0,1), 0 0 60px rgba(150,0,0,0.6), 0 4px 8px rgba(0,0,0,0.9); }
         }
-        
+
         @keyframes drip {
             0% { transform: translateY(-5px); opacity: 0; }
             20% { opacity: 1; }
             100% { transform: translateY(0); opacity: 1; }
         }
-        
+
         #gameOver.visible {
             display: flex;
         }
-        
+
         #gameOver h1 {
             font-size: 80px;
             font-weight: 900;
@@ -410,7 +457,7 @@
             animation: deathPulse 2s ease-in-out infinite;
             letter-spacing: 4px;
         }
-        
+
         #gameOver .death-subtitle {
             font-size: 18px;
             color: #661111;
@@ -419,14 +466,14 @@
             margin-bottom: 20px;
             animation: drip 1s ease-out 0.3s both;
         }
-        
+
         #gameOver .death-stats {
             color: #aa3333;
             font-size: 20px;
             margin: 6px 0;
             animation: drip 1s ease-out 0.6s both;
         }
-        
+
         #gameOver button {
             background: linear-gradient(180deg, #661111, #440000);
             color: #ff6b6b;
@@ -440,13 +487,13 @@
             animation: drip 1s ease-out 0.9s both;
             transition: all 0.2s;
         }
-        
+
         #gameOver button:hover {
             background: linear-gradient(180deg, #882222, #661111);
             border-color: #cc4444;
             color: #fff;
         }
-        
+
         .run-summary {
             margin: 14px 0;
             padding: 12px 18px;
@@ -460,20 +507,20 @@
             line-height: 1.45;
             text-align: left;
         }
-        
+
         .run-summary h3 {
             color: #ffd700;
             text-align: center;
             margin-bottom: 8px;
             font-size: 20px;
         }
-        
+
         .run-summary-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 4px 18px;
         }
-        
+
         .credits {
             margin-top: 12px;
             color: #aaa;
@@ -481,7 +528,7 @@
             text-align: center;
             letter-spacing: 1px;
         }
-        
+
         #victory {
             position: absolute;
             top: 0;
@@ -497,27 +544,27 @@
             pointer-events: all;
             animation: victoryFadeIn 1.2s ease-out;
         }
-        
+
         @keyframes victoryFadeIn {
             0% { opacity: 0; }
             30% { opacity: 0; }
             100% { opacity: 1; }
         }
-        
+
         @keyframes victoryGlow {
             0%, 100% { text-shadow: 0 0 20px rgba(255,215,0,0.6), 0 0 40px rgba(255,170,0,0.3); filter: brightness(1); }
             50% { text-shadow: 0 0 40px rgba(255,215,0,0.9), 0 0 80px rgba(255,170,0,0.5); filter: brightness(1.2); }
         }
-        
+
         @keyframes riseUp {
             0% { transform: translateY(30px); opacity: 0; }
             100% { transform: translateY(0); opacity: 1; }
         }
-        
+
         #victory.visible {
             display: flex;
         }
-        
+
         #victory h1 {
             font-size: 80px;
             font-weight: 900;
@@ -531,21 +578,21 @@
             animation: victoryGlow 2s ease-in-out infinite, riseUp 1s ease-out 0.3s both;
             letter-spacing: 3px;
         }
-        
+
         #victory .victory-subtitle {
             font-size: 22px;
             color: #ffeaa7;
             margin-bottom: 15px;
             animation: riseUp 1s ease-out 0.6s both;
         }
-        
+
         #victory .victory-stats {
             color: #f0c040;
             font-size: 18px;
             margin: 4px 0;
             animation: riseUp 1s ease-out 0.8s both;
         }
-        
+
         #victory .mutation-preview {
             margin-top: 10px;
             padding: 10px 20px;
@@ -555,14 +602,14 @@
             font-size: 14px;
             animation: riseUp 1s ease-out 1.0s both;
         }
-        
+
         .unlocks {
             color: #4ecdc4;
             font-size: 20px;
             margin: 8px 0;
             animation: riseUp 1s ease-out 0.9s both;
         }
-        
+
         #victory button {
             background: linear-gradient(180deg, #ffd700, #ff8c00);
             color: #000;
@@ -577,13 +624,13 @@
             animation: riseUp 1s ease-out 1.2s both;
             transition: all 0.2s;
         }
-        
+
         #victory button:hover {
             background: linear-gradient(180deg, #ffed4a, #ffd700);
             border-color: #fff;
             transform: scale(1.05);
         }
-        
+
         #pauseOverlay {
             position: absolute;
             top: 0;
@@ -599,21 +646,21 @@
             pointer-events: all;
             z-index: 100;
         }
-        
+
         #pauseOverlay.visible {
             display: flex;
         }
-        
+
         #pauseOverlay h1 {
             font-size: 64px;
             margin-bottom: 20px;
         }
-        
+
         #pauseOverlay p {
             color: #aaa;
             font-size: 20px;
         }
-        
+
         #soundToggle {
             background: #4ecdc4;
             color: white;
@@ -626,7 +673,7 @@
             margin-top: 20px;
             pointer-events: all;
         }
-        
+
         #difficultyDisplay {
             top: 60px;
             left: 50%;
@@ -644,7 +691,7 @@
             min-width: 80px;
             max-width: 200px;
         }
-        
+
         .perk-sticker {
             display: inline-block;
             padding: 4px 8px;
@@ -658,20 +705,20 @@
             position: relative;
             transition: transform 0.3s;
         }
-        
+
         /* Clean layout (few perks) */
         #perkHud.clean .perk-sticker {
             display: block;
             margin: 3px 0;
         }
-        
+
         /* Collage mode (many perks) — overlapping sticker board */
         #perkHud.collage .perk-sticker {
             display: inline-block;
             margin: -2px -4px;
             transform-origin: center;
         }
-        
+
         .perk-sticker.rank-1 {
             background: linear-gradient(135deg, #555, #444);
             border: 2px solid #888;
@@ -699,12 +746,84 @@
             font-size: 12px;
             animation: stickerGlow 2s ease-in-out infinite;
         }
-        
+
         @keyframes stickerGlow {
             0%, 100% { box-shadow: 1px 2px 4px rgba(0,0,0,0.5), 0 0 6px rgba(255,215,0,0.3); }
             50% { box-shadow: 1px 2px 4px rgba(0,0,0,0.5), 0 0 14px rgba(255,215,0,0.6); }
         }
-        
+
+
+        #rotateHint {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            z-index: 120;
+            pointer-events: none;
+            background: rgba(0,0,0,0.82);
+            color: #ffd700;
+            border: 1px solid rgba(255,215,0,0.65);
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 13px;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        #quickMenu {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 90;
+            display: flex;
+            gap: 6px;
+            pointer-events: all;
+        }
+
+        #statsPanel, #settingsPanel {
+            position: absolute;
+            inset: 0;
+            display: none;
+            z-index: 150;
+            pointer-events: all;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(0,0,0,0.82);
+            overflow-y: auto;
+        }
+        #statsPanel.visible, #settingsPanel.visible { display: flex; }
+        .modal-card {
+            width: min(680px, 94vw);
+            max-height: 88dvh;
+            overflow-y: auto;
+            background: rgba(12,12,34,0.96);
+            border: 2px solid #ffd700;
+            border-radius: 14px;
+            padding: 18px;
+            color: #eee;
+            box-shadow: 0 0 35px rgba(255,215,0,0.25);
+        }
+        .modal-card h2 { color:#ffd700; text-align:center; margin-bottom:10px; }
+        .modal-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:8px; }
+        .setting-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); }
+        .toast {
+            position: absolute;
+            left: 50%; top: 18%; transform: translateX(-50%);
+            z-index: 130; pointer-events:none;
+            padding: 10px 16px; border-radius: 10px;
+            background: rgba(0,0,0,0.85); border: 2px solid #ffd700;
+            color:#ffd700; font-weight:bold; text-align:center;
+            animation: riseUp 0.35s ease-out;
+        }
+
+        #gameOver, #victory, #pauseOverlay {
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 18px;
+        }
+
         @media (max-width: 700px), (max-height: 500px) {
             .hud { font-size: 11px; text-shadow: 1px 1px 0 #000; }
             #healthBar { top: 6px; left: 6px; padding: 5px; border-radius: 6px; }
@@ -728,12 +847,53 @@
             .shopItem { padding: 7px; font-size: 11px; }
             .run-summary { min-width: 280px; max-width: 92vw; font-size: 12px; padding: 9px; }
         }
+
+        @media (max-width: 700px), (max-height: 500px) {
+            #gameContainer { width: 100vw !important; height: 100dvh !important; }
+            #breedSelect { justify-content: flex-start; padding: 10px 8px 22px; }
+            #breedSelect h1 { font-size: 24px; margin: 4px 0 10px; position: sticky; top: 0; z-index: 2; background: rgba(10,10,30,0.92); padding: 7px 12px; border-radius: 10px; }
+            .breedOptions { grid-template-columns: 1fr; width: min(430px, 94vw); gap: 10px; }
+            .breedCard { width: 100%; padding: 10px; }
+            .breedCard:hover { transform: scale(1.02); }
+            .breedCard h3 { font-size: 19px; margin-bottom: 7px; }
+            .breedCard .stats { font-size: 11px; line-height: 1.35; }
+            .breedCard .stats em { display: none; }
+            .breedCard .perk { margin-top: 6px; padding: 6px; font-size: 11px; }
+            #quickMenu { top: auto; bottom: 6px; left: 6px; }
+            #quickMenu .mini-btn { padding: 6px 8px; font-size: 11px; }
+            #shopOverlay { justify-content: flex-start; padding: 8px; }
+            #shopTitle { font-size: 24px; margin: 4px 0 8px; position: sticky; top: 0; z-index: 6; background: rgba(10,10,30,0.95); padding: 5px 10px; border-radius: 8px; }
+            #shopTabs { display: flex; position: sticky; top: 42px; z-index: 6; background: rgba(10,10,30,0.95); padding: 5px; border-radius: 8px; }
+            #shopTabs button { font-size: 12px; padding: 7px 8px; }
+            #shopContent { display: block; width: min(430px, 94vw); max-width: 94vw; margin-bottom: 8px; transform: none; }
+            .shopSection { display: none; width: 100%; min-width: 0; max-height: 55dvh; padding: 10px; border-width: 2px; }
+            .shopSection.mobile-active { display: block; }
+            .shopSection h3 { font-size: 16px; margin-bottom: 8px; }
+            .shopItem { margin: 7px 0; padding: 7px; }
+            .shopItem:hover { transform: none; }
+            .shopItem .name { font-size: 13px; }
+            .shopItem .desc { font-size: 10px; margin-top: 3px; }
+            .shopItem .price { font-size: 13px; }
+            .lock-btn { min-width: 32px; min-height: 28px; }
+            #shopActions { position: sticky; bottom: 4px; z-index: 8; background: rgba(10,10,30,0.94); padding: 6px; border-radius: 10px; width: min(430px, 94vw); }
+            #refreshShop, #continueBtn { font-size: 13px; padding: 9px 11px; margin: 0; }
+            #gameOver h1, #victory h1 { font-size: 34px; }
+            #victory .victory-subtitle, #gameOver .death-subtitle { font-size: 13px; letter-spacing: 2px; }
+            #pauseOverlay h1 { font-size: 34px; }
+            .modal-card { width: 94vw; padding: 12px; }
+        }
+
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
-        
+        <div id="rotateHint">📱 Rotate phone sideways for bigger battle view</div>
+        <div id="quickMenu">
+            <button class="mini-btn" onclick="openStatsPanel()">📊 Stats</button>
+            <button class="mini-btn" onclick="openSettingsPanel()">⚙️ Settings</button>
+        </div>
+
         <div id="ui">
             <div id="healthBar" class="hud">❤️ <span id="healthText">100/100</span></div>
             <div id="coinDisplay" class="hud">🪙 <span id="coinText">0</span></div>
@@ -748,9 +908,14 @@
             </div>
             <div id="perkHud" class="hud" style="display:none;"></div>
         </div>
-        
+
         <div id="breedSelect">
             <h1>🐕 CHOOSE YOUR DOGE 🐕</h1>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;">
+                <button class="mini-btn" onclick="runMode='normal';currentSeed='';showToast('Normal random run')">🎲 Normal Run</button>
+                <button class="mini-btn" onclick="startDailyRun()">☀️ Daily Run</button>
+                <button class="mini-btn" onclick="startSeededRun()">🌱 Seeded Run</button>
+            </div>
             <div class="breedOptions">
                 <div class="breedCard" onclick="selectBreed('yellow')">
                     <h3>🟡 Lassy</h3>
@@ -824,7 +989,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div id="pauseOverlay">
             <h1>⏸️ PAUSED</h1>
             <p>Press ESC to resume</p>
@@ -832,31 +997,57 @@
             <button onclick="togglePause()" style="background:#ffd700;color:#000;border:none;padding:15px 40px;border-radius:8px;font-size:20px;font-weight:bold;cursor:pointer;margin-bottom:10px;">▶️ Resume</button>
             <button id="soundToggle" onclick="toggleSound()">🔊 Sound: ON</button>
         </div>
-        
+
         <div id="shopOverlay">
             <div id="shopTitle">🛒 DOGE SHOP 🛒</div>
+            <div id="shopTabs">
+                <button data-shop-tab="weapons" onclick="setShopTab('weapons')">🔫 Weapons</button>
+                <button data-shop-tab="perks" onclick="setShopTab('perks')">⭐ Perks</button>
+                <button data-shop-tab="upgrades" onclick="setShopTab('upgrades')">⬆️ Upgrades</button>
+                <button data-shop-tab="stats" onclick="setShopTab('stats')">📊 Stats</button>
+            </div>
             <div id="shopContent">
-                <div class="shopSection">
+                <div class="shopSection" data-shop-tab="weapons">
                     <h3>🔫 Weapons</h3>
                     <div id="weaponShop"></div>
                 </div>
-                <div class="shopSection">
+                <div class="shopSection" data-shop-tab="perks">
                     <h3>⭐ Perks</h3>
                     <div id="perkShop"></div>
                 </div>
-                <div class="shopSection">
+                <div class="shopSection" data-shop-tab="upgrades">
                     <h3>⬆️ Upgrades</h3>
                     <div id="upgradeShop"></div>
                 </div>
-                <div class="shopSection">
+                <div class="shopSection" data-shop-tab="stats">
                     <h3>📊 Your Stats</h3>
                     <div id="shopStats"></div>
                 </div>
             </div>
-            <button id="refreshShop" onclick="refreshShop()">🔄 Refresh Shop (50 🪙)</button>
-            <button id="continueBtn" onclick="nextWave()">▶️ Continue to Next Wave</button>
+            <div id="shopActions">
+                <button id="refreshShop" onclick="refreshShop()">🔄 Refresh Shop (50 🪙)</button>
+                <button id="continueBtn" onclick="nextWave()">▶️ Continue to Next Wave</button>
+            </div>
         </div>
-        
+
+        <div id="statsPanel">
+            <div class="modal-card">
+                <h2>📊 BrotherDoge Stats</h2>
+                <div id="statsPanelContent"></div>
+                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
+                    <button class="mini-btn" onclick="resetProgressConfirm()">Reset Progress</button>
+                    <button class="mini-btn" onclick="closeStatsPanel()">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="settingsPanel">
+            <div class="modal-card">
+                <h2>⚙️ Settings</h2>
+                <div id="settingsPanelContent"></div>
+                <div style="text-align:center;margin-top:12px;"><button class="mini-btn" onclick="closeSettingsPanel()">Close</button></div>
+            </div>
+        </div>
+
         <div id="gameOver">
             <h1>PAPER HANDS</h1>
             <div class="death-subtitle">such loss &bull; very rekt &bull; much sadge</div>
@@ -864,10 +1055,11 @@
             <div class="death-stats">💀 <span id="finalKills">0</span> enemies destroyed</div>
             <div class="death-stats" id="deathDifficulty"></div>
             <div class="run-summary" id="deathRunSummary"></div>
+            <button class="mini-btn" onclick="copyRunSummary()">📋 Copy Run Summary</button>
             <div class="credits">Credits: Hermes Agent + 123mikey included</div>
             <button onclick="restartGame()">💔 Try Again</button>
         </div>
-        
+
         <div id="victory">
             <h1>📉 YOU SURVIVED THE BEAR CYCLE 📈</h1>
             <div class="victory-subtitle">Are you ready for another round?</div>
@@ -878,6 +1070,7 @@
             <div id="unlocksContainer"></div>
             <div id="dogeTweet" style="display:none;margin:12px 0;max-width:400px;text-align:center;"></div>
             <div class="run-summary" id="victoryRunSummary"></div>
+            <button class="mini-btn" onclick="copyRunSummary()">📋 Copy Run Summary</button>
             <div class="credits">Credits: Hermes Agent + 123mikey included</div>
             <div class="mutation-preview" id="mutationPreview"></div>
             <button onclick="startNewRun()">⚡ Difficulty <span id="nextDiff">2</span> — HODL HARDER</button>
@@ -887,7 +1080,7 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        
+
         // Game state
         let gameState = 'breedSelect'; // breedSelect, playing, shop, gameOver, victory
         let difficulty = 1;
@@ -907,6 +1100,8 @@
         let coinStreakCount = 0;
         let coinStreakTimer = 0;
         let tutorialMode = false;
+        let tutorialStep = 'move';
+        let tutorialGoal = { x: 0, y: 0, radius: 34 };
         let tutorialCompleteTimer = 0;
         let runStartTime = Date.now();
         let runCoinsCollected = 0;
@@ -917,7 +1112,20 @@
         const touchMove = { active: false, id: null, sx: 0, sy: 0, x: 0, y: 0 };
         const touchAim = { active: false, id: null, x: 0, y: 0 };
         const gamepadState = { x: 0, y: 0, aimX: 0, aimY: 0, shoot: false };
-        
+        let activeShopTab = 'weapons';
+        let settings = { sound:true, music:false, camera:'auto', autoFire:false, screenShake:'normal', damageNumbers:true };
+        let lifetime = { kills:0, coins:0, damage:0, bossKills:0, runs:0, victories:0, favoriteBreedCounts:{}, weaponUseCounts:{} };
+        let achievements = {};
+        let localLeaderboard = [];
+        let seenEnemyTypesThisRun = new Set();
+        let currentRunText = '';
+        let currentSeed = '';
+        let runMode = 'normal';
+        let seededState = 1;
+        let musicTimer = null;
+        let phaseToastShown = {};
+        let hitPauseTimer = 0;
+
         // Arena dimensions (dynamic - expands for boss fight)
         let ARENA_WIDTH = 800;
         let ARENA_HEIGHT = 600;
@@ -925,19 +1133,20 @@
         const BASE_ARENA_HEIGHT = 600;
         const BOSS_ARENA_WIDTH = 1100;
         const BOSS_ARENA_HEIGHT = 800;
-        
+
         // === SOUND SYSTEM (Web Audio API) ===
         let audioCtx = null;
         let soundEnabled = true;
         const soundThrottles = {};
-        
+
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (settings.music && !musicTimer) setMusicMode(gameState === 'breedSelect' ? 'menu' : 'wave');
         }
-        
+
         function playSound(type) {
             if (!soundEnabled || !audioCtx) return;
             // Throttle rapid sounds
@@ -947,13 +1156,13 @@
                 if (soundThrottles[type] && now - soundThrottles[type] < minGap) return;
                 soundThrottles[type] = now;
             }
-            
+
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             const t = audioCtx.currentTime;
-            
+
             switch(type) {
                 case 'shoot':
                     osc.type = 'square';
@@ -1120,15 +1329,81 @@
                     break;
             }
         }
-        
+
+        function setMusicMode(mode) {
+            if (!settings.music || !audioCtx) return;
+            if (musicTimer) clearInterval(musicTimer);
+            const patterns = {
+                menu: [392, 494, 587, 494],
+                wave: [220, 330, 440, 660],
+                boss: [110, 147, 196, 147],
+                victory: [523, 659, 784, 1047],
+                death: [330, 294, 247, 196]
+            };
+            const notes = patterns[mode] || patterns.wave;
+            let idx = 0;
+            musicTimer = setInterval(() => {
+                if (!settings.music || !audioCtx || gameState === 'breedSelect' && mode !== 'menu') return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = mode === 'boss' ? 'sawtooth' : 'triangle';
+                osc.frequency.value = notes[idx % notes.length];
+                gain.gain.setValueAtTime(0.018, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.28);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                idx++;
+            }, mode === 'boss' ? 260 : 420);
+        }
+
+        function stopMusic() {
+            if (musicTimer) clearInterval(musicTimer);
+            musicTimer = null;
+        }
+
+        function toggleMusic() {
+            settings.music = !settings.music;
+            saveProgress();
+            if (settings.music) { initAudio(); setMusicMode(gameState === 'breedSelect' ? 'menu' : (boss ? 'boss' : 'wave')); }
+            else stopMusic();
+            renderSettingsPanel();
+        }
+
+        function escapeHTML(value) {
+            return String(value).replace(/[&<>'"]/g, ch => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[ch]));
+        }
+
+        function showToast(text, color = '#ffd700', seconds = 2.2) {
+            const old = document.querySelector('.toast');
+            if (old) old.remove();
+            const div = document.createElement('div');
+            div.className = 'toast';
+            div.style.color = color;
+            div.innerHTML = text;
+            document.getElementById('gameContainer').appendChild(div);
+            setTimeout(() => div.remove(), seconds * 1000);
+        }
+
         // Resize canvas: keep the full arena coordinate system, then scale the displayed canvas
         // down with CSS so phones see the whole battlefield instead of a cropped corner.
+        function getMaxCanvasScale() {
+            const smallScreen = window.innerWidth < 760 || window.innerHeight < 540;
+            if (smallScreen) return 1;
+            if (window.innerWidth >= 1500 && window.innerHeight >= 900) return 1.45;
+            return 1.25;
+        }
         function resizeCanvas() {
             canvas.width = ARENA_WIDTH;
             canvas.height = ARENA_HEIGHT;
             const viewW = window.innerWidth || document.documentElement.clientWidth || ARENA_WIDTH;
             const viewH = window.innerHeight || document.documentElement.clientHeight || ARENA_HEIGHT;
-            const scale = Math.min(viewW / ARENA_WIDTH, viewH / ARENA_HEIGHT, 1);
+            const scale = Math.min(viewW / ARENA_WIDTH, viewH / ARENA_HEIGHT, getMaxCanvasScale());
             const displayW = Math.max(1, Math.floor(ARENA_WIDTH * scale));
             const displayH = Math.max(1, Math.floor(ARENA_HEIGHT * scale));
             canvas.style.width = displayW + 'px';
@@ -1136,16 +1411,24 @@
             const container = document.getElementById('gameContainer');
             container.style.width = displayW + 'px';
             container.style.height = displayH + 'px';
+            updateRotateHint();
+        }
+        function updateRotateHint() {
+            const hint = document.getElementById('rotateHint');
+            if (!hint) return;
+            const phonePortrait = window.innerWidth < 760 && window.innerHeight > window.innerWidth;
+            hint.style.display = phonePortrait && gameState === 'playing' ? 'block' : 'none';
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
-        
+        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 250));
+
         // Input handling
         const keys = {};
         const mouse = { x: 0, y: 0, down: false };
-        
+
         let paused = false;
-        
+
         function togglePause() {
             if (gameState !== 'playing') return;
             paused = !paused;
@@ -1167,16 +1450,19 @@
                 }
             }
         }
-        
+
         function toggleSound() {
             soundEnabled = !soundEnabled;
+            settings.sound = soundEnabled;
+            saveProgress();
             document.getElementById('soundToggle').textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+            renderSettingsPanel();
         }
-        
+
         // Secret code: type "degen" on breed select to unlock Degen Mode
         let secretBuffer = '';
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') { togglePause(); return; }
+            if (e.key === 'Escape') { closeStatsPanel(); closeSettingsPanel(); togglePause(); return; }
             keys[e.key.toLowerCase()] = true;
             // Easter egg: type "degen" during breed select
             if (gameState === 'breedSelect') {
@@ -1198,9 +1484,9 @@
                 }
             }
         });
-        
+
         window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
-        
+
         function clientToArena(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
             return {
@@ -1208,16 +1494,16 @@
                 y: (clientY - rect.top) * (canvas.height / Math.max(1, rect.height))
             };
         }
-        
+
         canvas.addEventListener('mousemove', (e) => {
             const pos = clientToArena(e.clientX, e.clientY);
             mouse.x = pos.x;
             mouse.y = pos.y;
         });
-        
+
         canvas.addEventListener('mousedown', () => mouse.down = true);
         canvas.addEventListener('mouseup', () => mouse.down = false);
-        
+
         function pollGamepad() {
             const pads = navigator.getGamepads ? navigator.getGamepads() : [];
             const gp = pads && pads[0];
@@ -1229,7 +1515,7 @@
             gamepadState.aimY = Math.abs(gp.axes[3] || 0) > 0.18 ? gp.axes[3] : 0;
             gamepadState.shoot = !!(gp.buttons[0]?.pressed || gp.buttons[7]?.pressed || Math.abs(gamepadState.aimX) + Math.abs(gamepadState.aimY) > 0.35);
         }
-        
+
         function updateTouchMouse() {
             if (touchAim.active) {
                 mouse.x = touchAim.x;
@@ -1241,7 +1527,7 @@
                 if (target) { mouse.x = target.x; mouse.y = target.y; mouse.down = true; }
             }
         }
-        
+
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             for (const t of e.changedTouches) {
@@ -1276,7 +1562,7 @@
         }
         canvas.addEventListener('touchend', endTouch);
         canvas.addEventListener('touchcancel', endTouch);
-        
+
         // Breeds
         const breeds = {
             yellow: {
@@ -1315,7 +1601,7 @@
                 perk: 'cosmicPull'
             }
         };
-        
+
         // Weapons
         const weaponTypes = {
             pistol: { name: 'Much Pistol', damage: 15, fireRate: 4, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, color: '#ffd700' },
@@ -1330,115 +1616,115 @@
             moon: { name: 'Moon Launcher', damage: 400, fireRate: 0.45, range: 800, knockback: 12, explosive: 70, expSize: 180, pierce: 0, slow: 0, guided: true, color: '#ffffcc', speed: 170, homingStrength: 0.05, spinRate: 0 },
             boomerang: { name: 'Many Boomerang', damage: 55, fireRate: 1.8, range: 250, knockback: 1, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#e67e22', speed: 350, spinRate: 20, returns: true }
         };
-        
+
         // Perks
         const perkTypes = {
             health1: { name: 'Paper Health', rank: 1, stat: 'maxHealth', value: 18, price: 25 },
             speed1: { name: 'Paper Speed', rank: 1, stat: 'speed', value: 0.08, price: 25 },
             regen1: { name: 'Paper Regen', rank: 1, stat: 'regen', value: 1.2, price: 25 },
             dodge1: { name: 'Paper Dodge', rank: 1, stat: 'dodge', value: 0.05, price: 25 },
-            
+
             health2: { name: 'HODL Health', rank: 2, stat: 'maxHealth', value: 40, price: 60 },
             speed2: { name: 'HODL Speed', rank: 2, stat: 'speed', value: 0.14, price: 60 },
             regen2: { name: 'HODL Regen', rank: 2, stat: 'regen', value: 3.0, price: 60 },
             dodge2: { name: 'HODL Dodge', rank: 2, stat: 'dodge', value: 0.12, price: 60 },
-            
+
             health3: { name: 'Crypto Health', rank: 3, stat: 'maxHealth', value: 75, price: 100 },
             speed3: { name: 'Crypto Speed', rank: 3, stat: 'speed', value: 0.22, price: 100 },
             regen3: { name: 'Crypto Regen', rank: 3, stat: 'regen', value: 5.5, price: 100 },
             dodge3: { name: 'Crypto Dodge', rank: 3, stat: 'dodge', value: 0.2, price: 100 },
             bounce3: { name: 'Crypto Bounce', rank: 3, stat: 'projectileBounce', value: 2, price: 100 },
             ricochet3: { name: 'Crypto Ricochet', rank: 3, stat: 'ricochet', value: 1, price: 120, desc: 'Bullets seek nearest enemy after hit' },
-            
+
             health4: { name: 'Whale Health', rank: 4, stat: 'maxHealth', value: 150, price: 180 },
             speed4: { name: 'Whale Speed', rank: 4, stat: 'speed', value: 0.35, price: 180 },
             regen4: { name: 'Whale Regen', rank: 4, stat: 'regen', value: 9.0, price: 180 },
             dodge4: { name: 'Whale Dodge', rank: 4, stat: 'dodge', value: 0.32, price: 180 },
             turret4: { name: 'Whale Turret', rank: 4, stat: 'turret', value: 1, price: 250, desc: 'Spawn auto-turret' },
-            
+
             // Rank 1 extras
             luck1: { name: 'Paper Luck', rank: 1, stat: 'luck', value: 0.15, price: 25 },
             crit1: { name: 'Paper Crit', rank: 1, stat: 'critChance', value: 0.04, price: 30 },
             magnet1: { name: 'Paper Magnet', rank: 1, stat: 'magnet', value: 0.2, price: 25 },
-            
+
             // Rank 2 extras
             luck2: { name: 'HODL Luck', rank: 2, stat: 'luck', value: 0.3, price: 60 },
             crit2: { name: 'HODL Crit', rank: 2, stat: 'critChance', value: 0.08, price: 65 },
             magnet2: { name: 'HODL Magnet', rank: 2, stat: 'magnet', value: 0.4, price: 55 },
-            
+
             // Rank 3 extras
             luck3: { name: 'Crypto Luck', rank: 3, stat: 'luck', value: 0.5, price: 110 },
             crit3: { name: 'Crypto Crit', rank: 3, stat: 'critChance', value: 0.12, price: 120 },
             critDmg3: { name: 'Crypto Crit Dmg', rank: 3, stat: 'critDamage', value: 0.35, price: 110 },
             magnet3: { name: 'Crypto Magnet', rank: 3, stat: 'magnet', value: 0.7, price: 100 },
             damage3: { name: 'Crypto Damage', rank: 3, stat: 'damage', value: 0.2, price: 120 },
-            
+
             // Rank 4 extras
             luck4: { name: 'Whale Luck', rank: 4, stat: 'luck', value: 0.8, price: 200 },
             crit4: { name: 'Whale Crit', rank: 4, stat: 'critChance', value: 0.18, price: 200 },
             damage4: { name: 'Whale Damage', rank: 4, stat: 'damage', value: 0.35, price: 220 },
-            
+
             // Fire Rate (Pump It)
             pump2: { name: 'HODL Pump', rank: 2, stat: 'fireRateBonus', value: 0.10, price: 65 },
             pump3: { name: 'Crypto Pump', rank: 3, stat: 'fireRateBonus', value: 0.18, price: 120 },
             pump4: { name: 'Whale Pump', rank: 4, stat: 'fireRateBonus', value: 0.30, price: 200 },
-            
+
             // Lifesteal (Rug Pull)
             rug3: { name: 'Crypto Rug Pull', rank: 3, stat: 'lifesteal', value: 0.03, price: 130, desc: 'Heal 3% of damage dealt' },
             rug4: { name: 'Whale Rug Pull', rank: 4, stat: 'lifesteal', value: 0.05, price: 210, desc: 'Heal 5% of damage dealt' },
-            
+
             // Thorns (Gas Fee)
             gas2: { name: 'HODL Gas Fee', rank: 2, stat: 'thorns', value: 8, price: 55, desc: 'Enemies take 8 damage on hit' },
             gas3: { name: 'Crypto Gas Fee', rank: 3, stat: 'thorns', value: 15, price: 110, desc: 'Enemies take 15 damage on hit' },
-            
+
             // Armor
             armor1: { name: 'Paper Armor', rank: 1, stat: 'armor', value: 2, price: 30 },
             armor3: { name: 'Crypto Armor', rank: 3, stat: 'armor', value: 5, price: 100 },
-            
+
             // Economy
             yield2: { name: 'HODL Yield', rank: 2, stat: 'coinGen', value: 1, price: 55, desc: '+1 coin every 3 seconds' },
             whitelist3: { name: 'Crypto Whitelist', rank: 3, stat: 'shopDiscount', value: 0.10, price: 130, desc: '10% off shop prices' },
-            
+
             // Risk/Reward
             leverage4: { name: 'Whale Leverage', rank: 4, stat: 'leverage', value: 1, price: 200, desc: '+60% dmg above 80% HP, -20% below 40%' },
             paperCurse2: { name: 'HODL Paper Curse', rank: 2, stat: 'paperCurse', value: 1, price: 10, desc: '-10% max HP, +50 coins NOW' },
             fomo4: { name: 'Whale FOMO Shield', rank: 4, stat: 'fomoShield', value: 1, price: 220, desc: 'Shield at low HP (60s cooldown)' },
-            
+
             diamond: { name: '💎 DIAMOND HANDS 💎', rank: 5, stat: 'diamond', value: 1, price: 600, desc: '+50% Magnet Radius, +30% Damage, Knockback Immunity' },
             moon5: { name: '🌙 MOON SHOT', rank: 5, stat: 'moon', value: 1, price: 600, desc: 'Pierce +2, +50% Crit Damage' },
             hodl5: { name: '👑 HODL KING', rank: 5, stat: 'hodl', value: 1, price: 600, desc: '+100 HP, +10 HP/s regen below 25% health' },
             turret5: { name: '🤖 TURRET MASTER', rank: 5, stat: 'turretMaster', value: 1, price: 600, desc: '3 auto-turrets, 15s duration' },
             apex5: { name: '🔥 APEX HODLER 🔥', rank: 5, stat: 'apex', value: 1, price: 650, desc: '+220 HP, +40% damage, +20% speed, +2.5 regen, +35% magnet' }
         };
-        
-        
+
+
         // =====================================================
         // MATHEMATICAL PROGRESSION ENGINE
         // =====================================================
-        
+
         const PHI = 1.618033988749895; // Golden ratio
-        
+
         // Sigmoid function: S-curve from 0 to 1
         function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
-        
+
         // Sigmoid derivative: bell curve (peaks at x=0)
         function sigmoidBell(x) { const s = sigmoid(x); return s * (1 - s); }
-        
+
         // Logistic map: x_next = r * x * (1 - x)
         // r < 3: stable, r > 3.57: chaos
         function logisticMap(x, r) { return r * x * (1 - x); }
-        
+
         // Harmonic diminishing returns: base / (1 + count)
         // 1st purchase: full value, 2nd: half, 3rd: third...
         function harmonicValue(baseValue, purchaseCount) {
             return baseValue / (1 + purchaseCount);
         }
-        
+
         // Golden ratio cost scaling: base * PHI^count
         function goldenCost(baseCost, purchaseCount) {
             return Math.round(baseCost * Math.pow(PHI, purchaseCount));
         }
-        
+
         // Prime factorization — returns {prime: power} map
         function primeFactorize(n) {
             const factors = {};
@@ -1452,7 +1738,7 @@
             if (n > 1) factors[n] = (factors[n] || 0) + 1;
             return factors;
         }
-        
+
         // Wave function spawn curve: wave N gets N humps
         // t = 0..1 (progress through wave), waveNum = current wave number
         // Returns spawn rate multiplier 0..1
@@ -1470,11 +1756,11 @@
             const floor = 0.05;
             return floor + raw * (1 - floor);
         }
-        
+
         // =====================================================
         // MUTATION SYSTEM (Prime Factorization)
         // =====================================================
-        
+
         const mutationDefs = {
             2:  { name: '🐀 Swarm',       desc: '+25% enemy count',          color: '#ff6b6b',
                   apply: (power) => ({ spawnMult: 1 + 0.25 * power }) },
@@ -1489,9 +1775,9 @@
             13: { name: '👻 Phasing',      desc: 'Enemies blink',             color: '#3498db',
                   apply: (power) => ({ phaseChance: 0.008 * power }) },
         };
-        
+
         let activeMutations = []; // [{prime, power, name, desc, color, effects}]
-        
+
         function calculateMutations(diff) {
             if (diff < 2) return [];
             const factors = primeFactorize(diff);
@@ -1512,7 +1798,7 @@
             }
             return mutations;
         }
-        
+
         // Get combined mutation effects as a single object
         function getMutationEffects() {
             const combined = { spawnMult: 1, damageReduction: 0, deathZone: false,
@@ -1530,11 +1816,11 @@
             combined.damageReduction = Math.min(0.65, combined.damageReduction); // hard cap 65%
             return combined;
         }
-        
+
         // =====================================================
         // REPEATABLE PERKS (Golden Ratio + Harmonic Series)
         // =====================================================
-        
+
         const repeatablePerks = {
             stackHealth:  { name: '💪 Bulk Up',       stat: 'maxHealth', baseValue: 30, basePrice: 80,  icon: '❤️' },
             stackDamage:  { name: '⚔️ Sharpen',       stat: 'damage',    baseValue: 0.08, basePrice: 100, icon: '⚔️' },
@@ -1543,26 +1829,33 @@
             stackDodge:   { name: '🌀 Sidestep',      stat: 'dodge',     baseValue: 0.04, basePrice: 85,  icon: '🌀' },
             stackMagnet:  { name: '🧲 Magnetize',     stat: 'magnet',    baseValue: 0.15, basePrice: 60,  icon: '🧲' },
         };
-        
+
         let repeatablePerkCounts = {}; // tracks how many times each has been bought
-        
+
         function resetRepeatablePerkCounts() {
             repeatablePerkCounts = {};
             Object.keys(repeatablePerks).forEach(k => repeatablePerkCounts[k] = 0);
         }
         resetRepeatablePerkCounts();
-        
+
         // Spawn chaos state (logistic map seed)
         let chaosX = 0.4; // initial seed for logistic map
 
-        // Unlocks
+        // Unlocks / persistence
         let unlockedWeapons = ['pistol', 'rifle', 'shotgun', 'cointoss'];
         let unlockedBreeds = ['yellow', 'black', 'grey', 'red', 'purple'];
         let highestDifficulty = 1;
         let degenUnlocked = false;
         let bestRun = { kills: 0, wave: 1, difficulty: 1, coins: 0, damage: 0 };
         const PROGRESS_KEY = 'brotherDogeProgressV1';
-        
+
+        function defaultProgress() {
+            return {
+                unlockedWeapons, unlockedBreeds, highestDifficulty, degenUnlocked, bestRun,
+                lifetime, achievements, localLeaderboard, settings
+            };
+        }
+
         function loadProgress() {
             try {
                 const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
@@ -1571,21 +1864,35 @@
                 if (Number.isFinite(saved.highestDifficulty)) highestDifficulty = Math.max(1, saved.highestDifficulty);
                 if (saved.degenUnlocked) degenUnlocked = true;
                 if (saved.bestRun) bestRun = { ...bestRun, ...saved.bestRun };
+                if (saved.lifetime) lifetime = { ...lifetime, ...saved.lifetime, favoriteBreedCounts:{...(lifetime.favoriteBreedCounts||{}), ...(saved.lifetime.favoriteBreedCounts||{})}, weaponUseCounts:{...(lifetime.weaponUseCounts||{}), ...(saved.lifetime.weaponUseCounts||{})} };
+                if (saved.achievements) achievements = { ...saved.achievements };
+                if (Array.isArray(saved.localLeaderboard)) localLeaderboard = saved.localLeaderboard.slice(0, 10);
+                if (saved.settings) settings = { ...settings, ...saved.settings };
+                soundEnabled = settings.sound !== false;
             } catch (err) {
                 console.warn('Could not load BrotherDoge progress', err);
             }
         }
-        
+
         function saveProgress() {
             try {
-                localStorage.setItem(PROGRESS_KEY, JSON.stringify({
-                    unlockedWeapons, unlockedBreeds, highestDifficulty, degenUnlocked, bestRun
-                }));
+                localStorage.setItem(PROGRESS_KEY, JSON.stringify(defaultProgress()));
             } catch (err) {
                 console.warn('Could not save BrotherDoge progress', err);
             }
         }
-        
+
+        function addLeaderboardEntry(won = false) {
+            const entry = {
+                date: new Date().toISOString().slice(0,10), won, breed: player.breed || 'unknown',
+                kills, wave: currentWave, difficulty, coins: runCoinsCollected,
+                damage: Math.round(runDamageDealt), weapon: getTopWeaponName ? getTopWeaponName() : 'None', seed: currentSeed || 'random'
+            };
+            localLeaderboard.push(entry);
+            localLeaderboard.sort((a,b) => (b.difficulty-a.difficulty) || (b.kills-a.kills) || (b.coins-a.coins));
+            localLeaderboard = localLeaderboard.slice(0, 10);
+        }
+
         function updateBestRunSummary(won = false) {
             const run = {
                 kills,
@@ -1599,15 +1906,92 @@
             bestRun.difficulty = Math.max(bestRun.difficulty || 1, run.difficulty);
             bestRun.coins = Math.max(bestRun.coins || 0, run.coins);
             bestRun.damage = Math.max(bestRun.damage || 0, run.damage);
+            lifetime.kills += kills;
+            lifetime.coins += runCoinsCollected;
+            lifetime.damage += Math.round(runDamageDealt);
+            lifetime.runs += 1;
+            if (won) { lifetime.victories += 1; lifetime.bossKills += 1; }
+            addLeaderboardEntry(won);
+            checkAchievements(won);
             saveProgress();
         }
-        
+
+        function unlockAchievement(key, name) {
+            if (achievements[key]) return;
+            achievements[key] = { name, at: new Date().toISOString() };
+            saveProgress();
+            showToast(`🏆 Achievement unlocked:<br>${name}`, '#ffd700', 3);
+        }
+
+        function checkAchievements(won = false) {
+            if (kills >= 1) unlockAchievement('firstBlood', 'First Blood');
+            if (won) unlockAchievement('whaleHunter', 'Whale Hunter');
+            if (runCoinsCollected >= 500) unlockAchievement('suchEconomy', 'Such Economy');
+            if (degenUnlocked) unlockAchievement('degenConfirmed', 'Degen Confirmed');
+            if ((lifetime.damage + Math.round(runDamageDealt)) >= 100000) unlockAchievement('muchViolence', 'Much Violence');
+            if (currentWave >= 5 && player.health > player.maxHealth * 0.5) unlockAchievement('noPaperHands', 'No Paper Hands');
+            if (player.health > 0 && player.health <= 1) unlockAchievement('diamondPaws', 'Diamond Paws');
+        }
+
+        function resetProgressConfirm() {
+            if (!confirm('Reset all BrotherDoge progress on this browser?')) return;
+            localStorage.removeItem(PROGRESS_KEY);
+            location.reload();
+        }
+
+        function renderStatsPanel() {
+            const ach = Object.values(achievements);
+            const board = localLeaderboard.map((r,i)=>`<div>${i+1}. D${r.difficulty} W${r.wave} ${r.kills} kills ${r.coins}🪙 — ${r.breed} / ${r.weapon}</div>`).join('') || '<div>No saved runs yet.</div>';
+            document.getElementById('statsPanelContent').innerHTML = `
+                <div class="modal-grid">
+                    <div>💀 Lifetime kills: ${lifetime.kills || 0}</div><div>🪙 Lifetime coins: ${lifetime.coins || 0}</div>
+                    <div>⚔️ Lifetime damage: ${lifetime.damage || 0}</div><div>👑 Boss kills: ${lifetime.bossKills || 0}</div>
+                    <div>🏃 Runs: ${lifetime.runs || 0}</div><div>🏆 Victories: ${lifetime.victories || 0}</div>
+                    <div>📈 Best difficulty: ${bestRun.difficulty || 1}</div><div>💥 Best kills: ${bestRun.kills || 0}</div>
+                </div>
+                <h3 style="color:#ffd700;margin-top:14px;">Achievements (${ach.length})</h3>
+                <div>${ach.map(a=>`🏆 ${a.name}`).join('<br>') || 'No achievements yet.'}</div>
+                <h3 style="color:#ffd700;margin-top:14px;">Local Leaderboard</h3>
+                ${board}
+            `;
+        }
+        function openStatsPanel() { renderStatsPanel(); document.getElementById('statsPanel').classList.add('visible'); }
+        function closeStatsPanel() { document.getElementById('statsPanel').classList.remove('visible'); }
+
+        function renderSettingsPanel() {
+            const c = document.getElementById('settingsPanelContent'); if (!c) return;
+            c.innerHTML = `
+                <div class="setting-row"><span>Sound effects</span><button class="mini-btn ${settings.sound?'active':''}" onclick="toggleSound()">${settings.sound?'ON':'OFF'}</button></div>
+                <div class="setting-row"><span>Generated music</span><button class="mini-btn ${settings.music?'active':''}" onclick="toggleMusic()">${settings.music?'ON':'OFF'}</button></div>
+                <div class="setting-row"><span>Auto-fire</span><button class="mini-btn ${settings.autoFire?'active':''}" onclick="settings.autoFire=!settings.autoFire;saveProgress();renderSettingsPanel()">${settings.autoFire?'ON':'OFF'}</button></div>
+                <div class="setting-row"><span>Damage numbers</span><button class="mini-btn ${settings.damageNumbers?'active':''}" onclick="settings.damageNumbers=!settings.damageNumbers;saveProgress();renderSettingsPanel()">${settings.damageNumbers?'ON':'OFF'}</button></div>
+                <div class="setting-row"><span>Screen shake</span><button class="mini-btn" onclick="cycleShake()">${settings.screenShake}</button></div>
+                <div class="setting-row"><span>Camera</span><button class="mini-btn" onclick="cycleCamera()">${settings.camera}</button></div>
+            `;
+        }
+        function cycleShake(){ const a=['low','normal','high']; settings.screenShake=a[(a.indexOf(settings.screenShake)+1)%a.length]; saveProgress(); renderSettingsPanel(); }
+        function cycleCamera(){ const a=['auto','full','follow']; settings.camera=a[(a.indexOf(settings.camera)+1)%a.length]; saveProgress(); renderSettingsPanel(); }
+        function openSettingsPanel(){ renderSettingsPanel(); document.getElementById('settingsPanel').classList.add('visible'); }
+        function closeSettingsPanel(){ document.getElementById('settingsPanel').classList.remove('visible'); }
+
+        function setShopTab(tab) {
+            activeShopTab = tab;
+            document.querySelectorAll('.shopSection').forEach(section => section.classList.toggle('mobile-active', section.dataset.shopTab === tab));
+            document.querySelectorAll('#shopTabs button').forEach(btn => btn.classList.toggle('active', btn.dataset.shopTab === tab));
+        }
+
+        function hashSeed(str) { let h=2166136261; for (let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+        function seedRun(seed) { currentSeed = seed || ''; seededState = hashSeed(currentSeed || (Date.now()+'')); }
+        function rng() { if (!currentSeed) return Math.random(); seededState = (Math.imul(1664525, seededState) + 1013904223) >>> 0; return seededState / 4294967296; }
+        function startDailyRun(){ runMode='daily'; seedRun('DOGE-' + new Date().toISOString().slice(0,10)); showToast('Daily Run seed loaded: '+escapeHTML(currentSeed)); }
+        function startSeededRun(){ const seed = prompt('Enter seed', 'DOGE-' + Math.random().toString(36).slice(2,6).toUpperCase()); if(seed){ runMode='seeded'; seedRun(seed); showToast('Seed loaded: '+escapeHTML(seed)); } }
+
         loadProgress();
-        
+
         // Carryover from victory (coins + weapon)
         let pendingCarryCoins = 0;
         let pendingCarryWeapon = null;
-        
+
         // Player
         let player = {
             x: ARENA_WIDTH / 2,
@@ -1638,7 +2022,7 @@
             visualAdditions: [],
             iframes: 0
         };
-        
+
         // Game objects
         let projectiles = [];
         let enemies = [];
@@ -1650,9 +2034,10 @@
         let fireZones = [];
         let screenShake = 0;
         let kills = 0;
-        
+
         function addScreenShake(intensity) {
-            screenShake = Math.max(screenShake, intensity);
+            const mult = settings.screenShake === 'low' ? 0.45 : settings.screenShake === 'high' ? 1.35 : 1;
+            screenShake = Math.max(screenShake, intensity * mult);
         }
         let waveClearTimer = null;
         let carryoverPerks = []; // Perks that persist across difficulty runs
@@ -1664,13 +2049,21 @@
         let enemiesToSpawn = 0;
         let spawnTimer = 0;
         let boss = null;
-        
+
+        function dogeDodged(chance = 0.2) {
+            const ok = player.breed === 'grey' && Math.random() < chance;
+            if (ok) { spawnDamageText(player.x, player.y - 45, 'DODGE!', '#4ecdc4', true); playSound('dodge'); }
+            return ok;
+        }
+
         // Select breed
         function selectBreed(breed) {
             initAudio();
             player.breed = breed;
+            lifetime.favoriteBreedCounts[breed] = (lifetime.favoriteBreedCounts[breed] || 0) + 1;
+            if (!currentSeed && runMode === 'normal') seedRun('');
             const breedData = breeds[breed];
-            
+
             player.speed = 200 * breedData.stats.speed;
             player.luck = breedData.stats.luck;
             player.damage = breedData.stats.damage;
@@ -1679,13 +2072,13 @@
             player.magnet = breedData.stats.magnet;
             player.dodge = breedData.stats.dodge - 1;
             player.regen = breedData.stats.regen;
-            
+
             // Degen Mode: -15% max HP (secret easter egg)
             if (player.degen) {
                 player.maxHealth = Math.floor(player.maxHealth * 0.85);
                 player.health = player.maxHealth;
             }
-            
+
             // Give starter weapon — use carryover weapon if available, else pistol
             if (pendingCarryWeapon) {
                 player.weapons = [{ ...pendingCarryWeapon }];
@@ -1693,16 +2086,17 @@
             } else {
                 player.weapons = [{ ...weaponTypes.pistol, type: 'pistol', lastShot: 0, level: 1 }];
             }
-            
+
             // Apply carryover coins
             if (pendingCarryCoins > 0) {
                 coins = pendingCarryCoins;
                 document.getElementById('coinText').textContent = coins;
                 pendingCarryCoins = 0;
             }
-            
+
+            player.weapons.forEach(w => lifetime.weaponUseCounts[w.type] = (lifetime.weaponUseCounts[w.type] || 0) + 1);
             updateWeaponUI();
-            
+
             // Reapply carried-over perks from previous runs
             if (carryoverPerks.length > 0) {
                 player.perks = [...carryoverPerks];
@@ -1710,21 +2104,36 @@
                 carryoverPerks.forEach(perk => applyPerk(perk));
                 updatePerkDisplay();
             }
-            
+
             // Calculate active mutations for this difficulty
             activeMutations = calculateMutations(difficulty);
-            
+
             document.getElementById('breedSelect').style.display = 'none';
             startTutorialWave();
         }
-        
+
         function startTutorialWave() {
             tutorialMode = true;
+            tutorialStep = 'move';
             tutorialCompleteTimer = 0;
             gameState = 'playing';
             waveActive = false;
             currentWave = 1;
             projectiles = [];
+            enemies = [];
+            coinsOnGround = [];
+            player.x = ARENA_WIDTH / 2 - 160;
+            player.y = ARENA_HEIGHT / 2;
+            tutorialGoal = { x: ARENA_WIDTH / 2 - 40, y: ARENA_HEIGHT / 2, radius: 34 };
+            mouse.x = ARENA_WIDTH / 2 + 170;
+            mouse.y = ARENA_HEIGHT / 2;
+            mouse.down = false;
+            showToast('Training: move to the glowing circle.', '#ffd700', 2.8);
+            setMusicMode('wave');
+            updateUI();
+        }
+
+        function spawnTutorialTarget() {
             enemies = [{
                 x: ARENA_WIDTH / 2 + 170,
                 y: ARENA_HEIGHT / 2,
@@ -1740,28 +2149,30 @@
                 ramState: 'approach', ramWindup: 0, ramDash: 0, ramCooldown: 0, ramDirX: 0, ramDirY: 0,
                 damageReduction: 0, regenRate: 0, phaseTimer: 0
             }];
-            player.x = ARENA_WIDTH / 2 - 120;
-            player.y = ARENA_HEIGHT / 2;
-            mouse.x = enemies[0].x;
-            mouse.y = enemies[0].y;
-            mouse.down = false;
-            spawnDamageText(player.x, player.y - 70, 'Hold mouse / right stick to shoot the practice Paper Hand', '#ffd700', true);
-            updateUI();
+            mouse.x = enemies[0].x; mouse.y = enemies[0].y;
+            showToast('Now aim and shoot the practice Paper Hand.', '#ffd700', 2.8);
         }
-        
+
+        function advanceTutorialAfterKill() {
+            tutorialStep = 'collect';
+            coinsOnGround.push({ x: ARENA_WIDTH / 2 + 60, y: ARENA_HEIGHT / 2, value: 5, life: 99, magnetized: false, tutorialCoin: true });
+            showToast('Good shot. Collect the coin to start Wave 1.', '#4ecdc4', 2.8);
+        }
+
         // Start wave
         function startWave() {
             gameState = 'playing';
             tutorialMode = false;
+            tutorialStep = 'done';
             tutorialCompleteTimer = 0;
             waveActive = true;
             fireZones = [];
-            
+
             // Reset player to center and heal
             player.x = ARENA_WIDTH / 2;
             player.y = ARENA_HEIGHT / 2;
             player.health = player.maxHealth;
-            
+
             // Wave configuration
             if (currentWave === 10) {
                 // Boss wave - start cinematic intro
@@ -1780,12 +2191,14 @@
                 spawnTimer = 0;
                 chaosX = 0.4; // reset chaos seed each wave for consistency
             }
-            
+
+            setMusicMode('wave');
             updateUI();
         }
-        
+
         // Spawn boss
         function spawnBoss() {
+            setMusicMode('boss');
             boss = {
                 x: ARENA_WIDTH / 2,
                 y: 150,
@@ -1806,18 +2219,18 @@
                 sweepTimer: 0
             };
         }
-        
+
         // Spawn enemy
         function spawnEnemy() {
-            const edge = Math.floor(Math.random() * 4);
+            const edge = Math.floor(rng() * 4);
             let x, y;
             switch(edge) {
-                case 0: x = Math.random() * ARENA_WIDTH; y = -30; break;
-                case 1: x = ARENA_WIDTH + 30; y = Math.random() * ARENA_HEIGHT; break;
-                case 2: x = Math.random() * ARENA_WIDTH; y = ARENA_HEIGHT + 30; break;
-                case 3: x = -30; y = Math.random() * ARENA_HEIGHT; break;
+                case 0: x = rng() * ARENA_WIDTH; y = -30; break;
+                case 1: x = ARENA_WIDTH + 30; y = rng() * ARENA_HEIGHT; break;
+                case 2: x = rng() * ARENA_WIDTH; y = ARENA_HEIGHT + 30; break;
+                case 3: x = -30; y = rng() * ARENA_HEIGHT; break;
             }
-            
+
             const types = ['paper', 'paper', 'paper'];
             if (currentWave >= 3) types.push('shredder');
             if (currentWave >= 4) types.push('splitter');
@@ -1825,9 +2238,14 @@
             if (currentWave >= 6) types.push('fomo');
             if (currentWave >= 7) types.push('tank');
             if (currentWave >= 8) types.push('elite');
-            
-            const type = types[Math.floor(Math.random() * types.length)];
-            
+
+            const type = types[Math.floor(rng() * types.length)];
+            if (!seenEnemyTypesThisRun.has(type) && type !== 'paper') {
+                seenEnemyTypesThisRun.add(type);
+                const blurbs = { shredder:'Fast but fragile. Kite sideways.', splitter:'Breaks into tiny scraps.', explosive:'Winds up, then rams. Dodge the line.', fomo:'Shoots from range. Strafe!', tank:'Slow, huge HP, resists knockback.', elite:'Dangerous all-rounder.' };
+                showToast(`NEW ENEMY: ${type.toUpperCase()}<br>${blurbs[type] || 'Adapt and HODL.'}`, '#ffd700', 3);
+            }
+
             const enemy = {
                 x, y,
                 radius: type === 'elite' ? 25 : (type === 'explosive' ? 24 : (type === 'tank' ? 34 : (type === 'splitter' ? 22 : 20))),
@@ -1838,7 +2256,7 @@
                 knockbackResist: type === 'tank' ? 0.8 : 0,
                 type: type,
                 slowTimer: 0,
-                attackTimer: Math.random() * 0.5,
+                attackTimer: rng() * 0.5,
                 ramState: 'approach', // explosive only: approach, windup, dash
                 ramWindup: 0,
                 ramDash: 0,
@@ -1849,16 +2267,16 @@
                 regenRate: 0,
                 phaseTimer: 0
             };
-            
+
             // Apply active mutations to this enemy
             const me = getMutationEffects();
             enemy.damageReduction = me.damageReduction;
             enemy.regenRate = me.enemyRegen;
-            if (me.phaseChance > 0) enemy.phaseTimer = 2 + Math.random() * 5;
-            
+            if (me.phaseChance > 0) enemy.phaseTimer = 2 + rng() * 5;
+
             enemies.push(enemy);
         }
-        
+
         // Spawn detached crawling hands from the boss body.
         function spawnBossHands(count, heavyWave = false) {
             if (!boss) return;
@@ -1867,14 +2285,14 @@
                 const dist = boss.radius + 20 + Math.random() * 26;
                 const x = boss.x + Math.cos(angle) * dist;
                 const y = boss.y + Math.sin(angle) * dist;
-                
+
                 const typePool = heavyWave ? ['paper', 'paper', 'shredder', 'explosive', 'splitter', 'tank'] : ['paper', 'paper', 'shredder', 'splitter'];
                 const type = typePool[Math.floor(Math.random() * typePool.length)];
                 const isShredder = type === 'shredder';
                 const isExplosive = type === 'explosive';
                 const isTank = type === 'tank';
                 const isSplitter = type === 'splitter';
-                
+
                 enemies.push({
                     x, y,
                     radius: isTank ? 28 : (isExplosive ? 22 : (isSplitter ? 20 : (isShredder ? 18 : 16))),
@@ -1894,26 +2312,26 @@
                 });
             }
         }
-        
+
         // Update game
         function update(dt) {
             if (paused) return;
-            
+
             // Boss intro cinematic
             if (gameState === 'bossIntro' && bossIntro) {
                 bossIntro.timer += dt;
                 const progress = Math.min(1, bossIntro.timer / bossIntro.duration);
-                
+
                 // Smoothly expand arena
                 const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
                 ARENA_WIDTH = BASE_ARENA_WIDTH + (BOSS_ARENA_WIDTH - BASE_ARENA_WIDTH) * ease;
                 ARENA_HEIGHT = BASE_ARENA_HEIGHT + (BOSS_ARENA_HEIGHT - BASE_ARENA_HEIGHT) * ease;
                 resizeCanvas();
-                
+
                 // Center player during expansion
                 player.x = ARENA_WIDTH / 2;
                 player.y = ARENA_HEIGHT / 2;
-                
+
                 if (progress >= 1) {
                     // Intro complete - spawn boss and start fight
                     spawnBoss();
@@ -1923,16 +2341,16 @@
                 }
                 return;
             }
-            
+
             if (gameState !== 'playing') return;
-            
+
             pollGamepad();
             updateTouchMouse();
             if (Math.abs(gamepadState.aimX) + Math.abs(gamepadState.aimY) > 0.35) {
                 mouse.x = player.x + gamepadState.aimX * 220;
                 mouse.y = player.y + gamepadState.aimY * 220;
             }
-            
+
             // Player movement
             let dx = 0, dy = 0;
             if (keys['w'] || keys['arrowup']) dy = -1;
@@ -1946,30 +2364,38 @@
                 const td = Math.sqrt(tx * tx + ty * ty);
                 if (td > 10) { dx += tx / td; dy += ty / td; }
             }
-            
+
             if (dx !== 0 || dy !== 0) {
                 const len = Math.sqrt(dx * dx + dy * dy);
                 dx /= len;
                 dy /= len;
-                
+
                 let moveSpeed = player.speed;
                 const maxMovePenalty = player.weapons.reduce((maxPenalty, w) => Math.max(maxPenalty, w.movePenalty || 0), 0);
                 if (maxMovePenalty > 0) moveSpeed *= (1 - maxMovePenalty);
-                
+
                 player.x += dx * moveSpeed * dt;
                 player.y += dy * moveSpeed * dt;
             }
-            
+
             // Clamp to arena
             player.x = Math.max(player.radius, Math.min(ARENA_WIDTH - player.radius, player.x));
             player.y = Math.max(player.radius, Math.min(ARENA_HEIGHT - player.radius, player.y));
-            
+
+            if (tutorialMode && tutorialStep === 'move') {
+                const gd = Math.hypot(player.x - tutorialGoal.x, player.y - tutorialGoal.y);
+                if (gd < tutorialGoal.radius + player.radius) {
+                    tutorialStep = 'shoot';
+                    spawnTutorialTarget();
+                }
+            }
+
             // Coin streak pitch decay
             if (coinStreakTimer > 0) {
                 coinStreakTimer -= dt;
                 if (coinStreakTimer <= 0) coinStreakCount = 0;
             }
-            
+
             // Health regen
             if (player.regen > 0 && player.health < player.maxHealth) {
                 let regen = player.regen;
@@ -1978,10 +2404,10 @@
                 }
                 player.health = Math.min(player.maxHealth, player.health + regen * dt);
             }
-            
+
             // Invincibility frames
             if (player.iframes > 0) player.iframes -= dt;
-            
+
             // Passive coin generation (Yield Farming)
             if (player.coinGen > 0) {
                 player.coinGenTimer += dt;
@@ -1990,7 +2416,7 @@
                     coins += player.coinGen;
                 }
             }
-            
+
             // FOMO Shield: activate when dropping below 25% HP
             if (player.fomoShield && player.fomoShieldHP <= 0 && player.fomoShieldCooldown <= 0) {
                 if (player.health < player.maxHealth * 0.25 && player.health > 0) {
@@ -2000,7 +2426,7 @@
                 }
             }
             if (player.fomoShieldCooldown > 0) player.fomoShieldCooldown -= dt;
-            
+
             // Cosmic Pull - Purple Doge pulls coins and slows nearby enemies
             if (player.breed === 'purple') {
                 enemies.forEach(e => {
@@ -2010,9 +2436,9 @@
                     }
                 });
             }
-            
+
             // Shooting
-            if (mouse.down || gamepadState.shoot) {
+            if (mouse.down || gamepadState.shoot || settings.autoFire) {
                 const now = Date.now();
                 player.weapons.forEach(weapon => {
                     let fireRate = weapon.fireRate;
@@ -2038,12 +2464,12 @@
                 // Reset minigun spin-up when not shooting
                 player.weapons.forEach(w => { if (w.type === 'minigun') w.spinUp = 0; });
             }
-            
+
             // Update projectiles
             projectiles = projectiles.filter(p => {
                 p.age += dt;
                 if (p.spinRate) p.spin += p.spinRate * dt;
-                
+
                 // Piercer: accelerates over time, gets faster
                 if (p.weaponType === 'piercer' && p.accelerates) {
                     const currentSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
@@ -2052,13 +2478,13 @@
                     p.vx = Math.cos(angle) * newSpeed;
                     p.vy = Math.sin(angle) * newSpeed;
                 }
-                
+
                 // Cannon: gravity arc
                 if (p.weaponType === 'cannon' && p.gravity) {
                     p.vy += p.gravity * dt;
                     p.angle = Math.atan2(p.vy, p.vx);
                 }
-                
+
                 // Launcher: slight homing toward nearest enemy
                 if (p.weaponType === 'launcher' && p.homing) {
                     let nearest = null;
@@ -2080,7 +2506,7 @@
                         p.angle = newAngle;
                     }
                 }
-                
+
                 // Moon guided missile: strong homing
                 if (p.weaponType === 'moon' && p.guided) {
                     let nearest = null;
@@ -2105,12 +2531,12 @@
                         p.angle = newAngle;
                     }
                 }
-                
+
                 // Coin toss: slight arc/gravity
                 if (p.weaponType === 'cointoss') {
                     p.vy += 120 * dt;
                 }
-                
+
                 // Boomerang: slow down, stop, then fly back to player
                 if (p.weaponType === 'boomerang') {
                     const halfRange = p.range * 0.5;
@@ -2138,11 +2564,11 @@
                         p.vy *= decel;
                     }
                 }
-                
+
                 p.x += p.vx * dt;
                 p.y += p.vy * dt;
                 p.distance += Math.sqrt(p.vx * p.vx + p.vy * p.vy) * dt;
-                
+
                 if (p.bounce > 0) {
                     if (p.x < 0 || p.x > ARENA_WIDTH) {
                         p.vx *= -1;
@@ -2155,10 +2581,10 @@
                         p.damage *= 1.2;
                     }
                 }
-                
+
                 return p.distance < p.range && p.pierce >= 0;
             });
-            
+
             // Update enemies
             let pendingSpawns = [];
             enemies = enemies.filter(enemy => {
@@ -2173,18 +2599,18 @@
                 const safeDist = Math.max(dist, 0.001);
                 ex /= safeDist;
                 ey /= safeDist;
-                
+
                 let speed = enemy.speed;
                 if (enemy.slowTimer > 0) {
                     speed *= 0.5;
                     enemy.slowTimer -= dt;
                 }
-                
+
                 // Mutation: Enemy regen
                 if (enemy.regenRate > 0) {
                     enemy.health = Math.min(enemy.maxHealth, enemy.health + enemy.regenRate * dt);
                 }
-                
+
                 // Mutation: Phasing (occasional short-range teleport)
                 if (enemy.phaseTimer !== undefined && enemy.phaseTimer > 0) {
                     enemy.phaseTimer -= dt;
@@ -2199,7 +2625,7 @@
                         enemy.phaseTimer = 3 + Math.random() * 5;
                     }
                 }
-                
+
                 // Mutation: Pack Hunter (damage bonus when near allies)
                 const mutFx = getMutationEffects();
                 if (mutFx.packBonus > 0) {
@@ -2215,28 +2641,28 @@
                 } else {
                     enemy._packMult = 1;
                 }
-                
+
                 const isRanged = enemy.type === 'fomo';
                 const isExplosive = enemy.type === 'explosive';
                 const meleeRange = player.radius + enemy.radius + 6;
                 const rangedPreferred = 220;
-                
+
                 if (isExplosive) {
                     // Explosive "paper hand": telegraphed wind-up then dodgeable ram.
                     if (enemy.ramCooldown > 0) enemy.ramCooldown -= dt;
-                    
+
                     if (enemy.ramState === 'dash') {
                         const dashSpeed = Math.max(320, speed * 3.8);
                         enemy.x += enemy.ramDirX * dashSpeed * dt;
                         enemy.y += enemy.ramDirY * dashSpeed * dt;
                         enemy.ramDash -= dt;
-                        
+
                         const hitDx = player.x - enemy.x;
                         const hitDy = player.y - enemy.y;
                         const hitDist = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
-                        
+
                         if (hitDist < player.radius + enemy.radius + 4) {
-                            if (player.iframes <= 0 && !(player.breed === 'grey' && Math.random() < 0.2)) {
+                            if (player.iframes <= 0 && !(dogeDodged(0.2))) {
                                 player.health -= enemy.damage * 1.8;
                                 player.iframes = 0.4;
                                 if (player.health <= 0) gameOver();
@@ -2298,7 +2724,7 @@
                         enemy.y += ey * speed * dt;
                     }
                 }
-                
+
                 // Push enemies out if they clip inside the player
                 const minDist = player.radius + enemy.radius;
                 if (dist < minDist && !isRanged && !(isExplosive && enemy.ramState === 'dash')) {
@@ -2367,32 +2793,32 @@
                     }
                     enemy.attackTimer = enemy.type === 'shredder' ? 0.45 : 0.75;
                 }
-                
+
                 // Collision with projectiles
                 projectiles.forEach(p => {
                     const pdx = p.x - enemy.x;
                     const pdy = p.y - enemy.y;
                     const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
-                    
+
                     if (pdist < enemy.radius + p.radius) {
                         // Hit
                         let damage = p.damage * player.damage;
-                        
+
                         // Leverage perk: +60% above 80% HP, -20% below 40%
                         if (player.leverage) {
                             const hpRatio = player.health / player.maxHealth;
                             if (hpRatio > 0.8) damage *= 1.6;
                             else if (hpRatio < 0.4) damage *= 0.8;
                         }
-                        
+
                         // Armored mutation: damage reduction
                         if (enemy.damageReduction > 0) damage *= (1 - enemy.damageReduction);
-                        
+
                         // Crit check (luck boosts crit chance)
                         const effectiveCritChance = Math.min(0.6, player.critChance + Math.max(0, player.luck - 1) * 0.02);
                         const isCrit = Math.random() < effectiveCritChance;
                         if (isCrit) damage *= player.critDamage;
-                        
+
                         // Explosive
                         if (p.explosive > 0) {
                             enemies.forEach(e => {
@@ -2403,9 +2829,9 @@
                                     e.health -= p.explosive * player.damage;
                                 }
                             });
-                            
+
                             playSound('explosion');
-                            
+
                             // Screen shake on explosion
                             addScreenShake(p.weaponType === 'cannon' ? 12 : (p.weaponType === 'moon' ? 15 : 6));
 
@@ -2447,7 +2873,7 @@
                                     color: '#444444'
                                 });
                             }
-                            
+
                             // Launcher creates fire zone
                             if (p.weaponType === 'launcher') {
                                 fireZones.push({
@@ -2459,7 +2885,7 @@
                                 });
                             }
                         }
-                        
+
                         // Knockback (always pushes enemies back from YOUR weapons)
                         // Cap per-frame: only the strongest hit applies (prevents shotgun pellet stacking)
                         if (p.knockback > 0) {
@@ -2480,30 +2906,31 @@
                                 enemy._frameKBy = kbY;
                             }
                         }
-                        
+
                         // Slow
                         if (p.slow > 0) {
                             enemy.slowTimer = p.slow;
                         }
-                        
+
                         enemy.health -= damage;
                         runDamageDealt += damage;
                         spawnDamageText(enemy.x, enemy.y, damage, isCrit ? '#ffff00' : p.color, isCrit);
                         playSound(isCrit ? 'crit' : 'hit');
-                        
+                        if (isCrit) hitPauseTimer = Math.max(hitPauseTimer, 0.045);
+
                         // Lifesteal (Rug Pull): heal % of damage dealt
                         if (player.lifesteal > 0) {
                             const healAmt = damage * player.lifesteal;
                             player.health = Math.min(player.maxHealth, player.health + healAmt);
                         }
-                        
+
                         p.pierce--;
-                        
+
                         // Piercer ramps damage on each pierce
                         if (p.weaponType === 'piercer' && p.damageRamp) {
                             p.damage += p.damageRamp;
                         }
-                        
+
                         // Ricochet perk: redirect projectile toward nearest OTHER enemy
                         if (player.ricochet && p.pierce >= 0) {
                             let rNearest = null;
@@ -2521,20 +2948,19 @@
                                 p.angle = rAngle;
                             }
                         }
-                        
+
                         if (p.pierce < 0) {
                             p.distance = p.range + 1; // Remove
                         }
                     }
                 });
-                
+
                 // Death
                 if (enemy.health <= 0) {
                     if (enemy.tutorialTarget) {
                         playSound('kill');
                         addScreenShake(5);
-                        tutorialCompleteTimer = 1.2;
-                        spawnDamageText(enemy.x, enemy.y - 20, 'READY! WAVE 1 INCOMING', '#4ecdc4', true);
+                        advanceTutorialAfterKill();
                         return false;
                     }
                     kills++;
@@ -2576,7 +3002,7 @@
                             });
                         }
                     }
-                    
+
                     // Volatile mutation: create death zone where enemy died
                     const deathMut = getMutationEffects();
                     if (deathMut.deathZone && enemy.type !== 'splitterling') {
@@ -2589,7 +3015,7 @@
                             hitsPlayer: true
                         });
                     }
-                    
+
                     // Drop coins (harder enemies = more reward)
                     const coinRanges = {
                         paper: [1, 2], shredder: [2, 4], splitter: [2, 4], splitterling: [1, 1],
@@ -2601,7 +3027,7 @@
                     if (Math.random() < luckBonusChance) coinValue += Math.ceil((maxC - minC) * 0.5);
                     const jackpotChance = Math.min(0.2, 0.03 * player.luck);
                     if (Math.random() < jackpotChance) coinValue += Math.max(1, Math.floor(player.luck));
-                    
+
                     coinsOnGround.push({
                         x: enemy.x,
                         y: enemy.y,
@@ -2609,7 +3035,7 @@
                         life: 10,
                         magnetized: false
                     });
-                    
+
                     // Much Find perk
                     const muchFindChance = Math.min(0.55, 0.15 * player.luck);
                     if (player.breed === 'yellow' && Math.random() < muchFindChance) {
@@ -2621,23 +3047,23 @@
                             magnetized: false
                         });
                     }
-                    
+
                     return false;
                 }
-                
+
                 return true;
             });
             // Add splitterlings that were spawned during the filter
             if (pendingSpawns.length > 0) {
                 enemies = enemies.concat(pendingSpawns);
             }
-            
+
             // Update ranged enemy projectiles
             enemyProjectiles = enemyProjectiles.filter(p => {
                 p.x += p.vx * dt;
                 p.y += p.vy * dt;
                 p.life -= dt;
-                
+
                 const dx = p.x - player.x;
                 const dy = p.y - player.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
@@ -2658,17 +3084,17 @@
                     }
                     return false;
                 }
-                
+
                 if (p.life <= 0) return false;
                 if (p.x < -20 || p.x > ARENA_WIDTH + 20 || p.y < -20 || p.y > ARENA_HEIGHT + 20) return false;
                 return true;
             });
-            
+
             // Update boss
             if (boss) {
                 updateBoss(dt);
             }
-            
+
             // Update turrets
             turrets = turrets.filter(t => {
                 t.life -= dt; // Bug fix: turret life now actually counts down
@@ -2687,7 +3113,7 @@
                             nearest = e;
                         }
                     });
-                    
+
                     if (nearest) {
                         const angle = Math.atan2(nearest.y - t.y, nearest.x - t.x);
                         projectiles.push({
@@ -2711,7 +3137,7 @@
                 }
                 return t.life > 0;
             });
-            
+
             // Magnet + collect coins
             coinsOnGround = coinsOnGround.filter(c => {
                 const dx = c.x - player.x;
@@ -2719,17 +3145,17 @@
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 const cosmicBonus = player.breed === 'purple' ? 1.5 : 1;
                 const pickupRange = (player.radius + 35 + (55 * player.magnet)) * cosmicBonus;
-                
+
                 if (!c.magnetized && dist < pickupRange) {
                     c.magnetized = true;
                 }
-                
+
                 if (c.magnetized) {
                     const pullSpeed = 280 + (220 * player.magnet);
                     const safeDist = Math.max(dist, 0.001);
                     c.x -= (dx / safeDist) * pullSpeed * dt;
                     c.y -= (dy / safeDist) * pullSpeed * dt;
-                    
+
                     const ndx = c.x - player.x;
                     const ndy = c.y - player.y;
                     const newDist = Math.sqrt(ndx * ndx + ndy * ndy);
@@ -2737,21 +3163,23 @@
                         coins += c.value;
                         runCoinsCollected += c.value;
                         playSound('coin');
+                        if (c.tutorialCoin && tutorialMode) { tutorialStep = 'done'; tutorialCompleteTimer = 1.0; showToast('Wave 1 incoming. HODL!', '#4ecdc4', 2); }
                         return false;
                     }
                 }
-                
+
                 if (!c.magnetized && dist < player.radius + 8) {
                     coins += c.value;
                     runCoinsCollected += c.value;
                     playSound('coin');
+                    if (c.tutorialCoin && tutorialMode) { tutorialStep = 'done'; tutorialCompleteTimer = 1.0; showToast('Wave 1 incoming. HODL!', '#4ecdc4', 2); }
                     return false;
                 }
-                
+
                 c.life -= dt;
                 return c.life > 0;
             });
-            
+
             // Update particles
             particles = particles.filter(p => {
                 p.x += p.vx * dt;
@@ -2759,7 +3187,7 @@
                 p.life -= dt;
                 return p.life > 0;
             });
-            
+
             // Update fire zones
             fireZones = fireZones.filter(z => {
                 z.life -= dt;
@@ -2780,18 +3208,18 @@
                 }
                 return z.life > 0;
             });
-            
+
             // Screen shake decay
             if (screenShake > 0.5) screenShake *= 0.9;
             else screenShake = 0;
-            
+
             // Update floating damage numbers
             damageTexts = damageTexts.filter(d => {
                 d.y += d.vy * dt;
                 d.life -= dt;
                 return d.life > 0;
             });
-            
+
             if (tutorialMode && tutorialCompleteTimer > 0) {
                 tutorialCompleteTimer -= dt;
                 if (tutorialCompleteTimer <= 0) {
@@ -2801,22 +3229,22 @@
                     return;
                 }
             }
-            
+
             // Wave logic
             if (waveActive && !boss) {
                 waveTimer -= dt;
                 spawnTimer -= dt;
-                
+
             if (spawnTimer <= 0 && enemiesToSpawn > 0) {
                         // Wave function spawn curve: wave N gets N surges
                         const spawnProgress = 1 - (waveTimer / Math.max(1, waveDuration));
                         const waveRate = waveSpawnCurve(spawnProgress, currentWave);
-                        
+
                         // Logistic map chaos: predictable at low diff, chaotic at high
                         const chaosR = Math.min(3.95, 2.5 + difficulty * 0.18);
                         chaosX = logisticMap(Math.max(0.01, Math.min(0.99, chaosX)), chaosR);
                         const chaosFactor = 0.6 + chaosX * 0.8; // range 0.6 to 1.4
-                        
+
                         // Spawn count: 1 in valleys, up to 5 at surge peaks
                         const spawnCount = Math.min(enemiesToSpawn, Math.max(1, Math.round(1 + waveRate * 4 * chaosFactor)));
                         for (let i = 0; i < spawnCount; i++) {
@@ -2827,7 +3255,7 @@
                         const baseInterval = Math.max(0.5, 3.0 - waveRate * 2.5);
                         spawnTimer = baseInterval * chaosFactor;
                 }
-                
+
                 if (enemies.length === 0 && enemiesToSpawn === 0) {
                     if (coinsOnGround.length > 0) {
                         // Auto-magnetize all remaining coins when enemies are cleared
@@ -2848,7 +3276,7 @@
                 boss.deathTimer = 3.0;
                 playSound('bossExplode');
                 screenShake = 20;
-                
+
                 // Massive explosion particles from boss
                 for (let i = 0; i < 40; i++) {
                     const a = Math.random() * Math.PI * 2;
@@ -2862,7 +3290,7 @@
                 }
             } else if (boss && boss.dying) {
                 boss.deathTimer -= dt;
-                
+
                 // Ongoing explosions during death sequence
                 if (Math.random() < 0.3) {
                     const boomX = boss.x + (Math.random() - 0.5) * boss.radius * 2;
@@ -2879,7 +3307,7 @@
                     }
                     if (screenShake < 8) screenShake = 8;
                 }
-                
+
                 // Kill remaining enemies one by one with explosions
                 if (enemies.length > 0 && Math.random() < 0.15) {
                     const victim = enemies.splice(Math.floor(Math.random() * enemies.length), 1)[0];
@@ -2894,10 +3322,10 @@
                         });
                     }
                 }
-                
+
                 // Shrink boss as it dies
                 boss.radius = Math.max(10, boss.radius - 30 * dt);
-                
+
                 // When timer expires, clear everything and show victory
                 if (boss.deathTimer <= 0) {
                     // Kill any remaining enemies with a final burst
@@ -2916,22 +3344,22 @@
                     victory();
                 }
             }
-            
+
             updateUI();
         }
-        
+
         // Update boss
         function updateBoss(dt) {
             // Movement - slowly toward player
             const dx = player.x - boss.x;
             const dy = player.y - boss.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            
+
             if (dist > 100) {
                 boss.x += (dx / dist) * boss.speed * dt;
                 boss.y += (dy / dist) * boss.speed * dt;
             }
-            
+
             // Enrage at 25% health
             if (!boss.enraged && boss.health < boss.maxHealth * 0.25) {
                 boss.enraged = true;
@@ -2950,7 +3378,7 @@
                     });
                 }
             }
-            
+
             // Sweep attack
             if (boss.sweepActive) {
                 boss.sweepTimer -= dt;
@@ -2970,17 +3398,17 @@
                 }
                 if (boss.sweepTimer <= 0) boss.sweepActive = false;
             }
-            
+
             // Slam cooldown
             if (boss.slamCooldown > 0) boss.slamCooldown -= dt;
-            
+
             // Attacks
             boss.attackTimer -= dt;
             if (boss.attackTimer <= 0) {
                 const healthPercent = boss.health / boss.maxHealth;
                 const attackRoll = Math.random();
                 const attackRate = boss.enraged ? 1.8 : 3;
-                
+
                 if (attackRoll < 0.25) {
                     // MARKET CRASH - AOE slam with screen shake
                     fireZones.push({ x: boss.x, y: boss.y, radius: 180, duration: 0.45, life: 0.45, dps: 0, warningOnly: true });
@@ -3010,13 +3438,13 @@
                         }
                         if (player.health <= 0) gameOver();
                     }
-                    
+
                 } else if (attackRoll < 0.45) {
                     // PUMP & DUMP - charge at player
                     boss.speed = boss.enraged ? 450 : 300;
                     setTimeout(() => { if (boss) boss.speed = boss.enraged ? 120 : 75; }, 1000);
                     addScreenShake(4);
-                    
+
                 } else if (attackRoll < 0.65) {
                     // LIQUIDATION - danger circles on the ground
                     const circleCount = boss.enraged ? 5 : 3;
@@ -3056,13 +3484,13 @@
                             }
                         }, 1000);
                     }
-                    
+
                 } else if (attackRoll < 0.80) {
                     // PAPER STORM - sweeping projectile arc
                     boss.sweepActive = true;
                     boss.sweepTimer = 2.0;
                     boss.sweepAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
-                    
+
                 } else {
                     // HOSTILE TAKEOVER - teleport near player and slam
                     const teleAngle = Math.random() * Math.PI * 2;
@@ -3086,19 +3514,21 @@
                         });
                     }
                 }
-                
+
                 boss.attackTimer = attackRate;
             }
-            
+
             // Outer hands periodically detach and crawl toward player.
             boss.detachTimer -= dt;
             if (boss.detachTimer <= 0) {
                 spawnBossHands(2, false);
                 boss.detachTimer = 2.1;
             }
-            
+
             // Spawn adds at health thresholds
             const healthPercent = boss.health / boss.maxHealth;
+            if (healthPercent <= 0.5 && !phaseToastShown.phase2) { phaseToastShown.phase2 = true; showToast('PHASE 2: MARKET PANIC', '#ff8c00', 3); }
+            if (healthPercent <= 0.25 && !phaseToastShown.phase3) { phaseToastShown.phase3 = true; showToast('PHASE 3: FINAL SELL-OFF', '#ff3333', 3); }
             if (!boss.spawnAdds1 && healthPercent <= 0.70) {
                 boss.spawnAdds1 = true;
                 spawnBossHands(16, false);
@@ -3116,7 +3546,7 @@
                 spawnBossHands(24, true);
                 addScreenShake(12);
             }
-            
+
             // Collision with player
             const pdx = player.x - boss.x;
             const pdy = player.y - boss.y;
@@ -3126,13 +3556,13 @@
                 player.iframes = 0.15;
                 if (player.health <= 0) gameOver();
             }
-            
+
             // Boss takes damage from projectiles
             projectiles.forEach(p => {
                 const bdx = p.x - boss.x;
                 const bdy = p.y - boss.y;
                 const bdist = Math.sqrt(bdx * bdx + bdy * bdy);
-                
+
                 if (bdist < boss.radius + p.radius) {
                     let damage = p.damage * player.damage;
                     if (p.explosive > 0) {
@@ -3146,10 +3576,11 @@
                 }
             });
         }
-        
+
         // Spawn floating damage number
         function spawnDamageText(x, y, amount, color, isCrit) {
             const isText = typeof amount === 'string';
+            if (!settings.damageNumbers && !isText) return;
             damageTexts.push({
                 x: x + (Math.random() - 0.5) * 20,
                 y: y - 10,
@@ -3161,24 +3592,24 @@
                 vy: (isCrit || isText) ? -80 : -60
             });
         }
-        
+
         // Shoot
         function shoot(weapon) {
             const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
             // Weapon-specific shoot sounds
             const weaponSounds = { shotgun: 'shotgun', minigun: 'minigun', launcher: 'launcher', cannon: 'launcher', moon: 'launcher' };
             playSound(weaponSounds[weapon.type] || 'shoot');
-            
+
             const createProjectile = (spreadAngle = 0) => {
                 const finalAngle = angle + spreadAngle;
                 const speed = weapon.speed || 600;
                 const isExplosiveWeapon = weapon.type === 'launcher' || weapon.type === 'cannon' || weapon.type === 'moon';
-                
+
                 let pierce = weapon.pierce;
                 if (player.moon) pierce += 2;
-                
+
                 const radiusMap = { launcher: 10, cannon: 10, moon: 28 };
-                
+
                 return {
                     x: player.x + Math.cos(finalAngle) * 30,
                     y: player.y + Math.sin(finalAngle) * 30,
@@ -3211,7 +3642,7 @@
                     returning: false
                 };
             };
-            
+
             if (weapon.pellets) {
                 for (let i = 0; i < weapon.pellets; i++) {
                     const spread = (i - (weapon.pellets - 1) / 2) * weapon.spread;
@@ -3221,10 +3652,11 @@
                 projectiles.push(createProjectile());
             }
         }
-        
+
         // Open shop
         function openShop() {
             gameState = 'shop';
+            updateRotateHint();
             waveActive = false;
             playSound('waveComplete');
             shopIsLucky = Math.random() < Math.min(0.35, 0.1 + Math.max(0, player.luck - 1) * 0.1);
@@ -3233,21 +3665,23 @@
             lockedWeaponSlots.clear();
             lockedPerkSlots.clear();
             rollShopOffers();
+            activeShopTab = 'weapons';
+            setShopTab(activeShopTab);
             document.getElementById('shopOverlay').classList.add('visible');
         }
-        
+
         function chooseWeighted(items, getWeight) {
             const weighted = items.map(item => ({ item, weight: Math.max(0, getWeight(item)) })).filter(w => w.weight > 0);
             const total = weighted.reduce((sum, w) => sum + w.weight, 0);
             if (total <= 0) return null;
-            let roll = Math.random() * total;
+            let roll = rng() * total;
             for (const entry of weighted) {
                 roll -= entry.weight;
                 if (roll <= 0) return entry.item;
             }
             return weighted[weighted.length - 1].item;
         }
-        
+
         function getWeaponTier(weaponType) {
             const tiers = {
                 pistol: 1, rifle: 1, shotgun: 1,
@@ -3257,7 +3691,7 @@
             };
             return tiers[weaponType] || 1;
         }
-        
+
         function normalizeWeaponPrice(weaponType) {
             const tier = getWeaponTier(weaponType);
             const normalized = 70 + currentWave * 12 + tier * 22;
@@ -3265,14 +3699,14 @@
             const whitelistDiscount = 1 - (player.shopDiscount || 0);
             return Math.max(40, Math.round(normalized * luckyDiscount * whitelistDiscount));
         }
-        
+
         function normalizePerkPrice(perk) {
             const waveNorm = Math.min(1.2, 0.9 + currentWave * 0.03);
             const luckyDiscount = shopIsLucky ? 0.9 : 1;
             const whitelistDiscount = 1 - (player.shopDiscount || 0);
             return Math.max(20, Math.round(perk.price * waveNorm * luckyDiscount * whitelistDiscount));
         }
-        
+
         function updateShopTitleAndRefreshButton() {
             const title = document.getElementById('shopTitle');
             const refreshBtn = document.getElementById('refreshShop');
@@ -3280,14 +3714,14 @@
             title.classList.toggle('lucky', shopIsLucky);
             refreshBtn.textContent = `🔄 Refresh Shop (${shopRefreshCost} 🪙)`;
         }
-        
+
         function rollShopOffers() {
             const weaponSlots = shopIsLucky ? 4 : 3;
             const perkSlots = shopIsLucky ? 4 : 3;
-            
+
             const nextWeaponOffers = Array(weaponSlots).fill(null);
             const nextPerkOffers = Array(perkSlots).fill(null);
-            
+
             // Keep locked offers where possible.
             for (let i = 0; i < weaponSlots; i++) {
                 if (lockedWeaponSlots.has(i) && shopWeaponOffers[i] && !shopWeaponOffers[i].sold) {
@@ -3299,11 +3733,11 @@
                     nextPerkOffers[i] = shopPerkOffers[i];
                 }
             }
-            
+
             const selectedWeaponTypes = new Set(nextWeaponOffers.filter(Boolean).map(o => o.weaponType));
             const selectedPerkKeys = new Set(nextPerkOffers.filter(Boolean).map(o => o.key));
             const selectedPerkStats = new Set(nextPerkOffers.filter(Boolean).map(o => o.perk.stat));
-            
+
             // Fill weapon slots with luck-tier weighting.
             for (let i = 0; i < weaponSlots; i++) {
                 if (nextWeaponOffers[i]) continue;
@@ -3315,7 +3749,7 @@
                     return true;
                 });
                 if (candidates.length === 0) break;
-                
+
                 const weaponType = chooseWeighted(candidates, (w) => {
                     const tier = getWeaponTier(w);
                     let weight = 1 + tier * 0.2;
@@ -3326,7 +3760,7 @@
                     if (shopIsLucky) weight *= 1.25;
                     return weight;
                 });
-                
+
                 if (!weaponType) continue;
                 selectedWeaponTypes.add(weaponType);
                 nextWeaponOffers[i] = {
@@ -3335,7 +3769,7 @@
                     sold: false
                 };
             }
-            
+
             // Perk candidates gated by wave and duplicate protection.
             const perkCandidates = Object.entries(perkTypes).filter(([key, perk]) => {
                 if (ownedPerkKeys.has(key)) return false;
@@ -3346,15 +3780,15 @@
                 if (perk.rank === 5) return currentWave >= 9;
                 return false;
             });
-            
+
             for (let i = 0; i < perkSlots; i++) {
                 if (nextPerkOffers[i]) continue;
-                
+
                 const candidates = perkCandidates.filter(([key, perk]) =>
                     !selectedPerkKeys.has(key) &&
                     !selectedPerkStats.has(perk.stat)
                 );
-                
+
                 // If no unique perks left, offer repeatable perks (Golden Ratio + Harmonic Series)
                 if (candidates.length === 0) {
                     const repKeys = Object.keys(repeatablePerks).filter(k => !selectedPerkKeys.has(k));
@@ -3382,23 +3816,23 @@
                     };
                     continue;
                 }
-                
+
                 const picked = chooseWeighted(candidates, ([, perk]) => {
                     let weight = 1;
                     if (perk.rank === 1) weight = Math.max(0.2, 1 - (currentWave - 1) * 0.15);
                     if (perk.rank === 2) weight = currentWave < 3 ? 0 : (currentWave <= 7 ? 0.5 + (currentWave - 3) * 0.1 : Math.max(0.2, 1 - (currentWave - 7) * 0.2));
                     if (perk.rank >= 3) weight = 0.35 + (currentWave * 0.05);
-                    
+
                     const luckFactor = Math.max(0, player.luck - 1);
                     if (perk.rank >= 4) weight *= (1 + luckFactor * 1.0);
                     else if (perk.rank === 3) weight *= (1 + luckFactor * 0.7);
                     else if (perk.rank === 2) weight *= (1 + luckFactor * 0.35);
                     else weight *= Math.max(0.5, 1 - luckFactor * 0.2);
-                    
+
                     if (shopIsLucky) weight *= 1.2;
                     return weight;
                 });
-                
+
                 if (!picked) continue;
                 const [key, perk] = picked;
                 selectedPerkKeys.add(key);
@@ -3410,7 +3844,7 @@
                     sold: false
                 };
             }
-            
+
             // Pity: guarantee one high-rank perk after two low shops.
             const hasHighRank = nextPerkOffers.some(o => o && o.perk.rank >= 3);
             if (!hasHighRank && currentWave >= 4) {
@@ -3441,12 +3875,12 @@
                     }
                 }
             }
-            
+
             shopWeaponOffers = nextWeaponOffers;
             shopPerkOffers = nextPerkOffers;
             renderShop();
         }
-        
+
         function getRankStars(rank) {
             const stars = ['⚪', '🟢', '🔵', '🟣', '🟡', '🔶'];
             return (stars[rank] || '⚪').repeat(Math.min(rank, 5));
@@ -3481,13 +3915,44 @@
             return labels[stat] || stat;
         }
 
+        function weaponTags(weapon) {
+            const tags = [];
+            if (weapon.pierce) tags.push('Pierce');
+            if (weapon.bounce) tags.push('Bounce');
+            if (weapon.explosive) tags.push('Explosive');
+            if (weapon.homing || weapon.guided) tags.push('Homing');
+            if (weapon.knockback) tags.push('Knockback');
+            if (weapon.slow) tags.push('Slow');
+            if (weapon.returns) tags.push('Returns');
+            return tags;
+        }
+        function getWeaponRecommendation(weapon) {
+            const tags = [];
+            if (weapon.fireRate >= 5 && player.lifesteal) tags.push('great with lifesteal');
+            if (weapon.pellets && player.critChance > 0.1) tags.push('crit synergy');
+            if (weapon.explosive && currentWave >= 6) tags.push('crowd control');
+            if (weapon.range > 450) tags.push('safe kiting');
+            if (weapon.movePenalty && player.speed < 220) tags.push('heavy weapon');
+            return tags.length ? ` <span style="color:#4ecdc4">RECOMMENDED: ${tags.join(', ')}</span>` : '';
+        }
+        function getPerkRecommendation(perk) {
+            const s = perk.stat;
+            if (player.breed === 'grey' && s === 'dodge') return ' <span style="color:#4ecdc4">RECOMMENDED: Phantom dodge stack</span>';
+            if (player.breed === 'yellow' && (s === 'luck' || s === 'shopDiscount')) return ' <span style="color:#4ecdc4">RECOMMENDED: lucky shop build</span>';
+            if (player.breed === 'purple' && s === 'magnet') return ' <span style="color:#4ecdc4">RECOMMENDED: Cosmos magnet snowball</span>';
+            if (player.weapons.some(w => w.fireRate >= 5) && s === 'lifesteal') return ' <span style="color:#4ecdc4">RECOMMENDED: rapid-fire sustain</span>';
+            if (currentWave <= 4 && (s === 'coinGen' || s === 'magnet')) return ' <span style="color:#4ecdc4">RECOMMENDED: early economy</span>';
+            if (currentWave >= 7 && (s === 'damage' || s === 'critDamage')) return ' <span style="color:#4ecdc4">RECOMMENDED: boss prep</span>';
+            return '';
+        }
+
         function renderShop() {
             const weaponShop = document.getElementById('weaponShop');
             const perkShop = document.getElementById('perkShop');
             weaponShop.innerHTML = '';
             perkShop.innerHTML = '';
             updateShopTitleAndRefreshButton();
-            
+
             shopWeaponOffers.forEach((offer, i) => {
                 if (!offer) return;
                 const weapon = weaponTypes[offer.weaponType];
@@ -3499,13 +3964,16 @@
                 const dps = Math.round(weapon.damage * weapon.fireRate * (weapon.pellets || 1));
                 const bestOwnedDps = player.weapons.length > 0 ? Math.max(...player.weapons.map(w => Math.round(w.damage * w.fireRate * (w.pellets || 1)))) : 0;
                 const comparison = bestOwnedDps > 0 ? (dps > bestOwnedDps ? `<span style="color:#4ecdc4">▲ ${Math.round((dps/bestOwnedDps - 1) * 100)}% vs best</span>` : `<span style="color:#ff6b6b">▼ ${Math.round((1 - dps/bestOwnedDps) * 100)}% vs best</span>`) : '';
+                const tags = weaponTags(weapon).join(' • ') || 'Reliable';
+                const rec = getWeaponRecommendation(weapon);
                 div.innerHTML = `
                     <div class="shopItemHeader">
                         <div class="name">${weapon.name}</div>
                         <button class="lock-btn">${isLocked ? '🔒' : '🔓'}</button>
                     </div>
-                    <div class="desc">DMG: ${weapon.damage} | Rate: ${weapon.fireRate}/s | DPS: ${dps}</div>
-                    <div class="desc">${comparison}</div>
+                    <div class="desc">DMG: ${weapon.damage} | Rate: ${weapon.fireRate}/s | Range: ${weapon.range} | DPS: ${dps}</div>
+                    <div class="desc">${tags}</div>
+                    <div class="desc">${comparison}${rec}</div>
                     <div class="price">${offer.price} 🪙</div>
                 `;
                 div.onclick = () => buyWeapon(i);
@@ -3515,7 +3983,7 @@
                 };
                 weaponShop.appendChild(div);
             });
-            
+
             shopPerkOffers.forEach((offer, i) => {
                 if (!offer) return;
                 const { key, perk, price } = offer;
@@ -3529,7 +3997,7 @@
                         <div class="name">${getRankStars(perk.rank)} ${getPerkIcon(perk.stat)} ${getPerkStatLabel(perk.stat)}</div>
                         <button class="lock-btn">${isLocked ? '🔒' : '🔓'}</button>
                     </div>
-                    <div class="desc">${perk.desc || `+${perk.value} ${getPerkStatLabel(perk.stat)}`}</div>
+                    <div class="desc">${perk.desc || `+${perk.value} ${getPerkStatLabel(perk.stat)}`}${getPerkRecommendation(perk)}</div>
                     <div class="price">${price} 🪙</div>
                 `;
                 div.onclick = () => buyPerk(i);
@@ -3539,7 +4007,7 @@
                 };
                 perkShop.appendChild(div);
             });
-            
+
             // Render weapon upgrades
             const upgradeShop = document.getElementById('upgradeShop');
             upgradeShop.innerHTML = '';
@@ -3581,10 +4049,11 @@
                 }
                 upgradeShop.appendChild(div);
             });
-            
+
             renderShopStats();
+            setShopTab(activeShopTab);
         }
-        
+
         function renderShopStats() {
             const stats = document.getElementById('shopStats');
             const dodgePercent = Math.max(0, Math.round(player.dodge * 100));
@@ -3600,7 +4069,7 @@
                 <div class="shopStatsLine"><span>Weight Penalty</span><span>${movePenalty}%</span></div>
             `;
         }
-        
+
         function toggleLock(type, index) {
             if (type === 'weapon') {
                 const offer = shopWeaponOffers[index];
@@ -3615,23 +4084,25 @@
             }
             renderShop();
         }
-        
+
         // Buy weapon
         function buyWeapon(slotIndex) {
             const offer = shopWeaponOffers[slotIndex];
             if (!offer || offer.sold) return;
             if (coins < offer.price || player.weapons.length >= 4) return;
-            
+
             coins -= offer.price;
             playSound('buy');
             player.weapons.push({ ...weaponTypes[offer.weaponType], type: offer.weaponType, lastShot: 0, level: 1 });
+            lifetime.weaponUseCounts[offer.weaponType] = (lifetime.weaponUseCounts[offer.weaponType] || 0) + 1;
+            showToast(`Purchased ${weaponTypes[offer.weaponType].name}`, '#4ecdc4', 1.4);
             offer.sold = true;
             lockedWeaponSlots.delete(slotIndex);
             updateUI();
             updateWeaponUI();
             renderShop();
         }
-        
+
         function applyPerk(perk) {
             if (perk.stat === 'maxHealth') {
                 player.maxHealth += perk.value;
@@ -3715,13 +4186,13 @@
             if (!offer || offer.sold) return;
             const { key, perk, price } = offer;
             if (coins < price) return;
-            
+
             coins -= price;
             playSound('buy');
-            
+
             // Apply perk
             applyPerk(perk);
-            
+
             // Repeatable perks: track count, DON'T add to ownedPerkKeys (so they reappear)
             if (perk.repeatable) {
                 repeatablePerkCounts[key] = (repeatablePerkCounts[key] || 0) + 1;
@@ -3735,14 +4206,14 @@
             renderShop();
             updatePerkDisplay();
         }
-        
+
         // Upgrade a weapon
         function upgradeWeapon(weaponIndex) {
             const weapon = player.weapons[weaponIndex];
             if (!weapon || weapon.level >= 4) return;
             const upgradeCost = getUpgradeCost(weapon);
             if (coins < upgradeCost) return;
-            
+
             coins -= upgradeCost;
             playSound('buy');
             weapon.level++;
@@ -3751,23 +4222,23 @@
             if (weapon.pellets) weapon.pellets += 1;
             if (weapon.pierce > 0) weapon.pierce += 1;
             if (weapon.explosive > 0) weapon.explosive = Math.round(weapon.explosive * 1.2);
-            
+
             updateUI();
             updateWeaponUI();
             renderShop();
         }
-        
+
         function sellWeapon(weaponIndex) {
             if (player.weapons.length <= 1) return; // Can't sell your last weapon
             const weapon = player.weapons[weaponIndex];
             if (!weapon) return;
-            
+
             // Refund based on tier and upgrade level
             const tierPrices = { pistol: 0, rifle: 40, shotgun: 40, minigun: 80, launcher: 80, shredder: 80, piercer: 120, cannon: 120, cointoss: 120, moon: 200 };
             const baseValue = tierPrices[weapon.type] || 50;
             const upgradeValue = (weapon.level - 1) * 30;
             const refund = Math.round((baseValue + upgradeValue) * 0.5);
-            
+
             coins += refund;
             playSound('buy');
             player.weapons.splice(weaponIndex, 1);
@@ -3775,12 +4246,12 @@
             updateWeaponUI();
             renderShop();
         }
-        
+
         function getUpgradeCost(weapon) {
             const tierMult = getWeaponTier(weapon.type);
             return Math.round((50 + weapon.level * 40) * (1 + tierMult * 0.3));
         }
-        
+
         // Add visual addition to player
         function addVisualAddition(perk) {
             const additions = {
@@ -3790,14 +4261,14 @@
                 4: ['tactical vest', 'LED mask', 'shoulder pads'],
                 5: ['diamond magnet', 'rocket boosters', 'glowing aura']
             };
-            
+
             const possible = additions[perk.rank];
             const addition = possible[Math.floor(Math.random() * possible.length)];
             if (!player.visualAdditions.includes(addition)) {
                 player.visualAdditions.push(addition);
             }
         }
-        
+
         // Refresh shop
         function refreshShop() {
             if (coins >= shopRefreshCost) {
@@ -3807,20 +4278,20 @@
                 updateUI();
             }
         }
-        
+
         // Next wave
         function nextWave() {
             document.getElementById('shopOverlay').classList.remove('visible');
             currentWave++;
             shopRefreshCost = 50;
-            
+
             if (currentWave > maxWaves) {
                 victory();
             } else {
                 startWave();
             }
         }
-        
+
         function getTopWeaponName() {
             if (!player.weapons || player.weapons.length === 0) return 'None';
             return player.weapons.reduce((best, w) => {
@@ -3829,7 +4300,7 @@
                 return wScore > bScore ? w : best;
             }).name;
         }
-        
+
         function formatRunSummary(won = false) {
             const duration = Math.max(1, Math.round((Date.now() - runStartTime) / 1000));
             const minutes = Math.floor(duration / 60);
@@ -3852,29 +4323,53 @@
                 <div style="margin-top:8px;color:#4ecdc4;">Best saved: ${bestRun.kills || 0} kills, difficulty ${bestRun.difficulty || 1}, ${bestRun.coins || 0} coins</div>
             `;
         }
-        
+
+        function buildRunSummaryText(won = false) {
+            return `HODL OR DIE RUN
+Result: ${won ? 'VICTORY' : 'PAPER HANDS'}
+Doge: ${player.breed ? breeds[player.breed].name : 'Unknown'}
+Wave: ${currentWave}
+Difficulty: ${difficulty}
+Kills: ${kills}
+Coins: ${runCoinsCollected}
+Damage: ${Math.round(runDamageDealt)}
+Weapon: ${getTopWeaponName()}
+Perks: ${player.perks.length}
+Seed: ${currentSeed || 'random'}`;
+        }
+        function copyRunSummary() {
+            const text = currentRunText || buildRunSummaryText(gameState === 'victory');
+            if (navigator.clipboard) navigator.clipboard.writeText(text).then(()=>showToast('Run summary copied!', '#4ecdc4'));
+            else { prompt('Copy run summary:', text); }
+        }
+
         // Game over
         function gameOver() {
             gameState = 'gameOver';
+            updateRotateHint();
             playSound('sadDeath');
+            setMusicMode('death');
             document.getElementById('finalWave').textContent = currentWave;
             document.getElementById('finalKills').textContent = kills;
             document.getElementById('deathDifficulty').textContent = `Difficulty ${difficulty}`;
             updateBestRunSummary(false);
+            currentRunText = buildRunSummaryText(false);
             document.getElementById('deathRunSummary').innerHTML = formatRunSummary(false);
             document.getElementById('gameOver').classList.add('visible');
         }
-        
+
         // Victory
         function victory() {
             gameState = 'victory';
+            updateRotateHint();
             playSound('victoryFanfare');
-            
+            setMusicMode('victory');
+
             updateBestRunSummary(true);
-            
+
             // Calculate saved coins: 10% rounded up
             const savedCoins = Math.ceil(coins * 0.1);
-            
+
             // Find weakest weapon (lowest tier, then lowest level)
             let savedWeapon = null;
             if (player.weapons.length > 0) {
@@ -3886,11 +4381,11 @@
                     return weakest;
                 });
             }
-            
+
             // Store for startNewRun
             pendingCarryCoins = savedCoins;
             pendingCarryWeapon = savedWeapon ? { ...weaponTypes[savedWeapon.type], type: savedWeapon.type, lastShot: 0, level: 1 } : null;
-            
+
             // Determine unlocks: each clear grants one random locked weapon.
             const unlocks = [];
             const unlockableWeapons = Object.keys(weaponTypes).filter(w => !unlockedWeapons.includes(w));
@@ -3902,10 +4397,10 @@
             } else {
                 unlocks.push('✅ All weapons already unlocked!');
             }
-            
+
             const container = document.getElementById('unlocksContainer');
             container.innerHTML = unlocks.map(u => `<div class="unlocks">${u}</div>`).join('');
-            
+
             // Show saved coins
             const savedCoinsDiv = document.getElementById('victorySavedCoins');
             if (savedCoins > 0) {
@@ -3914,7 +4409,7 @@
             } else {
                 savedCoinsDiv.style.display = 'none';
             }
-            
+
             // Show saved weapon
             const savedWeaponDiv = document.getElementById('victorySavedWeapon');
             if (savedWeapon) {
@@ -3923,13 +4418,14 @@
             } else {
                 savedWeaponDiv.style.display = 'none';
             }
-            
+
             // Show current stats
             document.getElementById('victoryKills').textContent = kills;
             document.getElementById('victoryDiff').textContent = difficulty;
             document.getElementById('nextDiff').textContent = difficulty + 1;
+            currentRunText = buildRunSummaryText(true);
             document.getElementById('victoryRunSummary').innerHTML = formatRunSummary(true);
-            
+
             // Preview mutations for next difficulty
             const nextMutations = calculateMutations(difficulty + 1);
             const preview = document.getElementById('mutationPreview');
@@ -3940,7 +4436,7 @@
             } else {
                 preview.style.display = 'none';
             }
-            
+
             // Generate doge meme tweet from weapon loadout
             const dogeWords = player.weapons.map(w => w.name.split(' ')[0].toLowerCase());
             const dogeTweet = dogeWords.join(' ');
@@ -3953,10 +4449,10 @@
                 `;
                 tweetDiv.style.display = 'block';
             }
-            
+
             document.getElementById('victory').classList.add('visible');
         }
-        
+
         // Restart game
         function restartGame() {
             document.getElementById('gameOver').classList.remove('visible');
@@ -3968,7 +4464,7 @@
             resetGame();
             document.getElementById('breedSelect').style.display = 'flex';
         }
-        
+
         // Start new run (after victory)
         function startNewRun() {
             document.getElementById('victory').classList.remove('visible');
@@ -3983,7 +4479,7 @@
             repeatablePerkCounts = savedRepeatCounts;
             document.getElementById('breedSelect').style.display = 'flex';
         }
-        
+
         // Reset game
         function resetGame() {
             currentWave = 1;
@@ -4011,6 +4507,9 @@
             ownedPerkKeys = new Set();
             highRankPityCounter = 0;
             activeMutations = [];
+            seenEnemyTypesThisRun = new Set();
+            phaseToastShown = {};
+            currentRunText = '';
             tutorialMode = false;
             tutorialCompleteTimer = 0;
             runStartTime = Date.now();
@@ -4018,7 +4517,7 @@
             runDamageDealt = 0;
             runEnemyKillsByType = {};
             resetRepeatablePerkCounts();
-            
+
             player = {
                 x: ARENA_WIDTH / 2,
                 y: ARENA_HEIGHT / 2,
@@ -4060,13 +4559,13 @@
                 visualAdditions: [],
                 iframes: 0
             };
-            
+
             waveClearTimer = null;
-            
+
             updateWeaponUI();
             updatePerkDisplay();
         }
-        
+
         // Update UI
         function updateUI() {
             document.getElementById('healthText').textContent = `${Math.max(0, Math.floor(player.health))}/${Math.round(player.maxHealth)}`;
@@ -4074,7 +4573,8 @@
             document.getElementById('killText').textContent = kills;
             document.getElementById('waveText').textContent = currentWave;
             document.getElementById('diffText').textContent = difficulty;
-            
+            updateRotateHint();
+
             // Show active mutations in HUD
             let mutDiv = document.getElementById('mutationHud');
             if (!mutDiv) {
@@ -4109,7 +4609,7 @@
                 }
             }
         }
-        
+
         function updatePerkDisplay() {
             const hud = document.getElementById('perkHud');
             if (!hud) return;
@@ -4118,7 +4618,7 @@
                 return;
             }
             hud.style.display = 'block';
-            
+
             // Count duplicate perks
             const perkCounts = {};
             player.perks.forEach(p => {
@@ -4129,21 +4629,21 @@
                 perkCounts[label].count++;
                 perkCounts[label].rank = Math.max(perkCounts[label].rank, p.rank);
             });
-            
+
             const totalPerks = player.perks.length;
             // Collage mode when lots of perks (scales with difficulty)
             const collageThreshold = 8;
             const isCollage = totalPerks >= collageThreshold;
-            
+
             hud.className = isCollage ? 'hud collage' : 'hud clean';
-            
+
             let html = '';
             const entries = Object.entries(perkCounts).sort((a, b) => b[1].rank - a[1].rank);
-            
+
             entries.forEach(([label, data], i) => {
                 const countStr = data.count > 1 ? ` x${data.count}` : '';
                 let style = '';
-                
+
                 if (isCollage) {
                     // Random slight rotation and offset for poster board feel
                     // Use deterministic "random" based on index so it doesn't jitter
@@ -4154,35 +4654,103 @@
                     const zIndex = data.rank * 10 + (entries.length - i); // higher rank on top
                     style = `transform: rotate(${rotation}deg) scale(${scale}) translateY(${yOffset}px); z-index: ${zIndex};`;
                 }
-                
+
                 html += `<div class="perk-sticker rank-${data.rank}" style="${style}">${label}${countStr}</div>`;
             });
-            
+
             hud.innerHTML = html;
         }
-        
-        // Render
-        function render() {
-            // Clear
-            ctx.fillStyle = '#0f0f1e';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw arena grid
-            ctx.strokeStyle = '#1a1a3e';
+
+
+        function stableNoise(n) {
+            const x = Math.sin(n * 12.9898) * 43758.5453;
+            return x - Math.floor(x);
+        }
+
+        function drawArenaBackground() {
+            const grad = ctx.createRadialGradient(ARENA_WIDTH/2, ARENA_HEIGHT/2, 40, ARENA_WIDTH/2, ARENA_HEIGHT/2, Math.max(ARENA_WIDTH, ARENA_HEIGHT));
+            grad.addColorStop(0, '#191948');
+            grad.addColorStop(0.55, '#0f1027');
+            grad.addColorStop(1, '#070713');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+
+            // subtle market chart lines
+            ctx.save();
+            ctx.globalAlpha = 0.18;
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let x = 0; x <= ARENA_WIDTH; x += 80) {
+                const y = ARENA_HEIGHT * 0.65 + Math.sin(x * 0.018 + currentWave) * 38 + Math.cos(x * 0.009) * 24;
+                x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.globalAlpha = 0.10;
+            for (let i = 0; i < 38; i++) {
+                const x = stableNoise(i + 3) * ARENA_WIDTH;
+                const y = stableNoise(i + 99) * ARENA_HEIGHT;
+                ctx.fillStyle = i % 5 === 0 ? '#ffd700' : '#4ecdc4';
+                ctx.fillRect(x, y, 2, 2);
+            }
+            // decorative paw prints / paper scraps
+            ctx.globalAlpha = 0.12;
+            ctx.fillStyle = '#fff8dc';
+            for (let i = 0; i < 14; i++) {
+                const x = stableNoise(i * 7 + 1) * ARENA_WIDTH;
+                const y = stableNoise(i * 11 + 2) * ARENA_HEIGHT;
+                ctx.save(); ctx.translate(x,y); ctx.rotate(stableNoise(i)*Math.PI);
+                ctx.fillRect(-8,-3,16,6); ctx.fillRect(-2,-8,4,16);
+                ctx.restore();
+            }
+            ctx.restore();
+
+            // grid on top
+            ctx.strokeStyle = '#1d2250';
             ctx.lineWidth = 1;
             for (let x = 0; x < ARENA_WIDTH; x += 50) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, ARENA_HEIGHT);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ARENA_HEIGHT); ctx.stroke();
             }
             for (let y = 0; y < ARENA_HEIGHT; y += 50) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(ARENA_WIDTH, y);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ARENA_WIDTH, y); ctx.stroke();
             }
-            
+            ctx.strokeStyle = 'rgba(255,215,0,0.4)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(2, 2, ARENA_WIDTH - 4, ARENA_HEIGHT - 4);
+        }
+
+        function drawTouchControls() {
+            const likelyTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 760;
+            if (!likelyTouch || gameState !== 'playing') return;
+            ctx.save();
+            ctx.globalAlpha = 0.32;
+            const lx = touchMove.active ? touchMove.sx : 86;
+            const ly = touchMove.active ? touchMove.sy : canvas.height - 86;
+            ctx.strokeStyle = '#4ecdc4'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(lx, ly, 42, 0, Math.PI*2); ctx.stroke();
+            ctx.fillStyle = '#4ecdc4'; ctx.beginPath(); ctx.arc(touchMove.active ? touchMove.x : lx, touchMove.active ? touchMove.y : ly, 18, 0, Math.PI*2); ctx.fill();
+            const rx = touchAim.active ? touchAim.x : canvas.width - 86;
+            const ry = touchAim.active ? touchAim.y : canvas.height - 86;
+            ctx.strokeStyle = '#ffd700'; ctx.beginPath(); ctx.arc(rx, ry, 42, 0, Math.PI*2); ctx.stroke();
+            ctx.fillStyle = '#ffd700'; ctx.beginPath(); ctx.arc(rx, ry, 18, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = 0.7; ctx.fillStyle = '#fff'; ctx.font = '11px Comic Neue'; ctx.textAlign='center';
+            ctx.fillText('MOVE', lx, ly + 60); ctx.fillText('SHOOT', rx, ry + 60);
+            ctx.restore();
+        }
+
+        function drawLowHealthPulse() {
+            if (!player || !player.maxHealth || player.health > player.maxHealth * 0.25 || gameState !== 'playing') return;
+            const a = 0.08 + Math.sin(Date.now()*0.01) * 0.04;
+            ctx.save();
+            ctx.strokeStyle = `rgba(255,0,0,${a+0.12})`; ctx.lineWidth = 18;
+            ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+            ctx.restore();
+        }
+
+        // Render
+        function render() {
+            // Clear + arena visuals
+            drawArenaBackground();
+
             if (boss) {
                 const barW = Math.min(canvas.width - 80, 620);
                 const barX = (canvas.width - barW) / 2;
@@ -4198,9 +4766,11 @@
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 14px Comic Neue';
                 ctx.textAlign = 'center';
-                ctx.fillText(`${boss.enraged ? 'ENRAGED ' : ''}WICKED PAPER HAND BOSS`, canvas.width / 2, barY + 17);
+                const hp = boss.health / boss.maxHealth;
+                const phase = hp < 0.25 ? 'PHASE 3: FINAL SELL-OFF' : hp < 0.5 ? 'PHASE 2: MARKET PANIC' : 'PHASE 1: PAPER HANDS';
+                ctx.fillText(`${boss.enraged ? 'ENRAGED ' : ''}${phase}`, canvas.width / 2, barY + 17);
             }
-            
+
             if (tutorialMode) {
                 ctx.save();
                 ctx.fillStyle = 'rgba(0,0,0,0.68)';
@@ -4211,16 +4781,18 @@
                 ctx.fillStyle = '#ffd700';
                 ctx.font = 'bold 22px Comic Neue';
                 ctx.textAlign = 'left';
-                ctx.fillText('Training: prove your paws before Wave 1', 50, 122);
+                ctx.fillText('Training: move → shoot → collect', 50, 122);
                 ctx.fillStyle = '#fff';
                 ctx.font = '16px Comic Neue';
-                ctx.fillText('Move with WASD / arrows / left stick. Aim with mouse / right stick.', 50, 152);
-                ctx.fillText('Hold mouse button, tap right side on mobile, or press gamepad A to shoot.', 50, 178);
+                const msg = tutorialStep === 'move' ? 'Move into the glowing circle.' : tutorialStep === 'shoot' ? 'Aim and shoot the practice Paper Hand.' : tutorialStep === 'collect' ? 'Collect the coin to begin Wave 1.' : 'Wave 1 incoming!';
+                ctx.fillText('WASD/arrows/left stick to move. Mouse/right stick/touch to shoot.', 50, 152);
+                ctx.fillText(msg, 50, 178);
+                if (tutorialStep === 'move') { ctx.strokeStyle = '#4ecdc4'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(tutorialGoal.x, tutorialGoal.y, tutorialGoal.radius, 0, Math.PI*2); ctx.stroke(); }
                 ctx.fillStyle = '#4ecdc4';
-                ctx.fillText('Kill the unmoving Paper Hand to start the real run.', 50, 200);
+                ctx.fillText('Learn the loop before the paper mob arrives.', 50, 200);
                 ctx.restore();
             }
-            
+
             // Screen shake
             if (screenShake > 0) {
                 ctx.save();
@@ -4229,7 +4801,7 @@
                     (Math.random() - 0.5) * screenShake * 2
                 );
             }
-            
+
             // Draw turrets
             turrets.forEach(t => {
                 ctx.fillStyle = '#00ff00';
@@ -4237,7 +4809,7 @@
                 ctx.fillStyle = '#000';
                 ctx.fillRect(t.x - 5, t.y - 5, 10, 10);
             });
-            
+
             // Draw coins on ground
             coinsOnGround.forEach(c => {
                 if (c.magnetized) {
@@ -4257,13 +4829,14 @@
                 ctx.textAlign = 'center';
                 ctx.fillText('D', c.x, c.y + 3);
             });
-            
+
             // Draw fire zones
             fireZones.forEach(z => {
                 const alpha = 0.4 * (z.life / z.duration);
                 const grad = ctx.createRadialGradient(z.x, z.y, 0, z.x, z.y, z.radius);
-                grad.addColorStop(0, `rgba(255, 120, 0, ${alpha})`);
-                grad.addColorStop(0.6, `rgba(255, 60, 0, ${alpha * 0.5})`);
+                const warn = z.warningOnly;
+                grad.addColorStop(0, warn ? `rgba(255, 40, 40, ${alpha * 1.2})` : `rgba(255, 120, 0, ${alpha})`);
+                grad.addColorStop(0.6, warn ? `rgba(255, 0, 0, ${alpha * 0.45})` : `rgba(255, 60, 0, ${alpha * 0.5})`);
                 grad.addColorStop(1, 'transparent');
                 ctx.fillStyle = grad;
                 ctx.beginPath();
@@ -4280,7 +4853,7 @@
                     ctx.fill();
                 }
             });
-            
+
             // Draw particles
             particles.forEach(p => {
                 ctx.globalAlpha = p.life / 0.5;
@@ -4288,7 +4861,7 @@
                 ctx.fillRect(p.x - 3, p.y - 3, 6, 6);
                 ctx.globalAlpha = 1;
             });
-            
+
             // Draw floating damage numbers
             damageTexts.forEach(d => {
                 const alpha = d.life / d.maxLife;
@@ -4305,11 +4878,11 @@
                 ctx.fillText(text, d.x, d.y);
                 ctx.globalAlpha = 1;
             });
-            
+
             // Draw projectiles
             projectiles.forEach(p => {
                 const angle = p.angle || Math.atan2(p.vy, p.vx);
-                
+
                 if (p.weaponType === 'launcher') {
                     // Rocket with flame exhaust
                     ctx.save();
@@ -4353,12 +4926,12 @@
                     ctx.moveTo(-7, 4); ctx.lineTo(-11, 8); ctx.lineTo(-4, 4);
                     ctx.fill();
                     ctx.restore();
-                    
+
                 } else if (p.weaponType === 'moon') {
                     // ACTUAL MOON - comically large celestial body
                     ctx.save();
                     ctx.translate(p.x, p.y);
-                    
+
                     // Glow aura
                     const glowGrad = ctx.createRadialGradient(0, 0, p.radius * 0.8, 0, 0, p.radius * 2);
                     glowGrad.addColorStop(0, 'rgba(255, 255, 200, 0.3)');
@@ -4367,7 +4940,7 @@
                     ctx.beginPath();
                     ctx.arc(0, 0, p.radius * 2, 0, Math.PI * 2);
                     ctx.fill();
-                    
+
                     // Moon body - gradient from light yellow to grey
                     const moonGrad = ctx.createRadialGradient(-6, -6, 2, 0, 0, p.radius);
                     moonGrad.addColorStop(0, '#fffff0');
@@ -4377,7 +4950,7 @@
                     ctx.beginPath();
                     ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
                     ctx.fill();
-                    
+
                     // Craters
                     ctx.fillStyle = 'rgba(160, 150, 120, 0.5)';
                     ctx.beginPath();
@@ -4392,7 +4965,7 @@
                     ctx.beginPath();
                     ctx.arc(10, -7, 3, 0, Math.PI * 2);
                     ctx.fill();
-                    
+
                     // Crater shadows (slightly darker)
                     ctx.fillStyle = 'rgba(130, 120, 90, 0.3)';
                     ctx.beginPath();
@@ -4401,13 +4974,13 @@
                     ctx.beginPath();
                     ctx.arc(-2, 9, 3, 0, Math.PI * 2);
                     ctx.fill();
-                    
+
                     // Highlight crescent (lit side of moon)
                     ctx.fillStyle = 'rgba(255, 255, 240, 0.25)';
                     ctx.beginPath();
                     ctx.arc(-4, -4, p.radius * 0.7, -1.2, 1.2);
                     ctx.fill();
-                    
+
                     // Wobble text "🌙" emoji vibe - draw "MOON" tiny on it
                     const wobble = Math.sin((p.age || 0) * 3) * 0.1;
                     ctx.rotate(wobble);
@@ -4416,9 +4989,9 @@
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText('MOON', 0, 0);
-                    
+
                     ctx.restore();
-                    
+
                     // Sparkle trail behind the moon
                     if (Math.random() < 0.4) {
                         particles.push({
@@ -4430,7 +5003,7 @@
                             color: ['#fffff0', '#ffd700', '#ffe4b5'][Math.floor(Math.random() * 3)]
                         });
                     }
-                    
+
                 } else if (p.weaponType === 'piercer') {
                     // Spinning diamond crystal with afterimages
                     ctx.save();
@@ -4467,7 +5040,7 @@
                     ctx.closePath();
                     ctx.fill();
                     ctx.restore();
-                    
+
                 } else if (p.weaponType === 'cannon') {
                     // Heavy cannonball with metallic shading
                     ctx.save();
@@ -4492,7 +5065,7 @@
                     ctx.ellipse(-3, -3, 4, 2.5, -0.8, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
-                    
+
                 } else if (p.weaponType === 'cointoss') {
                     // Flipping gold coin
                     ctx.save();
@@ -4530,7 +5103,7 @@
                     ctx.ellipse(-coinWidth * 0.3, -3, coinWidth * 0.2 + 1, 2, 0, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
-                    
+
                 } else if (p.weaponType === 'boomerang') {
                     // Spinning boomerang — curved wooden shape
                     ctx.save();
@@ -4560,7 +5133,7 @@
                         ctx.stroke();
                     }
                     ctx.restore();
-                    
+
                 } else if (p.weaponType === 'rifle') {
                     // Cyan energy bolt - elongated
                     ctx.save();
@@ -4584,7 +5157,7 @@
                     ctx.ellipse(2, 0, 4, 1.5, 0, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
-                    
+
                 } else if (p.weaponType === 'pistol') {
                     // Proper bullet casing + tip
                     ctx.save();
@@ -4627,7 +5200,7 @@
                     ctx.ellipse(3, -0.8, 3, 0.8, 0, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
-                    
+
                 } else if (p.weaponType === 'shredder') {
                     // Tiny silver throwing star
                     ctx.save();
@@ -4665,14 +5238,14 @@
                     ctx.stroke();
                 }
             });
-            
+
             // Draw enemy ranged projectiles
             enemyProjectiles.forEach(p => {
                 ctx.fillStyle = '#ff4d4d';
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 ctx.strokeStyle = 'rgba(255, 77, 77, 0.6)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -4680,14 +5253,14 @@
                 ctx.lineTo(p.x - p.vx * 0.03, p.y - p.vy * 0.03);
                 ctx.stroke();
             });
-            
+
             // Draw enemies
             enemies.forEach(e => {
                 const explosiveWindup = e.type === 'explosive' && e.ramState === 'windup';
                 const shakeOffset = explosiveWindup ? Math.sin(Date.now() * 0.06) * 3 : 0;
                 const drawX = e.x + shakeOffset;
                 const drawY = e.y;
-                
+
                 if (e.type === 'fomo') {
                     // Custom fomo ranged enemy drawing
                     // Purple body
@@ -4695,7 +5268,7 @@
                     ctx.beginPath();
                     ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
                     ctx.fill();
-                    
+
                     // 3 long claw fingers spread wide
                     for (let i = 0; i < 3; i++) {
                         const angle = (i / 2) * Math.PI - Math.PI / 2;
@@ -4719,7 +5292,7 @@
                         ctx.fill();
                         ctx.restore();
                     }
-                    
+
                     // Targeting reticle in center
                     ctx.strokeStyle = '#e8daef';
                     ctx.lineWidth = 1.5;
@@ -4732,7 +5305,7 @@
                     ctx.moveTo(drawX, drawY - 9);
                     ctx.lineTo(drawX, drawY + 9);
                     ctx.stroke();
-                    
+
                     // Pulsing purple aura
                     const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.15;
                     ctx.strokeStyle = 'rgba(155, 89, 182, 0.4)';
@@ -4740,7 +5313,7 @@
                     ctx.beginPath();
                     ctx.arc(drawX, drawY, (e.radius + 8) * pulse, 0, Math.PI * 2);
                     ctx.stroke();
-                    
+
                     // Health bar
                     const barWidth = 30;
                     const barHeight = 4;
@@ -4748,7 +5321,7 @@
                     ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth, barHeight);
                     ctx.fillStyle = '#00ff00';
                     ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth * (e.health / e.maxHealth), barHeight);
-                    
+
                     // Slow effect
                     if (e.slowTimer > 0) {
                         ctx.strokeStyle = '#00ffff';
@@ -4768,7 +5341,7 @@
                     ctx.beginPath();
                     ctx.arc(drawX, drawY, e.radius, 0, Math.PI * 2);
                     ctx.fill();
-                    
+
                     // Fingers
                     const fingerRadius = e.type === 'splitterling' ? 4 : 6;
                     for (let i = 0; i < 5; i++) {
@@ -4785,7 +5358,7 @@
                         ctx.arc(fx, fy, fingerRadius, 0, Math.PI * 2);
                         ctx.fill();
                     }
-                    
+
                     // Red arrow (paper hand symbol)
                     ctx.fillStyle =
                         e.type === 'explosive' ? '#ffea00' :
@@ -4797,14 +5370,14 @@
                     ctx.lineTo(drawX - 8, drawY + 5);
                     ctx.lineTo(drawX + 8, drawY + 5);
                     ctx.fill();
-                    
+
                     if (e.type === 'explosive') {
                         // Distinct explosive marker and telegraph ring.
                         ctx.fillStyle = '#7a0000';
                         ctx.font = 'bold 14px Comic Neue';
                         ctx.textAlign = 'center';
                         ctx.fillText('!', drawX, drawY + 5);
-                        
+
                         const ringRadius = e.radius + 10 + Math.sin(Date.now() * 0.02) * 2;
                         ctx.strokeStyle = explosiveWindup ? '#ff2d2d' : '#ff8c42';
                         ctx.lineWidth = explosiveWindup ? 4 : 2;
@@ -4812,7 +5385,7 @@
                         ctx.arc(drawX, drawY, ringRadius, 0, Math.PI * 2);
                         ctx.stroke();
                     }
-                    
+
                     if (e.type === 'tank') {
                         // Armor plate look to read as "tank".
                         ctx.strokeStyle = '#b7d8ff';
@@ -4821,7 +5394,7 @@
                         ctx.arc(drawX, drawY, e.radius - 4, 0, Math.PI * 2);
                         ctx.stroke();
                     }
-                    
+
                     if (e.type === 'splitter') {
                         // Crumple cracks - this paper hand is about to tear apart
                         ctx.strokeStyle = 'rgba(139, 90, 43, 0.5)';
@@ -4848,7 +5421,7 @@
                         ctx.stroke();
                         ctx.setLineDash([]);
                     }
-                    
+
                     if (e.type === 'splitterling') {
                         // Torn edge - small paper scrap
                         ctx.strokeStyle = 'rgba(160, 120, 70, 0.4)';
@@ -4858,7 +5431,7 @@
                         ctx.lineTo(drawX + e.radius * 0.4, drawY + e.radius * 0.2);
                         ctx.stroke();
                     }
-                    
+
                     if (e.type === 'shredder') {
                         // Jagged claw marks across the hand
                         ctx.strokeStyle = '#aa0000';
@@ -4872,7 +5445,7 @@
                             ctx.stroke();
                         }
                     }
-                    
+
                     // Health bar
                     const barWidth = 30;
                     const barHeight = 4;
@@ -4880,7 +5453,7 @@
                     ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth, barHeight);
                     ctx.fillStyle = '#00ff00';
                     ctx.fillRect(drawX - barWidth/2, drawY - e.radius - 10, barWidth * (e.health / e.maxHealth), barHeight);
-                    
+
                     // Slow effect
                     if (e.slowTimer > 0) {
                         ctx.strokeStyle = '#00ffff';
@@ -4891,7 +5464,7 @@
                     }
                 }
             });
-            
+
             // Off-screen enemy indicators
             const indicatorMargin = 30;
             enemies.forEach(e => {
@@ -4915,11 +5488,11 @@
                     ctx.restore();
                 }
             });
-            
+
             // Draw boss
             if (boss) {
                 const t = Date.now() * 0.002;
-                
+
                 // Main grotesque writhing mass
                 ctx.fillStyle = '#efe8d9';
                 ctx.beginPath();
@@ -4929,7 +5502,7 @@
                 ctx.beginPath();
                 ctx.arc(boss.x + 10, boss.y + 8, boss.radius * 0.8, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 // Fused hand lumps around body
                 for (let i = 0; i < 14; i++) {
                     const a = (i / 14) * Math.PI * 2;
@@ -4940,7 +5513,7 @@
                     ctx.beginPath();
                     ctx.arc(hx, hy, 9, 0, Math.PI * 2);
                     ctx.fill();
-                    
+
                     // Finger nubs
                     for (let f = 0; f < 4; f++) {
                         const fa = a + (f - 1.5) * 0.25;
@@ -4949,7 +5522,7 @@
                         ctx.fill();
                     }
                 }
-                
+
                 // Dark fissures between fused hands
                 ctx.strokeStyle = 'rgba(70, 55, 45, 0.45)';
                 ctx.lineWidth = 2;
@@ -4960,7 +5533,7 @@
                     ctx.lineTo(boss.x + Math.cos(a + 0.5) * (boss.radius - 5), boss.y + Math.sin(a + 0.5) * (boss.radius - 5));
                     ctx.stroke();
                 }
-                
+
                 // Detached-hand telegraph ring (outer hands tearing off)
                 if (boss.detachTimer < 0.7) {
                     const pulse = 1 + (0.7 - boss.detachTimer) * 0.9;
@@ -4970,7 +5543,7 @@
                     ctx.arc(boss.x, boss.y, boss.radius + 12 * pulse, 0, Math.PI * 2);
                     ctx.stroke();
                 }
-                
+
                 // Eyes and maw
                 ctx.fillStyle = '#8b0000';
                 ctx.beginPath();
@@ -4981,7 +5554,7 @@
                 ctx.beginPath();
                 ctx.ellipse(boss.x + 2, boss.y + 20, 24, 12, 0, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 // Health bar
                 const barWidth = 140;
                 const barHeight = 12;
@@ -4989,19 +5562,19 @@
                 ctx.fillRect(boss.x - barWidth/2, boss.y - boss.radius - 24, barWidth, barHeight);
                 ctx.fillStyle = '#ff4d4d';
                 ctx.fillRect(boss.x - barWidth/2, boss.y - boss.radius - 24, barWidth * (boss.health / boss.maxHealth), barHeight);
-                
+
                 // Boss name
                 ctx.fillStyle = '#ffb3b3';
                 ctx.font = 'bold 20px Comic Neue';
                 ctx.textAlign = 'center';
                 ctx.fillText('THE PAPER ABOMINATION', boss.x, boss.y - boss.radius - 34);
             }
-            
+
             // Flash during iframes
             if (player.iframes > 0 && Math.floor(player.iframes * 20) % 2 === 0) {
                 ctx.globalAlpha = 0.3;
             }
-            
+
             // Draw player
             if (gameState === 'playing' || gameState === 'shop') {
                 // Draw weapon(s) on doge (pointing toward mouse)
@@ -5012,16 +5585,16 @@
                         const gunDist = player.radius + 4;
                         const gx = player.x + Math.cos(offsetAngle) * gunDist;
                         const gy = player.y + Math.sin(offsetAngle) * gunDist;
-                        
+
                         ctx.save();
                         ctx.translate(gx, gy);
                         ctx.rotate(offsetAngle);
-                        
+
                         const gc = w.color || '#aaa';
                         ctx.fillStyle = gc;
                         ctx.strokeStyle = '#222';
                         ctx.lineWidth = 1;
-                        
+
                         if (w.type === 'shotgun') {
                             // Wide short double barrel
                             ctx.fillRect(0, -5, 16, 4);
@@ -5058,11 +5631,11 @@
                             ctx.fillStyle = '#333';
                             ctx.fillRect(2, 3, 4, 5);
                         }
-                        
+
                         ctx.restore();
                     });
                 }
-                
+
                 // Visual additions removed - perks shown in HUD
                 const x = player.x;
                 const y = player.y;
@@ -5110,7 +5683,7 @@
                     mouthTilt: 0.3
                 };
                 const baseColor = breeds[player.breed]?.color || v.baseColor;
-                
+
                 const drawFurPatch = (px, py, pw, ph, rot, alpha) => {
                     ctx.save();
                     ctx.translate(r * px, r * py);
@@ -5121,7 +5694,7 @@
                     ctx.fill();
                     ctx.restore();
                 };
-                
+
                 const drawEye = (cx, cy, rx, ry, rot, almond) => {
                     ctx.save();
                     ctx.translate(cx, cy);
@@ -5142,11 +5715,11 @@
                     ctx.fill();
                     ctx.restore();
                 };
-                
+
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate(v.tilt);
-                
+
                 const headGradient = ctx.createRadialGradient(
                     r * v.lightX,
                     r * v.lightY,
@@ -5158,7 +5731,7 @@
                 headGradient.addColorStop(0, '#f6d58c');
                 headGradient.addColorStop(0.5, baseColor);
                 headGradient.addColorStop(1, '#7a4d1f');
-                
+
                 // Ears
                 ctx.save();
                 ctx.translate(-r * v.earSpread, -r * v.earLift);
@@ -5178,7 +5751,7 @@
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
-                
+
                 ctx.save();
                 ctx.translate(r * v.earSpread, -r * (v.earLift + 0.03));
                 ctx.rotate(v.earTilt + 0.08);
@@ -5197,20 +5770,20 @@
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
-                
+
                 // Head
                 ctx.fillStyle = headGradient;
                 ctx.beginPath();
                 ctx.ellipse(0, 0, r * v.headW, r * v.headH, 0, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 // Fur layers
                 ctx.fillStyle = 'rgba(0,0,0,0.12)';
                 ctx.beginPath();
                 ctx.ellipse(r * 0.4, r * 0.5, r * 0.9, r * 0.5, 0.3, 0, Math.PI * 2);
                 ctx.fill();
                 drawFurPatch(v.fur2X, v.fur2Y, v.fur2W, v.fur2H, v.fur2Rot, v.fur2A);
-                
+
                 // Cream mask
                 const creamGrad = ctx.createRadialGradient(0, -r * 0.1, r * 0.1, 0, 0, r);
                 creamGrad.addColorStop(0, '#fff6dc');
@@ -5219,7 +5792,7 @@
                 ctx.beginPath();
                 ctx.ellipse(0, r * v.creamY, r * v.creamW, r * v.creamH, 0, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 // Mouth
                 const totalUpgrades = player.perks.length + Math.max(0, player.weapons.length - 1);
                 const excitementProgress = Math.min(1, totalUpgrades / 20);
@@ -5236,50 +5809,50 @@
                 ctx.quadraticCurveTo(r * 0.1, r * v.mouthCurve, r * (v.mouthW + 0.1), r * (v.mouthY - 0.05));
                 ctx.stroke();
                 ctx.restore();
-                
+
                 // Nose (drawn above mouth)
                 ctx.fillStyle = '#000';
                 ctx.beginPath();
                 ctx.ellipse(r * v.noseX, r * v.noseY, r * v.noseW, r * v.noseH, 0, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 ctx.fillStyle = 'rgba(0,0,0,0.2)';
                 ctx.beginPath();
                 ctx.ellipse(r * v.noseX, r * (v.noseY + 0.12), r * (v.noseW + 0.03), r * (v.noseH * 0.6), 0, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 // Fur1 sits above all face layers except eyes
                 drawFurPatch(v.fur1X, v.fur1Y, v.fur1W, v.fur1H, v.fur1Rot, v.fur1A);
-                
+
                 // Eyes (drawn last, above fur1)
                 const leftEyeX = -r * v.eyeSpread;
                 const rightEyeX = r * (v.eyeSpread - 0.03);
                 const eyeBaseY = r * v.eyeY;
                 drawEye(leftEyeX, eyeBaseY, r * v.eyeW, r * v.eyeH, -v.eyeTilt, v.eyeAlmond);
                 drawEye(rightEyeX, eyeBaseY + r * 0.05, r * (v.eyeW * 1.08), r * (v.eyeH * 1.06), v.eyeTilt, v.eyeAlmond);
-                
+
                 ctx.fillStyle = '#000';
                 ctx.beginPath();
                 ctx.arc(leftEyeX - r * 0.03, eyeBaseY - r * 0.05, r * 0.05, 0, Math.PI * 2);
                 ctx.arc(rightEyeX - r * 0.04, eyeBaseY - r * 0.01, r * 0.05, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 ctx.restore();
 
 
             }
             ctx.globalAlpha = 1;
-            
+
             // Boss intro cinematic
             if (gameState === 'bossIntro' && bossIntro) {
                 const progress = Math.min(1, bossIntro.timer / bossIntro.duration);
-                
+
                 // Pulsing arena border
                 const pulse = 0.5 + Math.sin(bossIntro.timer * 6) * 0.3;
                 ctx.strokeStyle = `rgba(139, 0, 0, ${pulse})`;
                 ctx.lineWidth = 4 + progress * 4;
                 ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
-                
+
                 // Dark vignette closing in then opening
                 const vignetteAlpha = 0.4 * (1 - progress);
                 if (vignetteAlpha > 0.01) {
@@ -5289,7 +5862,7 @@
                     ctx.fillStyle = grad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
-                
+
                 // Text
                 const textAlpha = Math.min(1, bossIntro.timer * 2);
                 ctx.globalAlpha = textAlpha;
@@ -5299,7 +5872,7 @@
                 ctx.fillText('THE ARENA EXPANDS...', canvas.width/2 + 2, canvas.height/2 - 40 + 2);
                 ctx.fillStyle = '#8b0000';
                 ctx.fillText('THE ARENA EXPANDS...', canvas.width/2, canvas.height/2 - 40);
-                
+
                 if (progress > 0.5) {
                     const bossTextAlpha = (progress - 0.5) * 2;
                     ctx.globalAlpha = bossTextAlpha;
@@ -5308,14 +5881,14 @@
                     ctx.fillText('THE PAPER ABOMINATION', canvas.width/2 + 2, canvas.height/2 + 20 + 2);
                     ctx.fillStyle = '#ff4444';
                     ctx.fillText('THE PAPER ABOMINATION', canvas.width/2, canvas.height/2 + 20);
-                    
+
                     ctx.font = 'bold 20px Comic Neue';
                     ctx.fillStyle = '#ffb3b3';
                     ctx.fillText('PREPARE YOURSELF', canvas.width/2, canvas.height/2 + 55);
                 }
                 ctx.globalAlpha = 1;
             }
-            
+
             // Wave clear banner
             if (waveClearTimer && waveClearTimer > 0) {
                 const t = 1.5 - waveClearTimer;
@@ -5334,21 +5907,25 @@
                 ctx.fillText(`+${coins} coins earned`, canvas.width / 2, canvas.height / 2 + 40);
                 ctx.restore();
             }
-            
+
+            drawTouchControls();
+            drawLowHealthPulse();
             if (screenShake > 0) ctx.restore();
         }
-        
+
         // Game loop
         function gameLoop(timestamp) {
             const dt = (timestamp - lastTime) / 1000;
             lastTime = timestamp;
-            
-            update(Math.min(dt, 0.1));
+
+            const step = Math.min(dt, 0.1);
+            if (hitPauseTimer > 0) hitPauseTimer -= step;
+            else update(step);
             render();
-            
+
             gameLoopId = requestAnimationFrame(gameLoop);
         }
-        
+
         // Start
         gameLoopId = requestAnimationFrame(gameLoop);
     </script>
