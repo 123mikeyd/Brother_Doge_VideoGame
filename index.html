@@ -2083,6 +2083,52 @@
         let screenShake = 0;
         let kills = 0;
 
+        // Late-game performance: broad-phase spatial grids avoid checking every
+        // projectile against every enemy when the board is crowded.
+        const PERF_ENEMY_CELL = 160;
+        const PERF_PROJECTILE_CELL = 96;
+        const MAX_PARTICLES = 450;
+        const MAX_DAMAGE_TEXTS = 90;
+
+        function buildSpatialGrid(items, cellSize) {
+            const grid = new Map();
+            for (const item of items) {
+                if (!item) continue;
+                const cx = Math.floor(item.x / cellSize);
+                const cy = Math.floor(item.y / cellSize);
+                const key = cx + ',' + cy;
+                let bucket = grid.get(key);
+                if (!bucket) {
+                    bucket = [];
+                    grid.set(key, bucket);
+                }
+                bucket.push(item);
+            }
+            return { grid, cellSize };
+        }
+
+        function getNearbyFromGrid(spatial, x, y, radius) {
+            if (!spatial) return [];
+            const { grid, cellSize } = spatial;
+            const minX = Math.floor((x - radius) / cellSize);
+            const maxX = Math.floor((x + radius) / cellSize);
+            const minY = Math.floor((y - radius) / cellSize);
+            const maxY = Math.floor((y + radius) / cellSize);
+            const results = [];
+            for (let cy = minY; cy <= maxY; cy++) {
+                for (let cx = minX; cx <= maxX; cx++) {
+                    const bucket = grid.get(cx + ',' + cy);
+                    if (bucket) results.push(...bucket);
+                }
+            }
+            return results;
+        }
+
+        function trimPerformanceLists() {
+            if (particles.length > MAX_PARTICLES) particles.splice(0, particles.length - MAX_PARTICLES);
+            if (damageTexts.length > MAX_DAMAGE_TEXTS) damageTexts.splice(0, damageTexts.length - MAX_DAMAGE_TEXTS);
+        }
+
         function addScreenShake(intensity) {
             const mult = settings.screenShake === 'low' ? 0.45 : settings.screenShake === 'high' ? 1.35 : 1;
             screenShake = Math.max(screenShake, intensity * mult);
@@ -2485,6 +2531,10 @@
                 });
             }
 
+            // Build once at the start of the combat frame and reuse for homing,
+            // pack checks, explosions, and turret targeting.
+            const enemySpatialGrid = buildSpatialGrid(enemies, PERF_ENEMY_CELL);
+
             // Shooting
             if (mouse.down || gamepadState.shoot || settings.autoFire) {
                 const now = Date.now();
@@ -2536,10 +2586,13 @@
                 // Launcher: slight homing toward nearest enemy
                 if (p.weaponType === 'launcher' && p.homing) {
                     let nearest = null;
-                    let nearestDist = 250;
-                    enemies.forEach(e => {
-                        const d = Math.sqrt((e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y));
-                        if (d < nearestDist) { nearestDist = d; nearest = e; }
+                    let nearestDistSq = 250 * 250;
+                    const candidates = getNearbyFromGrid(enemySpatialGrid, p.x, p.y, 250);
+                    candidates.forEach(e => {
+                        const dx = e.x - p.x;
+                        const dy = e.y - p.y;
+                        const dSq = dx * dx + dy * dy;
+                        if (dSq < nearestDistSq) { nearestDistSq = dSq; nearest = e; }
                     });
                     if (nearest) {
                         const targetAngle = Math.atan2(nearest.y - p.y, nearest.x - p.x);
@@ -2558,10 +2611,13 @@
                 // Moon guided missile: strong homing
                 if (p.weaponType === 'moon' && p.guided) {
                     let nearest = null;
-                    let nearestDist = 500;
-                    enemies.forEach(e => {
-                        const d = Math.sqrt((e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y));
-                        if (d < nearestDist) { nearestDist = d; nearest = e; }
+                    let nearestDistSq = 500 * 500;
+                    const candidates = getNearbyFromGrid(enemySpatialGrid, p.x, p.y, 500);
+                    candidates.forEach(e => {
+                        const dx = e.x - p.x;
+                        const dy = e.y - p.y;
+                        const dSq = dx * dx + dy * dy;
+                        if (dSq < nearestDistSq) { nearestDistSq = dSq; nearest = e; }
                     });
                     if (!nearest && boss) {
                         nearest = boss;
@@ -2633,6 +2689,8 @@
                 return p.distance < p.range && p.pierce >= 0;
             });
 
+            const projectileSpatialGrid = buildSpatialGrid(projectiles, PERF_PROJECTILE_CELL);
+
             // Update enemies
             let pendingSpawns = [];
             enemies = enemies.filter(enemy => {
@@ -2680,7 +2738,8 @@
                 const mutFx = getMutationEffects();
                 if (mutFx.packBonus > 0) {
                     let nearbyCount = 0;
-                    for (const other of enemies) {
+                    const packNearby = getNearbyFromGrid(enemySpatialGrid, enemy.x, enemy.y, 100);
+                    for (const other of packNearby) {
                         if (other === enemy) continue;
                         const packDx = other.x - enemy.x;
                         const packDy = other.y - enemy.y;
@@ -2858,13 +2917,16 @@
                     enemy.attackTimer = enemy.type === 'shredder' ? 0.45 : 0.75;
                 }
 
-                // Collision with projectiles
-                projectiles.forEach(p => {
+                // Collision with nearby projectiles only (spatial broad phase)
+                const nearbyProjectiles = getNearbyFromGrid(projectileSpatialGrid, enemy.x, enemy.y, enemy.radius + 48);
+                nearbyProjectiles.forEach(p => {
+                    if (p.pierce < 0 || p.distance >= p.range) return;
                     const pdx = p.x - enemy.x;
                     const pdy = p.y - enemy.y;
-                    const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+                    const hitRadius = enemy.radius + p.radius;
+                    const pdistSq = pdx * pdx + pdy * pdy;
 
-                    if (pdist < enemy.radius + p.radius) {
+                    if (pdistSq < hitRadius * hitRadius) {
                         // Hit
                         let damage = p.damage * player.damage;
 
@@ -2885,11 +2947,12 @@
 
                         // Explosive
                         if (p.explosive > 0) {
-                            enemies.forEach(e => {
+                            const explosionTargets = getNearbyFromGrid(enemySpatialGrid, p.x, p.y, p.expSize + 32);
+                            explosionTargets.forEach(e => {
                                 const edx = e.x - p.x;
                                 const edy = e.y - p.y;
-                                const edist = Math.sqrt(edx * edx + edy * edy);
-                                if (edist < p.expSize) {
+                                const expRadiusSq = p.expSize * p.expSize;
+                                if (edx * edx + edy * edy < expRadiusSq) {
                                     e.health -= p.explosive * player.damage;
                                 }
                             });
@@ -3001,10 +3064,11 @@
                         if (player.ricochet && p.pierce >= 0) {
                             let rNearest = null;
                             let rDist = 200;
-                            enemies.forEach(re => {
+                            const ricochetNearby = getNearbyFromGrid(enemySpatialGrid, p.x, p.y, 200);
+                            ricochetNearby.forEach(re => {
                                 if (re === enemy) return;
-                                const rd = Math.sqrt((re.x - p.x) ** 2 + (re.y - p.y) ** 2);
-                                if (rd < rDist) { rDist = rd; rNearest = re; }
+                                const rdSq = (re.x - p.x) ** 2 + (re.y - p.y) ** 2;
+                                if (rdSq < rDist * rDist) { rDist = Math.sqrt(rdSq); rNearest = re; }
                             });
                             if (rNearest) {
                                 const rAngle = Math.atan2(rNearest.y - p.y, rNearest.x - p.x);
@@ -3123,6 +3187,7 @@
             if (pendingSpawns.length > 0) {
                 enemies = enemies.concat(pendingSpawns);
             }
+            const updatedEnemySpatialGrid = buildSpatialGrid(enemies, PERF_ENEMY_CELL);
 
             // Update ranged enemy projectiles
             enemyProjectiles = enemyProjectiles.filter(p => {
@@ -3169,13 +3234,14 @@
                     t.timer = 0.4; // Bug fix: reset fire timer (2.5 shots/sec)
                     // Find nearest enemy
                     let nearest = null;
-                    let nearestDist = Infinity;
-                    enemies.forEach(e => {
+                    let nearestDistSq = 300 * 300;
+                    const turretNearby = getNearbyFromGrid(enemySpatialGrid, t.x, t.y, 300);
+                    turretNearby.forEach(e => {
                         const dx = e.x - t.x;
                         const dy = e.y - t.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < nearestDist && dist < 300) {
-                            nearestDist = dist;
+                        const distSq = dx * dx + dy * dy;
+                        if (distSq < nearestDistSq) {
+                            nearestDistSq = distSq;
                             nearest = e;
                         }
                     });
@@ -3254,14 +3320,18 @@
                 p.life -= dt;
                 return p.life > 0;
             });
+            trimPerformanceLists();
 
             // Update fire zones
             fireZones = fireZones.filter(z => {
                 z.life -= dt;
-                // Damage enemies in fire zone
-                enemies.forEach(e => {
-                    const d = Math.sqrt((e.x - z.x) * (e.x - z.x) + (e.y - z.y) * (e.y - z.y));
-                    if (d < z.radius) {
+                // Damage nearby enemies in fire zone
+                const zoneTargets = getNearbyFromGrid(updatedEnemySpatialGrid, z.x, z.y, z.radius + 32);
+                const zoneRadiusSq = z.radius * z.radius;
+                zoneTargets.forEach(e => {
+                    const dx = e.x - z.x;
+                    const dy = e.y - z.y;
+                    if (dx * dx + dy * dy < zoneRadiusSq) {
                         e.health -= z.dps * dt;
                     }
                 });
@@ -3286,6 +3356,7 @@
                 d.life -= dt;
                 return d.life > 0;
             });
+            trimPerformanceLists();
 
             if (tutorialMode && tutorialCompleteTimer > 0) {
                 tutorialCompleteTimer -= dt;
@@ -3656,6 +3727,7 @@
                 maxLife: (isCrit || isText) ? 1.0 : 0.8,
                 vy: (isCrit || isText) ? -80 : -60
             });
+            if (damageTexts.length > MAX_DAMAGE_TEXTS) damageTexts.splice(0, damageTexts.length - MAX_DAMAGE_TEXTS);
         }
 
         // Shoot
