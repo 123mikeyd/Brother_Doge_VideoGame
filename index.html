@@ -1654,14 +1654,14 @@
         const weaponTypes = {
             pistol: { name: 'Much Pistol', damage: 15, fireRate: 4, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, color: '#ffd700' },
             rifle: { name: 'Very Rifle', damage: 38, fireRate: 3.5, range: 500, knockback: 0, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#4ecdc4', speed: 900, falloff: 0.75 },
-            shotgun: { name: 'Wow Shotgun', damage: 18, fireRate: 1.5, range: 200, knockback: 3, explosive: 0, expSize: 0, pierce: 0, slow: 0, pellets: 4, spread: 0.2, color: '#ff6b6b' },
+            shotgun: { name: 'Wow Shotgun', damage: 18, fireRate: 1.5, range: 200, knockback: 1.3, explosive: 0, expSize: 0, pierce: 0, slow: 0, pellets: 4, spread: 0.2, color: '#ff6b6b' },
             minigun: { name: 'So Minigun', damage: 20, fireRate: 10, range: 300, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0, movePenalty: 0.5, color: '#95e1d3' },
-            launcher: { name: 'Amaze Rocket', damage: 60, fireRate: 1, range: 400, knockback: 5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181', homing: 0.03, speed: 300, fireZone: true, fireZoneDuration: 2.5, fireZoneDPS: 20 },
+            launcher: { name: 'Amaze Rocket', damage: 60, fireRate: 1, range: 400, knockback: 3.5, explosive: 30, expSize: 80, pierce: 0, slow: 0, color: '#f38181', homing: 0.03, speed: 300, fireZone: true, fireZoneDuration: 2.5, fireZoneDPS: 20 },
             piercer: { name: 'Excite Piercer', damage: 45, fireRate: 2.5, range: 700, knockback: 0, explosive: 0, expSize: 0, pierce: 5, slow: 0, color: '#aa96da', speed: 300, accelerates: true, damageRamp: 15, spinRate: 12 },
             shredder: { name: 'Such Shuriken', damage: 12, fireRate: 11, range: 170, knockback: 0.2, explosive: 0, expSize: 0, pierce: 1, slow: 0.15, movePenalty: 0.05, color: '#d6dde8', spinRate: 25 },
-            cannon: { name: 'HODL Cannon', damage: 100, fireRate: 0.8, range: 500, knockback: 15, explosive: 35, expSize: 50, pierce: 0, slow: 0, color: '#ffffd2', gravity: 400, speed: 400 },
+            cannon: { name: 'HODL Cannon', damage: 100, fireRate: 0.8, range: 500, knockback: 8, explosive: 35, expSize: 50, pierce: 0, slow: 0, color: '#ffffd2', gravity: 400, speed: 400 },
             cointoss: { name: 'Doge Coin Toss', damage: 45, fireRate: 5, range: 350, knockback: 0, explosive: 0, expSize: 0, pierce: 0, slow: 0.3, bounce: 2, color: '#ffd700', speed: 450, spinRate: 15, arc: true },
-            moon: { name: 'Moon Launcher', damage: 400, fireRate: 0.45, range: 800, knockback: 12, explosive: 70, expSize: 180, pierce: 0, slow: 0, guided: true, color: '#ffffcc', speed: 170, homingStrength: 0.05, spinRate: 0 },
+            moon: { name: 'Moon Launcher', damage: 400, fireRate: 0.45, range: 800, knockback: 7, explosive: 70, expSize: 180, pierce: 0, slow: 0, guided: true, color: '#ffffcc', speed: 170, homingStrength: 0.05, spinRate: 0 },
             boomerang: { name: 'Many Boomerang', damage: 55, fireRate: 1.8, range: 250, knockback: 1, explosive: 0, expSize: 0, pierce: 3, slow: 0, color: '#e67e22', speed: 350, spinRate: 20, returns: true }
         };
 
@@ -1693,18 +1693,18 @@
             // Rank 1 extras
             luck1: { name: 'Paper Luck', rank: 1, stat: 'luck', value: 0.15, price: 25 },
             crit1: { name: 'Paper Crit', rank: 1, stat: 'critChance', value: 0.04, price: 30 },
-            magnet1: { name: 'Paper Magnet', rank: 1, stat: 'magnet', value: 0.2, price: 25 },
+            magnet1: { name: 'Paper Magnet', rank: 1, stat: 'magnet', value: 0.2, price: 25, desc: '+20% coin pickup pull' },
 
             // Rank 2 extras
             luck2: { name: 'HODL Luck', rank: 2, stat: 'luck', value: 0.3, price: 60 },
             crit2: { name: 'HODL Crit', rank: 2, stat: 'critChance', value: 0.08, price: 65 },
-            magnet2: { name: 'HODL Magnet', rank: 2, stat: 'magnet', value: 0.4, price: 55 },
+            magnet2: { name: 'HODL Magnet', rank: 2, stat: 'magnet', value: 0.4, price: 55, desc: '+40% coin pickup pull' },
 
             // Rank 3 extras
             luck3: { name: 'Crypto Luck', rank: 3, stat: 'luck', value: 0.5, price: 110 },
             crit3: { name: 'Crypto Crit', rank: 3, stat: 'critChance', value: 0.12, price: 120 },
             critDmg3: { name: 'Crypto Crit Dmg', rank: 3, stat: 'critDamage', value: 0.35, price: 110 },
-            magnet3: { name: 'Crypto Magnet', rank: 3, stat: 'magnet', value: 0.7, price: 100 },
+            magnet3: { name: 'Crypto Magnet', rank: 3, stat: 'magnet', value: 0.7, price: 100, desc: '+70% coin pickup pull' },
             damage3: { name: 'Crypto Damage', rank: 3, stat: 'damage', value: 0.2, price: 120 },
 
             // Rank 4 extras
@@ -1713,9 +1713,9 @@
             damage4: { name: 'Whale Damage', rank: 4, stat: 'damage', value: 0.35, price: 220 },
 
             // Fire Rate (Pump It)
-            pump2: { name: 'HODL Pump', rank: 2, stat: 'fireRateBonus', value: 0.10, price: 65 },
-            pump3: { name: 'Crypto Pump', rank: 3, stat: 'fireRateBonus', value: 0.18, price: 120 },
-            pump4: { name: 'Whale Pump', rank: 4, stat: 'fireRateBonus', value: 0.30, price: 200 },
+            pump2: { name: 'HODL Pump', rank: 2, stat: 'fireRateBonus', value: 0.10, price: 65, desc: 'Weapons fire 10% faster' },
+            pump3: { name: 'Crypto Pump', rank: 3, stat: 'fireRateBonus', value: 0.18, price: 120, desc: 'Weapons fire 18% faster' },
+            pump4: { name: 'Whale Pump', rank: 4, stat: 'fireRateBonus', value: 0.30, price: 200, desc: 'Weapons fire 30% faster' },
 
             // Lifesteal (Rug Pull)
             rug3: { name: 'Crypto Rug Pull', rank: 3, stat: 'lifesteal', value: 0.03, price: 130, desc: 'Heal 3% of damage dealt' },
@@ -2636,10 +2636,12 @@
             // Update enemies
             let pendingSpawns = [];
             enemies = enemies.filter(enemy => {
-                // Reset per-frame knockback cap (prevents multi-pellet stacking)
+                // Reset per-frame knockback impulse cap (prevents multi-pellet stacking)
                 enemy._frameKB = 0;
                 enemy._frameKBx = 0;
                 enemy._frameKBy = 0;
+                enemy.kbVx = enemy.kbVx || 0;
+                enemy.kbVy = enemy.kbVy || 0;
                 // Movement
                 let ex = player.x - enemy.x;
                 let ey = player.y - enemy.y;
@@ -2770,6 +2772,20 @@
                     if (dist > meleeRange) {
                         enemy.x += ex * speed * dt;
                         enemy.y += ey * speed * dt;
+                    }
+                }
+
+                // Smooth weapon knockback: hits add velocity, then friction eases enemies backward.
+                // This reads as a shove instead of a one-frame teleport.
+                if (enemy.kbVx || enemy.kbVy) {
+                    enemy.x += enemy.kbVx * dt;
+                    enemy.y += enemy.kbVy * dt;
+                    const damping = Math.pow(0.015, dt);
+                    enemy.kbVx *= damping;
+                    enemy.kbVy *= damping;
+                    if (Math.abs(enemy.kbVx) + Math.abs(enemy.kbVy) < 5) {
+                        enemy.kbVx = 0;
+                        enemy.kbVy = 0;
                     }
                 }
 
@@ -2935,20 +2951,22 @@
                         }
 
                         // Knockback (always pushes enemies back from YOUR weapons)
-                        // Cap per-frame: only the strongest hit applies (prevents shotgun pellet stacking)
+                        // Cap per-frame: only the strongest hit adds shove velocity (prevents shotgun pellet stacking)
                         if (p.knockback > 0) {
                             const kbMult = 1 - (enemy.knockbackResist || 0);
-                            const kbX = p.vx * p.knockback * 0.1 * kbMult;
-                            const kbY = p.vy * p.knockback * 0.1 * kbMult;
+                            const pSpeed = Math.max(1, Math.sqrt(p.vx * p.vx + p.vy * p.vy));
+                            const shoveSpeed = Math.min(520, p.knockback * 130) * kbMult;
+                            const kbX = (p.vx / pSpeed) * shoveSpeed;
+                            const kbY = (p.vy / pSpeed) * shoveSpeed;
                             const kbStrength = Math.sqrt(kbX * kbX + kbY * kbY);
                             if (!enemy._frameKB || kbStrength > enemy._frameKB) {
-                                // Undo previous weaker knockback, apply stronger one
+                                // Undo previous weaker shove impulse, apply stronger one.
                                 if (enemy._frameKB) {
-                                    enemy.x -= enemy._frameKBx;
-                                    enemy.y -= enemy._frameKBy;
+                                    enemy.kbVx -= enemy._frameKBx;
+                                    enemy.kbVy -= enemy._frameKBy;
                                 }
-                                enemy.x += kbX;
-                                enemy.y += kbY;
+                                enemy.kbVx = (enemy.kbVx || 0) + kbX;
+                                enemy.kbVy = (enemy.kbVy || 0) + kbY;
                                 enemy._frameKB = kbStrength;
                                 enemy._frameKBx = kbX;
                                 enemy._frameKBy = kbY;
@@ -3199,7 +3217,8 @@
                 }
 
                 if (c.magnetized) {
-                    const pullSpeed = 280 + (220 * player.magnet);
+                    // Magnet is economy tempo: bigger magnet grabs coins sooner and pulls them in faster.
+                    const pullSpeed = 280 + (260 * player.magnet);
                     const safeDist = Math.max(dist, 0.001);
                     c.x -= (dx / safeDist) * pullSpeed * dt;
                     c.y -= (dy / safeDist) * pullSpeed * dt;
@@ -3305,11 +3324,9 @@
                 }
 
                 if (enemies.length === 0 && enemiesToSpawn === 0) {
-                    if (coinsOnGround.length > 0) {
-                        // Auto-magnetize all remaining coins when enemies are cleared
-                        coinsOnGround.forEach(c => c.magnetized = true);
-                    } else if (!waveClearTimer) {
-                        waveClearTimer = 1.5;
+                    if (!waveClearTimer) {
+                        waveClearTimer = 2.5;
+                        showToast('Wave clear! Magnet grabs nearby coins.', '#ffd700', 1.2);
                     } else {
                         waveClearTimer -= dt;
                         if (waveClearTimer <= 0) {
@@ -5167,14 +5184,8 @@ Seed: ${currentSeed || 'random'}`;
                     ctx.arc(-4, -4, p.radius * 0.7, -1.2, 1.2);
                     ctx.fill();
 
-                    // Wobble text "🌙" emoji vibe - draw "MOON" tiny on it
-                    const wobble = Math.sin((p.age || 0) * 3) * 0.1;
-                    ctx.rotate(wobble);
-                    ctx.fillStyle = 'rgba(100, 90, 60, 0.4)';
-                    ctx.font = 'bold 10px Comic Neue';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('MOON', 0, 0);
+                    // Gentle wobble so it feels alive without needing a text label
+                    ctx.rotate(Math.sin((p.age || 0) * 3) * 0.04);
 
                     ctx.restore();
 
@@ -5310,14 +5321,7 @@ Seed: ${currentSeed || 'random'}`;
                     ctx.moveTo(-8, 3);
                     ctx.quadraticCurveTo(0, -5, 8, -1);
                     ctx.stroke();
-                    // Return indicator when coming back
-                    if (p.returning) {
-                        ctx.strokeStyle = 'rgba(230, 126, 34, 0.5)';
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.arc(0, 0, 12, 0, Math.PI * 2);
-                        ctx.stroke();
-                    }
+                    // Return state is shown by the flight path itself; no extra ring.
                     ctx.restore();
 
                 } else if (p.weaponType === 'rifle') {
