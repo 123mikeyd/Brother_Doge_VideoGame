@@ -173,14 +173,14 @@
         }
 
         #shopContent {
-            display: flex;
-            gap: 24px;
-            margin-bottom: 16px;
-            max-width: min(1240px, 96vw);
+            display: block;
+            width: min(560px, 92%);
+            max-width: 92%;
+            margin-bottom: 12px;
         }
 
         #shopTabs {
-            display: none;
+            display: flex;
             gap: 6px;
             flex-wrap: wrap;
             justify-content: center;
@@ -209,17 +209,26 @@
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
+            background: rgba(10,10,30,0.88);
+            padding: 8px;
+            border-radius: 12px;
         }
 
         .shopSection {
+            display: none;
             background: rgba(0,0,0,0.82);
             padding: 18px;
             border-radius: 15px;
             border: 3px solid #ffd700;
-            min-width: 240px;
-            max-height: 68dvh;
+            width: 100%;
+            min-width: 0;
+            max-height: 56dvh;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+        }
+
+        .shopSection.mobile-active {
+            display: block;
         }
 
         .shopSection h3 {
@@ -270,8 +279,9 @@
 
         .shopItem .desc {
             font-size: 12px;
-            color: #aaa;
+            color: #d8d8d8;
             margin-top: 5px;
+            line-height: 1.35;
         }
 
         .shopItem .price {
